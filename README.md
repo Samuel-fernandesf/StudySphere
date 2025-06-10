@@ -27,3 +27,5 @@ flask run
 ## Mais conteúdo
 Wiki Oficial - [Pagina Inicial](https://github.com/Samuel-fernandesf/StudySphere/wiki)<br>
 Equipe de desenvolvimento - [Integrantes](https://github.com/Samuel-fernandesf/StudySphere/wiki/Equipe-de-desenvolvimento)<br>
+Patch Notes - [Patch Notes](https://github.com/Samuel-fernandesf/StudySphere/wiki/Patch-Notes)<br>
+
