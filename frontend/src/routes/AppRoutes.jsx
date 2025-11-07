@@ -1,7 +1,6 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import Login from "../pages/Auth/Login";
-import Register from "../pages/Auth/Register";
+import Login from "../pages/Auth/Auth";
 import Dashboard from "../pages/Dashboard/Dashboard";
 import FilesList from "../pages/Files/FilesList";
 import FileView from "../pages/Files/FileView";
@@ -14,7 +13,6 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
-      <Route path="/register" element={<Register />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/files" element={<FilesList />} />
       <Route path="/files/:id" element={<FileView />} />

@@ -1,0 +1,256 @@
+/* Variáveis para fácil manutenção */
+:root {
+    --primary-color: #3b5a74; /* Cor principal, um azul escuro */
+    --secondary-color: #e9ecef; /* Cor secundária (botão "Criar conta") */
+    --text-color: #495057;
+    --heading-color: #212529;
+    --background-color: #f8f9fa;
+    --card-background: #ffffff;
+    --border-color: #ced4da;
+    --active-dot: #868e96;
+}
+
+/* Reset básico e fonte */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif; /* Usando Inter como similar */
+    background-color: var(--background-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: var(--text-color);
+    font-size: 16px;
+}
+
+/* Container principal para o layout de duas colunas */
+.container {
+    display: flex;
+    width: 100%;
+    max-width: 1200px; /* Largura máxima do layout */
+    background-color: transparent;
+    padding: 20px;
+}
+
+/* --- Lado Esquerdo (Branding) --- */
+.left-panel {
+    flex: 1; /* Ocupa 50% ou mais */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 50px;
+}
+
+.left-panel h1 {
+    font-size: 2.5rem;
+    color: var(--heading-color);
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.left-panel p {
+    font-size: 1.1rem;
+    color: var(--text-color);
+    max-width: 350px;
+    line-height: 1.5;
+    margin-bottom: 40px;
+}
+
+/* Área do Ícone/Logo - Replicação visual */
+.logo-area {
+    margin-bottom: 30px;
+    position: relative;
+    padding: 20px;
+}
+
+.icon-circle {
+    width: 180px;
+    height: 180px;
+    border: 1px solid var(--secondary-color);
+    border-radius: 50%;
+    position: relative;
+    background: #f7f9fc; /* Fundo claro para o círculo */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Os ícones são placeholders, por isso usamos tamanhos fixos e cores */
+.icon-main, .icon-globe, .icon-user {
+    position: absolute;
+    font-size: 2.5rem; 
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.icon-main { /* Ícone do Livro/Top-right */
+    top: -15px;
+    right: 5px;
+    background-color: var(--secondary-color); 
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    font-size: 2rem;
+}
+
+.icon-globe { /* Ícone do Globo/Center-top */
+    top: 30px;
+    left: 45px;
+    font-size: 2rem;
+    color: #a8dadc;
+    background: none;
+    box-shadow: none;
+}
+
+.icon-user { /* Ícone do Usuário/Bottom-left */
+    bottom: -15px;
+    left: 10px;
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 2rem;
+}
+
+
+/* Pontos de navegação */
+.dots {
+    display: flex;
+    gap: 8px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--secondary-color);
+    transition: background-color 0.3s;
+}
+
+.dot.active {
+    background-color: var(--active-dot);
+}
+
+
+/* --- Lado Direito (Formulário) --- */
+.right-panel {
+    flex: 1; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Cartão do Formulário */
+.card {
+    background-color: var(--card-background);
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    padding: 40px;
+    max-width: 450px;
+    width: 100%;
+    border: 1px solid #dee2e6; /* Borda sutil para replicar a área do cartão */
+}
+
+.card h2 {
+    font-size: 1.5rem;
+    color: var(--heading-color);
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.card .subtitle {
+    font-size: 0.95rem;
+    color: #6c757d;
+    margin-bottom: 25px;
+}
+
+/* Grupo de botões (Entrar / Criar Conta) */
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    flex: 1;
+}
+
+/* Botões: primário (ativo) e secundário (inativo) */
+.btn.primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn.secondary {
+    background-color: var(--secondary-color);
+    color: var(--heading-color);
+}
+
+.btn.primary:hover {
+    background-color: #314d64;
+}
+
+.btn.secondary:hover {
+    background-color: #dee2e6;
+}
+
+/* Formulário e campos */
+form {
+    /* Adiciona margem para separar o formulário do botão submit no cadastro */
+    margin-top: 10px; 
+}
+
+.form-group {
+    margin-bottom: 15px; /* Reduzi um pouco a margem para o formulário de cadastro caber melhor */
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--heading-color);
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1rem;
+    color: var(--heading-color);
+}
+
+.form-group input:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(59, 90, 116, 0.25);
+}
+
+.btn.submit-btn {
+    width: 100%;
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 1rem;
+    padding: 12px;
+    margin-top: 10px; /* Adiciona margem acima do botão principal de submissão */
+}
+
+.btn.submit-btn:hover {
+    background-color: #314d64;
+}
