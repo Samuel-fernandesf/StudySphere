@@ -4,7 +4,6 @@ import Header from "../components/layout/Header";
 export default function NotFound() {
   return (
     <>
-      <Header />
       <main className="container">
         <h2>Página não encontrada</h2>
         <p>Verifique a URL e tente novamente.</p>

@@ -19,7 +19,6 @@ export default function Register() {
 
   return (
     <>
-      <Header />
       <main className="container" style={{ maxWidth:600 }}>
         <h2>Registrar</h2>
         <form onSubmit={handleSubmit}>

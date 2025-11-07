@@ -25,7 +25,6 @@ export default function Login() {
 
   return (
     <>
-      <Header />
       <main className="container">
         <h2>Login</h2>
         <form onSubmit={handleSubmit} style={{ maxWidth:420 }}>

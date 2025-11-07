@@ -4,6 +4,7 @@ import UploadDropzone from "../../components/file/UploadDropzone";
 import FileCard from "../../components/file/FileCard";
 import { listarArquivos, enviarArquivo } from "../../services/fileService";
 import useFetch from "../../hooks/useFetch";
+import Sidebar from "../../components/layout/Sidebar";
 
 export default function FilesList() {
   const { data, carregando } = useFetch(listarArquivos, []);
@@ -15,7 +16,7 @@ export default function FilesList() {
 
   return (
     <>
-      <Header />
+      <Sidebar/>
       <main className="container">
         <h2>Arquivos</h2>
         <UploadDropzone onUpload={handleUpload} />

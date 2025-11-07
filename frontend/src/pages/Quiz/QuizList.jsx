@@ -3,12 +3,13 @@ import Header from "../../components/layout/Header";
 import useFetch from "../../hooks/useFetch";
 import { listarQuizzes } from "../../services/quizService";
 import { Link } from "react-router-dom";
+import Sidebar from "../../components/layout/Sidebar";
 
 export default function QuizList() {
   const { data } = useFetch(listarQuizzes, []);
   return (
     <>
-      <Header />
+      <Sidebar />
       <main className="container">
         <h2>Quizzes</h2>
         {data && data.map(q => (

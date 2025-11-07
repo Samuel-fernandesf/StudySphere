@@ -6,7 +6,6 @@ import Overview from "./Overview";
 export default function Dashboard() {
   return (
     <>
-      <Header />
       <main className="container" style={{ display:"flex", gap:20 }}>
         <Sidebar>
           <p><strong>Menu</strong></p>
