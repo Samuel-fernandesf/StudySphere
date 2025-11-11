@@ -1,5 +1,4 @@
 import React from "react";
-import Header from "../../components/layout/Header";
 import UploadDropzone from "../../components/file/UploadDropzone";
 import FileCard from "../../components/file/FileCard";
 import { listarArquivos, enviarArquivo } from "../../services/fileService";

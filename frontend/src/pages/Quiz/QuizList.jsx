@@ -1,5 +1,4 @@
 import React from "react";
-import Header from "../../components/layout/Header";
 import useFetch from "../../hooks/useFetch";
 import { listarQuizzes } from "../../services/quizService";
 import { Link } from "react-router-dom";
