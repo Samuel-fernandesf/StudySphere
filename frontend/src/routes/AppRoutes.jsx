@@ -8,6 +8,9 @@ import CalendarPage from "../pages/Calendar/CalendarPage";
 import QuizList from "../pages/Quiz/QuizList";
 import QuizPlay from "../pages/Quiz/QuizPlay";
 import NotFound from "../pages/NotFound";
+import ProgressView from "../pages/Progress/Progress";
+import Chats from "../pages/Chats/Chats";
+import UserConfig from "../pages/Config/UserConfig";
 
 export default function AppRoutes() {
   return (
@@ -19,7 +22,11 @@ export default function AppRoutes() {
       <Route path="/calendar" element={<CalendarPage />} />
       <Route path="/quiz" element={<QuizList />} />
       <Route path="/quiz/:id" element={<QuizPlay />} />
+      <Route path="/progress" element={<ProgressView />} />
+      <Route path="/chats" element={<Chats />} />
+      <Route path="/config" element={<UserConfig />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
+
