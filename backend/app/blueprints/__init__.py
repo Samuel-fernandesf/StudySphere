@@ -1,1 +1,2 @@
-from .auth import login, cadastro
+from .auth import auth
+from .home import home
