@@ -29,9 +29,17 @@ class UserRepository:
         data_nascimento = user_data.get('nascimento')
         if data_nascimento and isinstance(data_nascimento, str):
             try:
-                #Converte string para o objeto datetime.date
-                date_object = datetime.strptime(data_nascimento, "%a, %d %b %Y %H:%M:%S %Z")
-                user_data['nascimento'] = date_object.date()
+                if "-" in data_nascimento:
+                    #Converte string para o objeto datetime.date
+                    date_object = datetime.strptime(data_nascimento, "%Y-%m-%d").date()
+                else:
+                    # Caso venha em outro formato (fallback)
+                    date_object = datetime.strptime(
+                        data_nascimento,
+                        "%a, %d %b %Y %H:%M:%S %Z"
+                    ).date()
+
+                user_data['nascimento'] = date_object
             except ValueError:
                 user_data['nascimento'] = None
 
