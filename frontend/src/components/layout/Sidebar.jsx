@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import LogoutButton from '../Auth/LogoutButton';
 // Importa todos os ícones necessários (do App e do Sidebar)
 import {
     Menu,
@@ -258,6 +259,9 @@ function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }) {
                                 <Settings size={20} />
                                 <span>Configurações</span>
                             </a>
+                        </li>
+                        <li>
+                            <LogoutButton/>
                         </li>
                     </ul>
                     <div className="sidebar__version">
