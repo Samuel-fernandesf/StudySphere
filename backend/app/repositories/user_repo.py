@@ -1,11 +1,18 @@
 from models import Usuario
+from schemas import UserSchema
 from datetime import datetime
 from utils.db import db
 
 class UserRepository:
 
     #Métodos de Busca
+    def get_all_users(self):
+        users = Usuario.query.all()
+        schema = UserSchema(many=True)
+        users_data = schema.dump(users)
 
+        return users_data
+    
     def get_by_id(self, user_id: int) -> Usuario | None:
         return Usuario.query.get(user_id)
     

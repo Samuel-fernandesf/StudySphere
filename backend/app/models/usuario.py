@@ -1,14 +1,10 @@
 from flask import current_app #Usado para pegar os dados de onde a aplicação flask foi instanciada, no caso app.py
 from flask_login import UserMixin
 from itsdangerous import URLSafeTimedSerializer
-from utils.extensions import bcrypt, login_manager
+from utils.extensions import bcrypt
 from utils.db import db
 from datetime import datetime, timezone
 import enum
-
-@login_manager.user_loader
-def load_user(user_id):
-    return Usuario.query.get(int(user_id))
 
 class Usuario(db.Model, UserMixin):
     __tablename__ = 'usuario'
@@ -21,6 +17,8 @@ class Usuario(db.Model, UserMixin):
     nascimento = db.Column(db.Date, nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
 
+    revoked_tokens = db.relationship('RevokedToken', back_populates='user')
+    
     @property
     def cripto_pwd(self):
         return self.senha
