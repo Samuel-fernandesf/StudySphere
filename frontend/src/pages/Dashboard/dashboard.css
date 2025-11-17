@@ -1,0 +1,120 @@
+/* dashboard.css - versão corretiva (use no lugar do atual) */
+
+.dashboard-root {
+  display: grid;
+  grid-template-columns: 220px 1fr; /* coluna esquerda fixa e coluna direita flexível */
+  gap: 20px;
+  align-items: start;
+  padding: 20px 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* === coluna esquerda (saudação / botão) === */
+.dashboard-left {
+  /* Mantemos conteúdo alinhado ao topo */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+/* Header pequeno dentro da coluna esquerda */
+.welcome {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+.sub {
+  margin: 6px 0 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+/* botão flutuante / ação */
+.header-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--primary);
+  color: var(--primary-contrast);
+  font-weight: 600;
+}
+
+/* === coluna direita (conteúdo principal) === */
+.dashboard-right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* KPIs: usa minmax para evitar colunas ridículas */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+/* cartão KPI */
+.kpi-card {
+  background: var(--card-bg);
+  padding: 14px;
+  border-radius: var(--radius);
+  box-shadow: 0 6px 18px var(--surface-shadow);
+  min-height: 84px; /* não exagere no min-height */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.kpi-title { font-size: 0.85rem; color: var(--muted); }
+.kpi-value { font-size: 1.15rem; font-weight:700; margin-top:6px; color:var(--text); }
+
+/* Grid principal com 3 colunas para os cards */
+.grid-main {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+/* section card */
+.section-card {
+  background: var(--card-bg);
+  padding: 14px;
+  border-radius: var(--radius);
+  box-shadow: 0 6px 18px var(--surface-shadow);
+  min-height: 160px;
+}
+.section-header { margin-bottom: 10px; font-weight:700; color:var(--text); }
+
+/* placeholders */
+.placeholder-item {
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  padding:8px 0;
+  border-bottom: 1px dashed #eef2f6;
+}
+.ph-dot { width:8px; height:8px; background:#e6eef8; border-radius:50%; margin-top:6px; }
+.ph-text { color: #374151; line-height:1.3; }
+
+/* utilitários de botão */
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:8px 12px; border-radius:8px; }
+.btn.primary { background:var(--primary); color:var(--primary-contrast); }
+
+/* inputs largura total */
+input, textarea { width:100%; }
+
+/* === Responsividade === */
+@media (max-width: 1000px) {
+  .dashboard-root {
+    grid-template-columns: 1fr; /* empilha colunas em telas pequenas */
+  }
+  .dashboard-left { order: 0; }
+  .dashboard-right { order: 1; }
+  .kpi-row { grid-template-columns: repeat(2, minmax(140px,1fr)); }
+  .grid-main { grid-template-columns: 1fr; }
+}
