@@ -1,7 +1,12 @@
-from flask import session, request, jsonify
+from flask import request, jsonify
 from sqlalchemy.exc import IntegrityError
-from repositories import userRepository
+from repositories import userRepository, tokenRepository
 from utils.db import db
+from flask_jwt_extended import (jwt_required, 
+                                create_access_token, 
+                                create_refresh_token, 
+                                get_jwt_identity, 
+                                get_jwt)
 from . import auth
 
 @auth.route("/check-email", methods=["GET"])
@@ -12,7 +17,6 @@ def check_email():
 
     user = userRepository.get_by_email(email=email)
     return jsonify({"exists": bool(user)}), 200
-
 
 @auth.route("/check-username", methods=["GET"])
 def check_username():
@@ -33,7 +37,6 @@ def register():
         return jsonify({'message': 'Nome de usuário já existente. Tente outro.'}), 400
 
     try:
-        
         userRepository.create_user(dados)
         return jsonify({'message': 'Cadastrado realizado com sucesso! Faça o Login.'}), 201
     
@@ -47,25 +50,33 @@ def login():
 
     user = userRepository.get_by_email(email=dados.get('email'))
 
-    if not user:
-        return jsonify({'message': 'Credenciais Inválidas.'}), 401
+    if user and user.conversor_pwd(dados.get('senha')):
+        access_token = create_access_token(identity=str(user.id))
+        refresh_token = create_refresh_token(identity=str(user.id))
 
-    if user.conversor_pwd(dados.get('senha')):
-        session['user_id'] = user.id
-        return jsonify({'user_id': user.id, 'message': 'Login bem-sucedido.'}), 200
+        return jsonify(
+            {
+                'message': 'Login bem-sucedido.',
+                'tokens': {
+                    'access_token': access_token,
+                    'refresh_token': refresh_token}}), 200
     else:
         return jsonify({'message': 'Credenciais inválidas.'}), 401
-    
-@auth.route('/logout', methods=['POST']) 
-def logout():
 
-    print(f"DEBUG FLASK: Conteúdo da Sessão antes do Logout: {session}")
-    
-    if 'user_id' in session:
-        session.pop('user_id', None)
-        print("DEBUG FLASK: user_id removido da sessão.")
-        return jsonify({'message': 'Logout efetuado com sucesso.'}), 200
-    else:
-        print("DEBUG FLASK: Nenhuma sessão ativa encontrada (user_id ausente).")
-        # Retorne 401 ou 200, dependendo da sua preferência, mas 200 é comum
-        return jsonify({'message': 'Logout efetuado (Nenhuma sessão ativa).'}), 200
+@auth.route('/refresh', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh_access():
+    identity = get_jwt_identity()
+    new_access_token = create_access_token(identity=identity)
+
+    return jsonify({'access_token':new_access_token}), 200
+
+@auth.route('/logout', methods=['POST'])
+@jwt_required(verify_type=False)
+def logout():
+    jwt = get_jwt()
+    identity = get_jwt_identity()
+    jti = jwt['jti']
+
+    tokenRepository.revoke_token(jti=jti, user_id=identity)
+    return jsonify({'message': 'Logout efetuado com sucesso.'}), 200
