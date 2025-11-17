@@ -1,24 +1,33 @@
-import os
 from flask import Flask
 from flask_migrate import Migrate
-from blueprints.home import home
-from blueprints import auth
-from utils.db import db
 from flask_cors import CORS
-import dotenv
+from utils.db import db
+from utils.extensions import jwt
+from dotenv import load_dotenv
+from datetime import timedelta
 
-app = Flask(__name__)
-CORS(app, supports_credentials=True)
+def create_app():
+    load_dotenv()
 
-#Chaves de configuração em um arquivo .env
-app.config['SECRET_KEY'] = dotenv.get_key(dotenv.find_dotenv(), 'SECRET_KEY')
-app.config["SQLALCHEMY_DATABASE_URI"] = dotenv.get_key(dotenv.find_dotenv(), 'DATABASE_URL')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app = Flask(__name__)
 
-#Inicializando o banco de dados
-db.init_app(app)
-migrate = Migrate(app, db)
+    #Chaves de configuração em um arquivo .env - Pega todas as chaves de uma vez
+    app.config.from_prefixed_env()
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=15)
+    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=7)
 
-app.register_blueprint(auth, url_prefix='/api/auth')
-app.register_blueprint(home, url_prefix='/api/dashboard')
+    #Inicializando extensões
+    db.init_app(app)
+    jwt.init_app(app)
+    CORS(app, supports_credentials=True)
+    migrate = Migrate(app, db)
 
+
+    import utils.jwt_handlers
+    from blueprints.home import home
+    from blueprints import auth
+
+    app.register_blueprint(auth, url_prefix='/api/auth')
+    app.register_blueprint(home, url_prefix='/api/dashboard')
+
+    return app
