@@ -3,14 +3,9 @@ import React, { useEffect, useState } from "react";
 import "./dashboard.css";
 import Sidebar from "../../components/layout/Sidebar";
 
-/**
- * Função utilitária: tenta extrair o nome do usuário do localStorage.
- * Suporta vários formatos comuns para facilitar integração com o que você já tem.
- */
 function obterNomeDoLocalStorage() {
   try {
-    // chaves que podem guardar um objeto JSON com dados do usuário
-    const possiveis = ["studysphere_user", "user", "usuario"];
+    const possiveis = ["studysphere_user", "user", "usuario",'nome_completo'];
     for (const chave of possiveis) {
       const raw = localStorage.getItem(chave);
       if (!raw) continue;
@@ -18,7 +13,7 @@ function obterNomeDoLocalStorage() {
         const obj = JSON.parse(raw);
         if (obj) {
           // tenta campos comuns
-          return obj.nome || obj.name || obj.username || null;
+          return obj.nome || obj.name || obj.username || obj.nome_completo || null;
         }
       } catch {
         // se não for JSON, talvez seja o nome em texto
@@ -99,18 +94,19 @@ export default function Dashboard() {
     <>
     <Sidebar />
     <div className="dashboard-root">
-      {/* Coluna esquerda (saudação e ações) */}
-      <aside className="dashboard-left" aria-label="painel lateral">
+      <header className="dashboard-header">
         <div>
           <h1 className="welcome">Olá{nome ? `, ${String(nome).split(" ")[0]}!` : "!"} <span className="wave">👋</span></h1>
           <p className="sub">Vamos continuar estudando hoje?</p>
         </div>
 
-        <div style={{ marginTop: 8 }}>
-          <button className="btn primary" onClick={handleNovaTarefa}>+ Nova Tarefa</button>
+        <div className="header-actions">
+          <button className="btn">+ Nova Tarefa</button>
         </div>
-      </aside>
+      </header>
 
+
+      
       {/* Coluna direita (conteúdo principal) */}
       <main className="dashboard-right">
         {/* KPIs */}
