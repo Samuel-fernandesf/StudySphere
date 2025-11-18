@@ -17,12 +17,85 @@ A crescente dificuldade dos jovens em organizar suas rotinas de estudo é um ref
 
 Ao proporcionar um ambiente de estudo estruturado e interativo, o projeto busca motivar os alunos a adotarem práticas de gestão de tempo mais eficientes, além de criar um espaço colaborativo onde o aprendizado se torna mais dinâmico e participativo. Com a implementação de ferramentas como calendários interativos, lembretes, anotações e quizzes, os estudantes poderão não apenas se organizar, mas também se engajar mais profundamente com o conteúdo, tendo maior controle sobre sua jornada acadêmica e se conectando com seus colegas de forma construtiva. A plataforma não visa apenas organizar, mas também transformar a experiência de aprendizado em algo mais colaborativo, motivador e efetivo.
 
+---
 
-## Como rodar?
+## Instalação
+
+### **Pré-requisitos**
+
+- Python 3.12+
+- MySQL 8.0+
+- Node.js 18+
+- Git
+
+1. **Clone o repositório:**
+```bash
+  git clone https://github.com/Samuel-fernandesf/StudySphere.git
+  cd StudySphere
 ```
-cd app
-flask run
+
+2. **Instale as dependências do backend:**
+```bash
+  cd backend
+  python3 -m venv venv
+  
+  # Linux/MacOS
+  source venv/bin/activate
+
+  # Windows
+  ./venv/scripts/Activate.ps1
+
+  pip install -r requirements.txt  
 ```
+
+3. **Configure o Ambiente Virtual**
+
+Renomeie o arquivo `.env.example` para `.env` e configure as variáveis de ambiente:
+```python
+  FLASK_SQLALCHEMY_DATABASE_URI=mysql+pymysql://{usuário}:{senha}@localhost:3306/studysphere
+  FLASK_SECRET_KEY=sua_chave_secreta
+  FLASK_JWT_SECRET_KEY=outra_chave_secreta
+```
+
+4. **Configure o Banco de Dados**
+
+Primeiro crie **com o MySQL** uma base de dados de nome `studysphere`:
+```sql
+  CREATE DATABASE studysphere;
+```
+
+Após isso, na pasta do backend execute
+```bash
+  flask db upgrade
+```
+
+### Instalando o Frontend
+
+1. **Instale as dependências do frontend:**
+```bash
+  cd ../frontend
+  npm install
+```
+
+## Rodando o Projeto
+
+### **Rodando o Backend**
+
+Na pasta `backend/app`, com o ambiente virtual ativado, execute:
+```bash
+  python index.py
+```
+O backend estará disponível em [http://127.0.0.1:5000](http://127.0.0.1:5000)
+
+
+### **Rodando o Frontend**
+Na pasta `frontend`, execute:
+```bash
+  npm run dev
+```
+O frontend estará disponível em [http://127.0.0.1:5000](http://127.0.0.1:5000)
+
+--- 
 
 ## Mais conteúdo
 Wiki Oficial - [Pagina Inicial](https://github.com/Samuel-fernandesf/StudySphere/wiki)<br>
