@@ -64,7 +64,7 @@ Primeiro crie **com o MySQL** uma base de dados de nome `studysphere`:
   CREATE DATABASE studysphere;
 ```
 
-Após isso, na pasta do backend execute
+Após isso, na pasta backend/app execute
 ```bash
   flask db upgrade
 ```
