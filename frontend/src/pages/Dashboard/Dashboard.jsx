@@ -4,6 +4,7 @@ import "./dashboard.css";
 import Sidebar from "../../components/layout/Sidebar";
 
 function obterNomeDoLocalStorage() {
+  console.log(localStorage)
   try {
     const possiveis = ["studysphere_user", "user", "usuario",'nome_completo'];
     for (const chave of possiveis) {
