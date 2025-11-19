@@ -4,6 +4,8 @@ import { useAuthContext } from "../contexts/AuthContext";
 import ProtectedRoute from "./ProtectedRoute";
 
 import Login from "../pages/Auth/AuthScreen";
+import ForgotPasswordScreen from "../pages/Auth/ForgotPasswordScreen";
+import ResetPasswordScreen from "../pages/Auth/ResetPasswordScreen";
 import Dashboard from "../pages/Dashboard/Dashboard";
 import FilesList from "../pages/Files/FilesList";
 import FileView from "../pages/Files/FileView";
@@ -24,11 +26,26 @@ export default function AppRoutes() {
 
     <Routes>
 
-      {/* Rota Pública (Login) */}
+      {/* Rotas Públicas */}
       <Route 
       path="/" 
       element={!usuario ? (<Login />) : (<Navigate to='/dashboard' replace/>)}>
       </Route>
+
+      <Route 
+      path="/esqueci-a-senha" 
+      element={!usuario ? (<ForgotPasswordScreen />) : (<Navigate to='/dashboard' replace/>)}>
+      </Route>
+
+      <Route 
+      path="/redefinir-senha/:token"
+      element={!usuario ? (<ResetPasswordScreen />) : (<Navigate to='/dashboard' replace/>)}>
+      </Route>
+
+      {/* <Route 
+      path="/confirmar-email/:token" 
+      element={<EmailConfirmationScreen />} />
+      </Route> */}
 
       {/* Rotas Protegidas - Privadas */}
       <Route element={<ProtectedRoute />}>

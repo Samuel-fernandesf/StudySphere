@@ -218,6 +218,7 @@ form {
     color: var(--heading-color);
     font-weight: 600;
     margin-bottom: 0.3rem;
+    margin-top: 1rem;
 }
 
 .form-group input {
@@ -483,3 +484,23 @@ form {
     background: none; /* Garante que não pegue hover de .btn */
     transform: translateY(-50%); /* Mantém a transformação */
 }
+
+.form-link-group {
+    width: 100%;
+    display: flex; 
+    justify-content: flex-end;
+}
+
+.forgot-password-link {
+    color: var(--primary-color); 
+    font-size: 0.85rem; 
+    text-decoration: none; 
+    cursor: pointer; 
+    display: inline-block; 
+}
+
+.forgot-password-link:hover {
+    color: var(--primary-dark-color);
+    text-decoration: underline;
+}
+
