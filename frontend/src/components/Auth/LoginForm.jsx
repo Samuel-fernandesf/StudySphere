@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PasswordInput from './PasswordInput';
 
 function LoginForm({ handleLogin, isLoading, successMessage = '', clearSuccess = () => {} }) {
-
+    const navigate = useNavigate();
     const [validationError, setValidationError] = useState('');
     const [formData, setFormData] = useState({
         email: '',
@@ -71,6 +72,11 @@ function LoginForm({ handleLogin, isLoading, successMessage = '', clearSuccess =
             </div>
 
             <PasswordInput label='Senha:' name='senha' value={formData.senha} onChange={handleChange}placeholder="********" required/>
+            
+            <div className='form-link-group'> 
+                <a onClick={(e) => {navigate('/esqueci-a-senha');}} className="forgot-password-link"
+                >Esqueceu a senha?</a>
+            </div>
 
             <button type="submit" className="btn submit-btn" disabled={isLoading}>
                 {isLoading ? 'Entrando...' : 'Entrar'}

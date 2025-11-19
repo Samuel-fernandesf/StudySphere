@@ -1,10 +1,14 @@
 from flask import request, jsonify
 from sqlalchemy.exc import IntegrityError
 from repositories import userRepository, tokenRepository
+from models import Usuario
 from utils.db import db
+from utils.mail import send_confirm_email, send_reset_email
 from flask_jwt_extended import (jwt_required, 
                                 create_access_token, 
-                                create_refresh_token, 
+                                create_refresh_token,
+                                set_refresh_cookies,
+                                unset_jwt_cookies,
                                 get_jwt_identity, 
                                 get_jwt)
 from . import auth
@@ -30,15 +34,19 @@ def check_username():
 @auth.route('/register', methods=['POST'])
 def register():
     dados = request.get_json()
+    email = dados.get('email')
+    username = dados.get('username')
     
-    if userRepository.get_by_email(email=dados.get('email')):
+    if userRepository.get_by_email(email=email):
         return jsonify({'message': 'E-mail já existente. Tente outro.'}), 400
-    if userRepository.get_by_username(username=dados.get('username')):
+    if userRepository.get_by_username(username=username):
         return jsonify({'message': 'Nome de usuário já existente. Tente outro.'}), 400
 
     try:
         userRepository.create_user(dados)
-        return jsonify({'message': 'Cadastrado realizado com sucesso! Faça o Login.'}), 201
+        send_confirm_email(email)
+        return jsonify({'message': 'Um email foi enviado para confirmação. Caso não encontre, verifique a caixa de SPAM'}), 201
+        # return jsonify({'message': 'Cadastrado realizado com sucesso! Faça o Login.'}), 201
     
     except IntegrityError:
         db.session.rollback()
@@ -54,17 +62,50 @@ def login():
         access_token = create_access_token(identity=str(user.id))
         refresh_token = create_refresh_token(identity=str(user.id))
 
-        return jsonify(
+        response = jsonify(
             {
                 'message': 'Login bem-sucedido.',
-                'tokens': {
-                    'access_token': access_token,
-                    'refresh_token': refresh_token}}), 200
+                'user_id': str(user.id),
+                'access_token': access_token,
+            })
+        
+        #cria o cookie com flags (httpOnly)
+        set_refresh_cookies(response, refresh_token)
+        return response, 200
     else:
         return jsonify({'message': 'Credenciais inválidas.'}), 401
 
+@auth.route('/forgot-password', methods=['POST'])
+def forgot_password():
+    dados = request.get_json()
+    email = dados.get('email')
+
+    user = userRepository.get_by_email(email=email)
+
+    if user:
+        send_reset_email(user=user)
+
+    return jsonify({'message':'Se o e-mail existir, as instruções foram enviadas.'}), 200
+
+@auth.route('/reset-password', methods=['POST'])
+def reset_password():
+    dados = request.get_json()
+    token = dados.get('token')
+    new_password = dados.get('new_password')
+
+    if not token or not new_password:
+        return jsonify({'message': 'Token e nova senha são obrigatórios.'}), 400
+    
+    user = Usuario.verify_reset_token(token=token)
+
+    if not user:
+        return jsonify({'message': 'Token inválido ou expirado.'}), 400
+    
+    userRepository.update_password(user, new_password)
+    return jsonify({'message': 'Senha alterada com sucesso!'}), 200
+
 @auth.route('/refresh', methods=['POST'])
-@jwt_required(refresh=True)
+@jwt_required(refresh=True, locations=['cookies'])
 def refresh_access():
     identity = get_jwt_identity()
     new_access_token = create_access_token(identity=identity)
@@ -75,8 +116,13 @@ def refresh_access():
 @jwt_required(verify_type=False)
 def logout():
     jwt = get_jwt()
-    identity = get_jwt_identity()
     jti = jwt['jti']
+    identity = get_jwt_identity()
 
     tokenRepository.revoke_token(jti=jti, user_id=identity)
-    return jsonify({'message': 'Logout efetuado com sucesso.'}), 200
+
+    response = jsonify({'message': 'Logout efetuado com sucesso.'})
+    unset_jwt_cookies(response) #remove os cookies
+    return response, 200
+
+

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import LoginForm from '../../components/Auth/LoginForm';
 import RegisterForm from '../../components/Auth/RegisterForm';
 import { useAuthContext } from '../../contexts/AuthContext';
@@ -9,19 +9,31 @@ import './AuthScreen.css';
 function AuthScreen() {
   // Pega a função de salvar sessão
   const {entrar} = useAuthContext();
-
   const [view, setView] = useState('login'); 
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+
+  useEffect(() => {
+    const msg = localStorage.getItem('reset_password_success');
+    
+    if (msg) {
+        setSuccessMessage(msg);
+        localStorage.removeItem('reset_password_success'); 
+        setTimeout(() => setSuccessMessage(''), 10000);
+    }
+  }, []); 
 
   const handleLogin = async ({email, senha}) =>{
     setLoading(true);
 
     try{
       const data = await login(email, senha);
+      if (!data.access_token || !data.user_id) {
+       throw new Error("Resposta de login incompleta do servidor");
+      };
       entrar(data.user_id, data.access_token);
       return data;
-    } catch (error){
+    }catch (error){
       console.log('Erro no HandleLogin', error)
       throw error
     }finally{
@@ -86,7 +98,7 @@ function AuthScreen() {
           {/* Renderização Condicional da Tela */}
             {view === 'login' && (
                 <LoginForm handleLogin={handleLogin} isLoading={loading} successMessage={successMessage}
-              clearSuccess={() => setSuccessMessage('')} />
+              clearSuccess={() => setSuccessMessage('')} onForgotPasswordClick={() => setView('forgot-password')} />
             )}
 
             {view === 'cadastro' && (
