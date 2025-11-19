@@ -13,13 +13,17 @@ def create_app():
 
     #Chaves de configuração em um arquivo .env - Pega todas as chaves de uma vez
     app.config.from_prefixed_env()
-    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=15)
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(seconds=30)
     app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=7)
+    app.config["JWT_TOKEN_LOCATION"] = ["cookies", "headers"]
+    app.config["JWT_COOKIE_SECURE"] = False  # True somente em produção HTTPS
+    app.config["JWT_COOKIE_SAMESITE"] = "Lax"  # ou "None" se usar porta diferente
+    app.config["JWT_COOKIE_CSRF_PROTECT"] = False
 
     #Inicializando extensões
     db.init_app(app)
     jwt.init_app(app)
-    CORS(app, supports_credentials=True)
+    CORS(app, supports_credentials=True, origins='http://localhost:3000')
     migrate = Migrate(app, db)
 
 
