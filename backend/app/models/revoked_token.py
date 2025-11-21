@@ -6,10 +6,10 @@ class RevokedToken(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     jti = db.Column(db.String(120), nullable=False, unique=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('usuario.id', ondelete='CASCADE'), nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.now())
 
-    user = db.relationship('Usuario', back_populates='revoked_tokens')
+    user = db.relationship('Usuario', back_populates='revoked_tokens', lazy='select')
     
     def __init__(self, jti, user_id):
         self.jti = jti
