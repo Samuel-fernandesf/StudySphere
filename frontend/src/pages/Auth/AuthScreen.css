@@ -240,7 +240,7 @@ form {
 /* Botão de submissão do formulário (usa as cores do .btn.primary) */
 .btn.submit-btn {
     width: 100%;
-    font-size: 1.1rem;
+    font-size: 1rem;
     padding: 0.75rem;
     color: var(--secondary-color);
     background-color: var(--primary-color);
@@ -488,7 +488,7 @@ form {
 .form-link-group {
     width: 100%;
     display: flex; 
-    justify-content: flex-end;
+    justify-content: center;
 }
 
 .forgot-password-link {
@@ -504,3 +504,16 @@ form {
     text-decoration: underline;
 }
 
+.resend-email-link{
+    color: var(--error-color); 
+    font-size: 0.85rem; 
+    text-decoration: none; 
+    cursor: pointer; 
+    display: inline-block;
+    margin-left: 2rem; 
+}
+
+.resend-email-link:hover {
+    color: var(--msg-error);
+    text-decoration: underline;
+}

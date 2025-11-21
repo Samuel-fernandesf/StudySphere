@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PasswordInput from './PasswordInput';
 
-function LoginForm({ handleLogin, isLoading, successMessage = '', clearSuccess = () => {} }) {
+function LoginForm({ handleLogin, isLoading, successMessage = '', clearSuccess = () => {}, onResendEmail, resendStatus, resendMessage }) {
     const navigate = useNavigate();
     const [validationError, setValidationError] = useState('');
+    const [showResendLink, setShowResendLink] = useState(false);
     const [formData, setFormData] = useState({
         email: '',
         senha: ''
@@ -25,10 +26,13 @@ function LoginForm({ handleLogin, isLoading, successMessage = '', clearSuccess =
 
         if (validationError) setValidationError('');
         if (successMessage) clearSuccess();
+        if (showResendLink) setShowResendLink(false); //Oculta o link ao digitar
     };
 
     const handleSubmit = async(e) => {
         e.preventDefault();
+        setValidationError('');
+        setShowResendLink(false) //Assume que o login está correto
 
         if (!formData.email || !formData.senha) {
             setValidationError('Por favor, preencha todos os campos.');
@@ -38,6 +42,8 @@ function LoginForm({ handleLogin, isLoading, successMessage = '', clearSuccess =
          try {
             await handleLogin(formData);
             } catch (err) {
+
+                const error_code = err?.error_code;
                 const msg =
                     err?.message
                     || err?.response?.data?.message
@@ -45,10 +51,19 @@ function LoginForm({ handleLogin, isLoading, successMessage = '', clearSuccess =
                     || err?.response?.data?.erro
                     || "Erro desconhecido.";
 
-                setValidationError(msg);
+                if (error_code === 'EMAIL_NOT_CONFIRMED'){
+                    setValidationError(msg);
+                    setShowResendLink(true);
+                }else{
+                    setValidationError(msg);
+                }
                 console.log(err);
-
             }
+    };
+
+    const handleResend = () =>{
+        onResendEmail(formData.email);
+        setValidationError('')
     };
 
     return (
@@ -57,6 +72,12 @@ function LoginForm({ handleLogin, isLoading, successMessage = '', clearSuccess =
             {successMessage && (
                 <div className='success-message' role="status">
                     {successMessage}
+                </div>
+            )}
+
+            {(resendStatus !== 'idle') && (
+                <div className={resendStatus === 'error' ? 'error-message' : 'success-message'}>
+                    {resendMessage}
                 </div>
             )}
 
@@ -76,6 +97,12 @@ function LoginForm({ handleLogin, isLoading, successMessage = '', clearSuccess =
             <div className='form-link-group'> 
                 <a onClick={(e) => {navigate('/esqueci-a-senha');}} className="forgot-password-link"
                 >Esqueceu a senha?</a>
+
+                {showResendLink && resendStatus !== 'success' && (
+                    <a onClick={handleResend} className='resend-email-link' disabled={resendStatus === 'sending'}>
+                        {resendStatus === 'sending' ? 'Enviando...' : 'Reenviar Confirmação'}
+                    </a>
+                )}
             </div>
 
             <button type="submit" className="btn submit-btn" disabled={isLoading}>

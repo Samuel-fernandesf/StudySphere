@@ -1,17 +1,21 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import LoginForm from '../../components/Auth/LoginForm';
 import RegisterForm from '../../components/Auth/RegisterForm';
 import { useAuthContext } from '../../contexts/AuthContext';
-import { login, register } from '../../services/authService';
+import { login, register, resendEmail } from '../../services/authService';
 import logo from '../../assets/logo.png';
 import './AuthScreen.css';
 
 function AuthScreen() {
   // Pega a função de salvar sessão
   const {entrar} = useAuthContext();
+  const location = useLocation();
   const [view, setView] = useState('login'); 
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [resendStatus, setResendStatus] = useState('idle');
+  const [resendMsg, setResendMsg] = useState('');
 
   useEffect(() => {
     const msg = localStorage.getItem('reset_password_success');
@@ -19,9 +23,15 @@ function AuthScreen() {
     if (msg) {
         setSuccessMessage(msg);
         localStorage.removeItem('reset_password_success'); 
-        setTimeout(() => setSuccessMessage(''), 10000);
+        setTimeout(() => setSuccessMessage(''), 6000);
     }
-  }, []); 
+
+    if (location.state?.successMessage) {
+        setSuccessMessage(location.state.successMessage);
+        window.history.replaceState({}, document.title);
+        setTimeout(() => setSuccessMessage(''), 6000);
+    }
+  }, [location]); 
 
   const handleLogin = async ({email, senha}) =>{
     setLoading(true);
@@ -38,6 +48,23 @@ function AuthScreen() {
       throw error
     }finally{
       setLoading(false);
+    }
+  }
+
+  const handleResend = async (email) => {
+    setResendStatus('sending');
+    setResendMsg('');
+
+    try{
+      const result = await resendEmail(email); //Chamando a função do AuthService
+      setResendMsg(result.message || 'Novo link enviado com sucesso!');
+      setResendStatus('success');
+
+      setTimeout(() => {setResendStatus('idle'); setResendMsg('')}, 6000);
+      
+    }catch(err){
+      setResendMsg(err.message || 'Erro ao enviar o link.');
+      setResendStatus('error');
     }
   }
 
@@ -97,12 +124,21 @@ function AuthScreen() {
 
           {/* Renderização Condicional da Tela */}
             {view === 'login' && (
-                <LoginForm handleLogin={handleLogin} isLoading={loading} successMessage={successMessage}
-              clearSuccess={() => setSuccessMessage('')} onForgotPasswordClick={() => setView('forgot-password')} />
+                <LoginForm 
+                  handleLogin={handleLogin} 
+                  isLoading={loading} 
+                  successMessage={successMessage}
+                  clearSuccess={() => setSuccessMessage('')} 
+                  onForgotPasswordClick={() => setView('forgot-password')}
+                  onResendEmail={handleResend}
+                  resendStatus={resendStatus}
+                  resendMessage={resendMsg} />
             )}
 
             {view === 'cadastro' && (
-                <RegisterForm handleRegister={handleRegister} isLoading={loading} />
+                <RegisterForm 
+                  handleRegister={handleRegister} 
+                  isLoading={loading} />
             )}
         </div>
       </div>
