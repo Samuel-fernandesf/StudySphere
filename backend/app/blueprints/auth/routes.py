@@ -43,15 +43,72 @@ def register():
         return jsonify({'message': 'Nome de usuário já existente. Tente outro.'}), 400
 
     try:
-        userRepository.create_user(dados)
-        send_confirm_email(email)
-        return jsonify({'message': 'Um email foi enviado para confirmação. Caso não encontre, verifique a caixa de SPAM'}), 201
+        user = userRepository.create_user(dados)
+        send_confirm_email(user)
+        return jsonify({'message': 'Cadastro realizado. Verifique seu e-mail para confirmar a conta.'}), 201
         # return jsonify({'message': 'Cadastrado realizado com sucesso! Faça o Login.'}), 201
     
     except IntegrityError:
         db.session.rollback()
         return jsonify({'message': 'Erro ao salvar no banco'}), 500
+    except Exception as e:
+        db.session.rollback() 
+        print(e)
+        return jsonify({'message': 'Erro ao enviar e-mail de confirmação.'}), 500
 
+@auth.route('/confirm-email', methods=['POST'])
+def confirm_email():
+    dados = request.get_json()
+    token = dados.get('token')
+
+    if not token:
+        return jsonify({'message': 'Token é obrigatório.'}), 400
+    
+    user = Usuario.verify_confirmation_token(token=token)
+
+    if not user:
+        return jsonify({'message':'O token de confirmação é inválido ou expirou'})
+    
+    if user.confirm_user:
+        return jsonify({'message': 'Já confirmado...'}), 401
+    
+    try:
+        user.confirm_user = True
+        userRepository.update_and_commit(user)
+
+        return jsonify({'message': 'E-mail confirmado com sucesso!'}), 200
+    
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'message': 'Erro ao confirmar e-mail no banco de dados.'}), 500 
+    
+@auth.route('/resend-confirmation', methods=['POST'])
+def resend_confirmation():
+    dados = request.get_json()
+    email = dados.get('email')
+
+    if not email:
+        return jsonify({'message': 'Email é obrigatório.'}), 400
+    
+    user = userRepository.get_by_email(email=email)
+
+    # Por segurança, respondemos com sucesso mesmo se o usuário não existir 
+    # para evitar que hackers descubram quais emails estão cadastrados (Enumeration Attack),
+    # mas aqui vamos simplificar para sua lógica:
+    
+    if not user:
+        return jsonify({'message': 'Usuário não encontrado.'}), 404
+
+    if user.confirm_user:
+        return jsonify({'message': 'Este usuário já está confirmado. Faça login.'}), 400
+    
+    try:
+        send_confirm_email(user)
+        return jsonify({'message': 'Novo e-mail de confirmação enviado!'}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({'message': 'Erro ao enviar email.'}), 500
+    
 @auth.route('/login', methods=['POST'])
 def login():
     dados = request.get_json()
@@ -59,6 +116,13 @@ def login():
     user = userRepository.get_by_email(email=dados.get('email'))
 
     if user and user.conversor_pwd(dados.get('senha')):
+
+        #Para debug é interessante, porém para casos reais é bom colocar uma mensagem genérica.
+        if not user.confirm_user:
+            return jsonify({
+                'message': 'E-mail não confirmado. Verifique sua caixa de entrada.',
+                'error_code': 'EMAIL_NOT_CONFIRMED'}), 403
+        
         access_token = create_access_token(identity=str(user.id))
         refresh_token = create_refresh_token(identity=str(user.id))
 
