@@ -6,6 +6,8 @@ import ProtectedRoute from "./ProtectedRoute";
 import Login from "../pages/Auth/AuthScreen";
 import ForgotPasswordScreen from "../pages/Auth/ForgotPasswordScreen";
 import ResetPasswordScreen from "../pages/Auth/ResetPasswordScreen";
+import ConfirmEmailScreen from "../pages/Auth/ConfirmEmailScreen";
+
 import Dashboard from "../pages/Dashboard/Dashboard";
 import FilesList from "../pages/Files/FilesList";
 import CalendarPage from "../pages/Calendar/CalendarPage";
@@ -29,6 +31,11 @@ export default function AppRoutes() {
       <Route 
       path="/" 
       element={!usuario ? (<Login />) : (<Navigate to='/dashboard' replace/>)}>
+      </Route>
+
+      <Route
+      path="/confirmar-email/:token"
+      element={<ConfirmEmailScreen/>}>
       </Route>
 
       <Route 

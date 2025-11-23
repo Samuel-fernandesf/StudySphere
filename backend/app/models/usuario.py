@@ -18,7 +18,7 @@ class Usuario(db.Model, UserMixin):
     confirm_user = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
 
-    revoked_tokens = db.relationship('RevokedToken', back_populates='user')
+    revoked_tokens = db.relationship('RevokedToken', back_populates='user', lazy='dynamic', cascade='all, delete-orphan')
     
     def get_confirmation_token(self):
         s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
