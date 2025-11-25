@@ -1,36 +1,8 @@
 // src/pages/Dashboard/Dashboard.jsx
-import React, { useEffect, useState } from "react";
+import React from "react";
 import "./dashboard.css";
 import Sidebar from "../../components/layout/Sidebar";
-
-function obterNomeDoLocalStorage() {
-  try {
-    const possiveis = ["studysphere_user", "user", "usuario",'nome_completo'];
-    for (const chave of possiveis) {
-      const raw = localStorage.getItem(chave);
-      if (!raw) continue;
-      try {
-        const obj = JSON.parse(raw);
-        if (obj) {
-          // tenta campos comuns
-          return obj.nome || obj.name || obj.username || obj.nome_completo || null;
-        }
-      } catch {
-        // se não for JSON, talvez seja o nome em texto
-        if (raw && raw.trim()) return raw;
-      }
-    }
-
-    // chaves simples que podem guardar apenas o nome
-    const simples = localStorage.getItem("user_name") || localStorage.getItem("nome") || null;
-    if (simples) return simples;
-
-    // fallback: nada encontrado
-    return null;
-  } catch (e) {
-    return null;
-  }
-}
+import { useAuthContext } from "../../contexts/AuthContext";
 
 /* --- Componentes visuais pequenos --- */
 const KpiCard = ({ titulo, valor, descricao }) => (
@@ -57,12 +29,13 @@ const PlaceholderItem = ({ text }) => (
 
 /* --- Componente principal do Dashboard --- */
 export default function Dashboard() {
-  const [nome, setNome] = useState(null);
+  // Busca dados do usuário do contexto de autenticação
+  const { userDetails } = useAuthContext();
 
-  useEffect(() => {
-    const n = obterNomeDoLocalStorage();
-    setNome(n);
-  }, []);
+  // Extrai o primeiro nome do nome completo
+  const primeiroNome = userDetails?.nome_completo 
+    ? userDetails.nome_completo.split(" ")[0] 
+    : userDetails?.username || "";
 
   // Placeholders até as features estarem prontas
   const tempoHoje = "Nenhum progresso hoje";
@@ -96,15 +69,16 @@ export default function Dashboard() {
     <div className="dashboard-root">
       <header className="dashboard-header">
         <div>
-          <h1 className="welcome">Olá{nome ? `, ${String(nome).split(" ")[0]}!` : "!"} <span className="wave">👋</span></h1>
+          <h1 className="welcome">
+            Olá{primeiroNome ? `, ${primeiroNome}!` : "!"} <span className="wave">👋</span>
+          </h1>
           <p className="sub">Vamos continuar estudando hoje?</p>
         </div>
 
         <div className="header-actions">
-          <button className="btn">+ Nova Tarefa</button>
+          <button className="btn" onClick={handleNovaTarefa}>+ Nova Tarefa</button>
         </div>
       </header>
-
 
       
       {/* Coluna direita (conteúdo principal) */}

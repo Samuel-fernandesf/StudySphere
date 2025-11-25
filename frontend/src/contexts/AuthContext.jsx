@@ -11,7 +11,21 @@ export function AuthProvider({ children }) {
   // Inicializa o estado lendo o LocalStorage
   const [usuario, setUsuario] = useState(() => localStorage.getItem("user_id"));
   const [token, setToken] = useState(() => localStorage.getItem("access_token"));
+  const [userDetails, setUserDetails] = useState(null); // Novos dados completos do usuário
   const [loading, setLoading] = useState(false);
+
+  // Função para buscar dados completos do usuário
+  async function fetchUserDetails() {
+    try {
+      const data = await getMe();
+      setUserDetails(data.user_details);
+      return data.user_details;
+    } catch (error) {
+      console.error("Erro ao buscar dados do usuário:", error);
+      setUserDetails(null);
+      return null;
+    }
+  }
 
   function entrar(id, token) {
     // Salva a persistencia da sessão no navegador
@@ -21,7 +35,10 @@ export function AuthProvider({ children }) {
     // Atualiza o estado global do react
     setUsuario(id);
     setToken(token);
-    }
+    
+    // Busca dados completos do usuário após login
+    fetchUserDetails();
+  }
 
   async function sair() {
     setLoading(true);
@@ -34,6 +51,7 @@ export function AuthProvider({ children }) {
       localStorage.removeItem("user_id");
       localStorage.removeItem("access_token");
       setUsuario(null);
+      setUserDetails(null);
       setLoading(false);
       window.location.href = "/";
     }
@@ -48,6 +66,7 @@ export function AuthProvider({ children }) {
       if (!token || !userId) {
         setUsuario(null);
         setToken(null);
+        setUserDetails(null);
         setLoading(false);
         // Não faz a chamada de /me. O interceptor NÃO será acionado.
         return;
@@ -56,11 +75,13 @@ export function AuthProvider({ children }) {
       try {
           const data = await getMe();
           setUsuario(data.user_id);
+          setUserDetails(data.user_details);
           // Se chegou aqui, o token foi renovado ou ainda é válido
       } catch (error) {
           // Se falhou tudo, limpa o estado
           setUsuario(null);
           setToken(null);
+          setUserDetails(null);
           localStorage.removeItem("user_id");
           localStorage.removeItem("access_token");
       } finally {
@@ -75,7 +96,7 @@ export function AuthProvider({ children }) {
   return (
     // O value é o que todos os componentes terão acesso
     //O children se refere ao que esse contexto engloba no caso o App (Ver app.jsx)
-    <AuthContext.Provider value={{ usuario, token, loading, entrar, sair }}>
+    <AuthContext.Provider value={{ usuario, token, userDetails, loading, entrar, sair, fetchUserDetails }}>
       {children} 
     </AuthContext.Provider>
   );
