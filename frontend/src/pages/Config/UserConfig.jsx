@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "../../components/layout/Sidebar";
+
 import { useAuthContext } from "../../contexts/AuthContext";
 import api from "../../api/api";
 import "./UserConfig.css";
@@ -512,9 +512,7 @@ export default function UserConfig() {
     };
 
     return (
-        <>
-            <Sidebar />
-            <div className="config-root">
+        <div className="config-root">
                 <header className="config-header">
                     <h1>Configurações</h1>
                     <p>Gerencie suas preferências e informações da conta</p>
@@ -559,6 +557,5 @@ export default function UserConfig() {
                     </div>
                 )}
             </div>
-        </>
     );
 }

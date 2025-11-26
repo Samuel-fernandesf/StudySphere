@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "../../components/layout/Sidebar";
 import SubjectCard from "../../components/subjects/SubjectCard";
 import SubjectModal from "../../components/subjects/SubjectModal";
 import { listarMaterias, deletarMateria } from "../../services/subjectService";
@@ -60,9 +59,7 @@ export default function SubjectsPage() {
   }
 
   return (
-    <>
-      <Sidebar />
-      <main className="subjects-page-root">
+    <main className="subjects-page-root">
         <div className="subjects-header">
           <div>
             <h2 className="subjects-title">Matérias</h2>
@@ -121,6 +118,5 @@ export default function SubjectsPage() {
           />
         )}
       </main>
-    </>
   );
 }

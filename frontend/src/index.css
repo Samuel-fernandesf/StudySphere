@@ -12,6 +12,8 @@
   --surface-shadow: rgba(0,0,0,0.1);
   --radius: 12px;
   --gap: 20px;
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 80px;
 }
 
 /* RESET / BASE */
@@ -27,12 +29,52 @@ body{
   line-height:1.4;
 }
 
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Layout wrapper para Sidebar + Conteúdo */
+.app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+}
+
+/* Main content area que se ajusta com a sidebar */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: var(--sidebar-width);
+  transition: margin-left 0.3s ease-in-out;
+  overflow-y: auto;
+  background-color: var(--bg);
+}
+
+.main-content.collapsed {
+  margin-left: var(--sidebar-collapsed-width);
+}
+
+/* Responsividade para mobile */
+@media (max-width: 768px) {
+  .main-content,
+  .main-content.collapsed {
+    margin-left: 0;
+  }
+}
+
 /* Layout container mais flexível */
 .container {
   width: 100%;
-  max-width: 1200px;  /* aumenta um pouco para dashboard */
-  margin: 0 auto;
+  max-width: 100%;  /* Ocupa toda a largura disponível */
+  margin: 0;
   padding: 24px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
 }
 
 /* Botões e inputs neutros */

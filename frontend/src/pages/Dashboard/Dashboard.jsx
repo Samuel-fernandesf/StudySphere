@@ -1,7 +1,6 @@
 // src/pages/Dashboard/Dashboard.jsx
 import React from "react";
 import "./dashboard.css";
-import Sidebar from "../../components/layout/Sidebar";
 import { useAuthContext } from "../../contexts/AuthContext";
 
 /* --- Componentes visuais pequenos --- */
@@ -64,8 +63,6 @@ export default function Dashboard() {
   }
 
   return (
-    <>
-    <Sidebar />
     <div className="dashboard-container">
       <header className="dashboard-header">
         <div>
@@ -114,6 +111,5 @@ export default function Dashboard() {
         </section>
       </main>
     </div>
-    </>
   );
 }

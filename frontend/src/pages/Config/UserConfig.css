@@ -1,10 +1,13 @@
 /* src/pages/Config/UserConfig.css */
 
 .config-root {
-    margin-left: 260px;
     padding: var(--gap);
-    min-height: 100vh;
+    min-height: 100%;
     background-color: var(--bg);
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .config-header {
@@ -425,7 +428,6 @@ input:checked + .switch-slider:before {
 /* Responsividade */
 @media (max-width: 800px) {
     .config-root {
-        margin-left: 0;
         padding: 16px;
     }
 

@@ -2,13 +2,14 @@
 
 /* ALINHAMENTO PRINCIPAL */
 .dashboard-root {
-  margin-left: 0;
   padding: var(--gap);
-  min-height: 100vh;
+  min-height: 100%;
   background-color: var(--bg);
   display: flex;
   flex-direction: column;
   gap: 24px;
+  flex: 1;
+  width: 100%;
 }
 
 /* Linha inicial de boas-vindas + botão */
@@ -205,7 +206,6 @@
 
 @media (max-width: 800px) {
   .dashboard-root {
-    margin-left: 0;
     padding: 16px;
   }
 
