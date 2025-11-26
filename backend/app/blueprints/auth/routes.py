@@ -44,9 +44,10 @@ def register():
 
     try:
         user = userRepository.create_user(dados)
-        send_confirm_email(user)
-        return jsonify({'message': 'Cadastro realizado. Verifique seu e-mail para confirmar a conta.'}), 201
-        # return jsonify({'message': 'Cadastrado realizado com sucesso! Faça o Login.'}), 201
+        # send_confirm_email(user)  # Desabilitado para testes locais
+        user.confirm_user = True  # Auto-confirmar usuário para testes
+        db.session.commit()
+        return jsonify({'message': 'Cadastrado realizado com sucesso! Faça o Login.'}), 201
     
     except IntegrityError:
         db.session.rollback()

@@ -1,23 +1,26 @@
 /* index.css (global) */
 :root{
-  --bg: #f7f7fb;
-  --primary: #4f46e5;
+  /* Cores baseadas no Figma */
+  --bg: #f8fafc; /* Fundo principal */
+  --primary: #334155; /* Azul escuro principal */
   --primary-contrast: #ffffff;
-  --muted: #6b7280;
+  --secondary: #f1f5f9; /* Cinza claro para botões secundários */
+  --muted: #64748b; /* Texto secundário */
+  --text: #1e293b; /* Texto principal */
   --card-bg: #ffffff;
-  --surface-shadow: rgba(11,15,30,0.04);
-  --text: #111827;
-  --radius: 10px;
-  --gap: 16px;
+  --card-border: #f1f5f9;
+  --surface-shadow: rgba(0,0,0,0.1);
+  --radius: 12px;
+  --gap: 20px;
 }
 
 /* RESET / BASE */
-* { box-sizing: border-box; }
+*
 html,body,#root { height: 100%; }
 body{
   margin:0;
   font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  background: var(--bg);
+  background-color: var(--bg);
   color: var(--text);
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
@@ -40,6 +43,7 @@ input,textarea,select { font-family: inherit; font-size: 1rem; color: var(--text
 .card {
   background: var(--card-bg);
   border-radius: var(--radius);
-  box-shadow: 0 6px 18px var(--surface-shadow);
-  padding: 16px;
+  box-shadow: 0 1px 3px var(--surface-shadow);
+  border: 1px solid var(--card-border);
+  padding: 24px; /* Aumentar padding padrão */
 }

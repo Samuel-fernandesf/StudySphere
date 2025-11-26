@@ -1,203 +1,564 @@
-import React, { useState } from 'react';
-import { 
-  User, Bell, Moon, Shield, Camera, ChevronDown, 
-  Download, HelpCircle, LogOut, Trash2, Check, Globe 
-} from 'lucide-react';
-import './UserConfig.css';
+import React, { useState, useEffect } from "react";
 import Sidebar from "../../components/layout/Sidebar";
+import { useAuthContext } from "../../contexts/AuthContext";
+import api from "../../api/api";
+import "./UserConfig.css";
 
-// Componentes auxiliares
-const InputGroup = ({ label, defaultValue, type = "text" }) => (
-  <div className="input-group">
-    <label className="input-label">{label}</label>
-    <input type={type} className="form-input" defaultValue={defaultValue} />
-  </div>
-);
+export default function UserConfig() {
+    const { userDetails, fetchUserDetails } = useAuthContext();
+    const [activeTab, setActiveTab] = useState("perfil");
+    const [toast, setToast] = useState(null);
 
-const ToggleSwitch = ({ label, description, defaultChecked }) => (
-  <div className="toggle-item">
-    <div>
-      <h4 className="section-title" style={{ fontSize: '0.85rem' }}>{label}</h4>
-      <p className="section-desc" style={{ fontSize: '0.75rem', marginTop: 0 }}>{description}</p>
-    </div>
-    <label className="switch" style={{ position: 'relative', width: 40, height: 22 }}>
-      <input type="checkbox" defaultChecked={defaultChecked} style={{opacity: 0, width: 0, height: 0}} />
-      <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, background: '#cbd5e1', borderRadius: 34, transition: '.4s' }} className="slider-bg"></span>
-      <span style={{ position: 'absolute', content: "", height: 18, width: 18, left: 2, bottom: 2, background: 'white', borderRadius: '50%', transition: '.4s' }} className="slider-circle"></span>
-    </label>
-    {/* Nota: Adicionei estilo inline no switch pra simplificar, mas o ideal é o CSS da resposta anterior */}
-  </div>
-);
+    // Estados para o formulário de perfil
+    const [profileData, setProfileData] = useState({
+        nome_completo: "",
+        username: "",
+        email: "",
+        nascimento: "",
+        biografia: "",
+        curso: ""
+    });
 
-// --- ABAS ---
-
-const ProfileTab = () => (
-  <div className="tab-content">
-    <div className="card">
-      <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h3 className="section-title">Perfil</h3>
-          <p className="section-desc">Dados da conta</p>
-        </div>
-        {/* Avatar movido para o topo direito ou mantido aqui compacto */}
-      </div>
-
-      <div className="profile-header">
-        <div className="avatar-container">
-          <div className="avatar-circle">JS</div>
-          <button className="camera-btn"><Camera size={12} /></button>
-        </div>
-        <div>
-           <div className="section-title">João Silva</div>
-           <div className="section-desc">Aluno • Engenharia de Software</div>
-        </div>
-      </div>
-
-      {/* Grid para Nome e Email na mesma linha */}
-      <div className="form-grid">
-        <InputGroup label="Nome Completo" defaultValue="João Silva" />
-        <InputGroup label="Email" defaultValue="joao.silva@studysphere.com" />
-      </div>
-
-      {/* Grid para Curso e Semestre */}
-      <div className="form-grid">
-        <InputGroup label="Curso" defaultValue="Engenharia de Software" />
-        <InputGroup label="Semestre" defaultValue="5º Semestre" />
-      </div>
-
-      <div className="input-group" style={{ marginBottom: '1rem' }}>
-        <label className="input-label">Biografia</label>
-        <textarea className="form-textarea" defaultValue="Estudante apaixonado por tecnologia..."></textarea>
-      </div>
-
-      <div className="action-buttons">
-        <button className="btn btn-secondary">Cancelar</button>
-        <button className="btn btn-primary"><Check size={14} /> Salvar</button>
-      </div>
-    </div>
-    
-    {/* Seção de Segurança movida para dentro da visualização se sobrar espaço ou mantida separada */}
-    <div className="card">
-        <h3 className="section-title mb-2">Segurança Rápida</h3>
-        <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-            <button className="btn btn-secondary" style={{width: '100%', justifyContent: 'center'}}>Alterar Senha</button>
-            <button className="btn btn-secondary" style={{width: '100%', justifyContent: 'center'}}>Ativar 2FA</button>
-        </div>
-    </div>
-  </div>
-);
-
-const NotificationsTab = () => (
-  <div className="card">
-    <h3 className="section-title mb-4">Preferências de Notificação</h3>
-    <ToggleSwitch label="Push" description="Notificações no navegador" defaultChecked={true} />
-    <ToggleSwitch label="Email" description="Resumos semanais" defaultChecked={true} />
-    <ToggleSwitch label="Metas" description="Lembretes diários" defaultChecked={true} />
-    <ToggleSwitch label="Relatórios" description="Progresso semanal" defaultChecked={true} />
-    <div className="action-buttons">
-      <button className="btn btn-primary">Salvar</button>
-    </div>
-  </div>
-);
-
-const AppearanceTab = () => (
-  <div className="card">
-    <h3 className="section-title mb-4">Aparência</h3>
-    <div className="form-grid">
-        <div className="input-group">
-            <label className="input-label">Tema</label>
-            <select className="form-select"><option>Claro</option><option>Escuro</option></select>
-        </div>
-        <div className="input-group">
-            <label className="input-label">Idioma</label>
-            <select className="form-select"><option>Português (BR)</option><option>English</option></select>
-        </div>
-    </div>
-    <div className="input-group mb-4">
-        <label className="input-label">Meta Diária: 4h</label>
-        <input type="range" style={{width: '100%'}} />
-    </div>
-    <div className="action-buttons">
-      <button className="btn btn-primary">Aplicar</button>
-    </div>
-  </div>
-);
-
-const PrivacyTab = () => (
-  <div className="tab-content">
-      <div className="card">
-        <h3 className="section-title">Dados</h3>
-        <div className="form-grid" style={{marginTop: '1rem'}}>
-             <button className="btn btn-secondary" style={{justifyContent: 'center'}}><Download size={14}/> Exportar Dados</button>
-             <button className="btn btn-secondary" style={{justifyContent: 'center'}}><HelpCircle size={14}/> Termos de Uso</button>
-        </div>
-      </div>
-      <div className="card" style={{borderColor: '#fecaca'}}>
-        <h3 className="section-title text-red-600">Zona de Perigo</h3>
-        <div className="form-grid" style={{marginTop: '1rem'}}>
-            <button className="btn btn-secondary" style={{color: '#dc2626', borderColor: '#fecaca', justifyContent: 'center'}}><LogOut size={14}/> Sair</button>
-            <button className="btn btn-secondary" style={{color: '#dc2626', borderColor: '#fecaca', justifyContent: 'center'}}><Trash2 size={14}/> Deletar</button>
-        </div>
-      </div>
-  </div>
-);
-
-// --- Componente Principal ---
-
-const SettingsPage = () => {
-  const [activeTab, setActiveTab] = useState('perfil');
-
-  const tabs = [
-    { id: 'perfil', label: 'Perfil', icon: User },
-    { id: 'notificacoes', label: 'Notificações', icon: Bell },
-    { id: 'aparencia', label: 'Aparência', icon: Moon },
-    { id: 'privacidade', label: 'Privacidade', icon: Shield },
-  ];
-
-  const renderContent = () => {
-      switch(activeTab) {
-          case 'perfil': return <ProfileTab />;
-          case 'notificacoes': return <NotificationsTab />;
-          case 'aparencia': return <AppearanceTab />;
-          case 'privacidade': return <PrivacyTab />;
-          default: return <ProfileTab />;
-      }
-  }
-
-  return (
-    <>
-    <Sidebar />
-    <div className="settings-container">
-      <div className="settings-wrapper">
+    // Estados para preferências
+    const [preferences, setPreferences] = useState({
+        // Notificações
+        pushNotifications: true,
+        emailNotifications: true,
+        studyReminders: true,
+        weeklyReports: false,
+        achievements: true,
         
-        <div className="header-top">
-          <div>
-            <h1 className="page-title">Configurações</h1>
-          </div>
-          <div className="version-badge">v1.0.0</div>
-        </div>
+        // Aparência
+        theme: "light",
+        language: "pt",
+        soundEffects: true,
+        dailyGoal: 2,
+        
+        // Privacidade
+        profileVisibility: "public"
+    });
 
-        <div className="tabs-nav">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`}
-            >
-              <tab.icon size={16} />
-              {tab.label}
-            </button>
-          ))}
-        </div>
+    // Avatar
+    const [avatarPreview, setAvatarPreview] = useState(null);
 
-        <div className="content-area">
-          {renderContent()}
-        </div>
+    // Carrega dados do usuário ao montar componente
+    useEffect(() => {
+        if (userDetails) {
+            setProfileData({
+                nome_completo: userDetails.nome_completo || "",
+                username: userDetails.username || "",
+                email: userDetails.email || "",
+                nascimento: userDetails.nascimento || "",
+                biografia: userDetails.biografia || "",
+                curso: userDetails.curso || ""
+            });
+        }
+    }, [userDetails]);
 
-      </div>
-    </div>
-    </>
-  );
-};
+    // Função para mostrar toast
+    const showToast = (message, type = "success") => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 3000);
+    };
 
-export default SettingsPage;
+    // Handlers
+    const handleProfileChange = (e) => {
+        setProfileData({
+            ...profileData,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    const handlePreferenceToggle = (key) => {
+        setPreferences({
+            ...preferences,
+            [key]: !preferences[key]
+        });
+    };
+
+    const handlePreferenceChange = (key, value) => {
+        setPreferences({
+            ...preferences,
+            [key]: value
+        });
+    };
+
+    const handleAvatarChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setAvatarPreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleSaveProfile = async () => {
+        try {
+            const response = await api.put('/dashboard/update-profile', profileData);
+            showToast("Perfil atualizado com sucesso!");
+            await fetchUserDetails(); // Atualiza dados no contexto
+        } catch (error) {
+            showToast("Erro ao salvar perfil", "error");
+            console.error(error);
+        }
+    };
+
+    const handleSavePreferences = async () => {
+        try {
+            // TODO: Implementar chamada à API para salvar preferências
+            // await api.put('/dashboard/preferences', preferences);
+            showToast("Preferências salvas com sucesso!");
+        } catch (error) {
+            showToast("Erro ao salvar preferências", "error");
+            console.error(error);
+        }
+    };
+
+    const handleExportData = () => {
+        showToast("Exportação de dados iniciada. Você receberá um email em breve.");
+    };
+
+    const handleDeleteAccount = () => {
+        if (window.confirm("Tem certeza que deseja excluir sua conta? Esta ação é irreversível.")) {
+            showToast("Funcionalidade em desenvolvimento", "error");
+        }
+    };
+
+    // Renderiza conteúdo da aba ativa
+    const renderTabContent = () => {
+        switch (activeTab) {
+            case "perfil":
+                return (
+                    <div className="config-content">
+                        <div className="config-section">
+                            <h3 className="config-section-header">Informações Pessoais</h3>
+                            
+                            {/* Avatar */}
+                            <div className="avatar-upload">
+                                <div className="avatar-preview">
+                                    {avatarPreview ? (
+                                        <img src={avatarPreview} alt="Avatar" />
+                                    ) : (
+                                        userDetails?.nome_completo?.charAt(0).toUpperCase() || "?"
+                                    )}
+                                </div>
+                                <div className="avatar-actions">
+                                    <label className="btn-secondary" style={{ cursor: "pointer" }}>
+                                        Alterar Foto
+                                        <input 
+                                            type="file" 
+                                            accept="image/*" 
+                                            onChange={handleAvatarChange}
+                                            style={{ display: "none" }}
+                                        />
+                                    </label>
+                                    {avatarPreview && (
+                                        <button 
+                                            className="btn-secondary"
+                                            onClick={() => setAvatarPreview(null)}
+                                        >
+                                            Remover
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Formulário */}
+                            <div className="config-form-group">
+                                <label>Nome Completo</label>
+                                <input 
+                                    type="text"
+                                    name="nome_completo"
+                                    value={profileData.nome_completo}
+                                    onChange={handleProfileChange}
+                                />
+                            </div>
+
+                            <div className="config-form-group">
+                                <label>Nome de Usuário</label>
+                                <input 
+                                    type="text"
+                                    name="username"
+                                    value={profileData.username}
+                                    onChange={handleProfileChange}
+                                />
+                            </div>
+
+                            <div className="config-form-group">
+                                <label>Email</label>
+                                <input 
+                                    type="email"
+                                    name="email"
+                                    value={profileData.email}
+                                    onChange={handleProfileChange}
+                                    disabled
+                                />
+                                <small className="muted-text">
+                                    O email não pode ser alterado
+                                </small>
+                            </div>
+
+                            <div className="config-form-group">
+                                <label>Data de Nascimento</label>
+                                <input 
+                                    type="date"
+                                    name="nascimento"
+                                    value={profileData.nascimento}
+                                    onChange={handleProfileChange}
+                                />
+                            </div>
+
+                            <div className="config-form-group">
+                                <label>Curso</label>
+                                <input 
+                                    type="text"
+                                    name="curso"
+                                    value={profileData.curso}
+                                    onChange={handleProfileChange}
+                                    placeholder="Ex: Engenharia de Software"
+                                />
+                            </div>
+
+                            <div className="config-form-group">
+                                <label>Biografia</label>
+                                <textarea 
+                                    name="biografia"
+                                    value={profileData.biografia}
+                                    onChange={handleProfileChange}
+                                    placeholder="Conte um pouco sobre você..."
+                                />
+                            </div>
+
+                            <div className="config-actions">
+                                <button className="btn-primary" onClick={handleSaveProfile}>
+                                    Salvar Alterações
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="config-section">
+                            <h3 className="config-section-header">Segurança</h3>
+                            <p className="config-section-desc">
+                                Gerencie suas configurações de segurança e autenticação
+                            </p>
+
+                            <div className="config-form-group">
+                                <label>Alterar Senha</label>
+                                <button className="btn-secondary full-width">
+                                    Redefinir Senha
+                                </button>
+                            </div>
+
+                            <div className="config-switch-group">
+                                <div className="config-switch-label">
+                                    <strong>Autenticação de Dois Fatores (2FA)</strong>
+                                    <span>Adicione uma camada extra de segurança à sua conta</span>
+                                </div>
+                                <label className="switch">
+                                    <input type="checkbox" />
+                                    <span className="switch-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                );
+
+            case "notificacoes":
+                return (
+                    <div className="config-content">
+                        <div className="config-section">
+                            <h3 className="config-section-header">Preferências de Notificações</h3>
+                            <p className="config-section-desc">
+                                Controle como e quando você deseja receber notificações
+                            </p>
+
+                            <div className="config-switch-group">
+                                <div className="config-switch-label">
+                                    <strong>Notificações Push</strong>
+                                    <span>Receba alertas no navegador</span>
+                                </div>
+                                <label className="switch">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={preferences.pushNotifications}
+                                        onChange={() => handlePreferenceToggle("pushNotifications")}
+                                    />
+                                    <span className="switch-slider"></span>
+                                </label>
+                            </div>
+
+                            <div className="config-switch-group">
+                                <div className="config-switch-label">
+                                    <strong>Notificações por Email</strong>
+                                    <span>Receba atualizações importantes por email</span>
+                                </div>
+                                <label className="switch">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={preferences.emailNotifications}
+                                        onChange={() => handlePreferenceToggle("emailNotifications")}
+                                    />
+                                    <span className="switch-slider"></span>
+                                </label>
+                            </div>
+
+                            <div className="config-switch-group">
+                                <div className="config-switch-label">
+                                    <strong>Lembretes de Estudo</strong>
+                                    <span>Receba lembretes para manter sua rotina de estudos</span>
+                                </div>
+                                <label className="switch">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={preferences.studyReminders}
+                                        onChange={() => handlePreferenceToggle("studyReminders")}
+                                    />
+                                    <span className="switch-slider"></span>
+                                </label>
+                            </div>
+
+                            <div className="config-switch-group">
+                                <div className="config-switch-label">
+                                    <strong>Relatórios Semanais</strong>
+                                    <span>Receba resumos do seu progresso toda semana</span>
+                                </div>
+                                <label className="switch">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={preferences.weeklyReports}
+                                        onChange={() => handlePreferenceToggle("weeklyReports")}
+                                    />
+                                    <span className="switch-slider"></span>
+                                </label>
+                            </div>
+
+                            <div className="config-switch-group">
+                                <div className="config-switch-label">
+                                    <strong>Conquistas e Badges</strong>
+                                    <span>Seja notificado quando conquistar novas badges</span>
+                                </div>
+                                <label className="switch">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={preferences.achievements}
+                                        onChange={() => handlePreferenceToggle("achievements")}
+                                    />
+                                    <span className="switch-slider"></span>
+                                </label>
+                            </div>
+
+                            <div className="config-actions">
+                                <button className="btn-primary" onClick={handleSavePreferences}>
+                                    Salvar Preferências
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+
+            case "aparencia":
+                return (
+                    <div className="config-content">
+                        <div className="config-section">
+                            <h3 className="config-section-header">Personalização Visual</h3>
+                            <p className="config-section-desc">
+                                Customize a aparência da plataforma de acordo com suas preferências
+                            </p>
+
+                            <div className="config-form-group">
+                                <label>Tema</label>
+                                <select 
+                                    value={preferences.theme}
+                                    onChange={(e) => handlePreferenceChange("theme", e.target.value)}
+                                >
+                                    <option value="light">Claro</option>
+                                    <option value="dark">Escuro</option>
+                                    <option value="auto">Automático (Sistema)</option>
+                                </select>
+                            </div>
+
+                            <div className="config-form-group">
+                                <label>Idioma</label>
+                                <select 
+                                    value={preferences.language}
+                                    onChange={(e) => handlePreferenceChange("language", e.target.value)}
+                                >
+                                    <option value="pt">Português (BR)</option>
+                                    <option value="en">English</option>
+                                    <option value="es">Español</option>
+                                </select>
+                            </div>
+
+                            <div className="config-switch-group">
+                                <div className="config-switch-label">
+                                    <strong>Efeitos Sonoros</strong>
+                                    <span>Reproduzir sons ao completar tarefas e conquistas</span>
+                                </div>
+                                <label className="switch">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={preferences.soundEffects}
+                                        onChange={() => handlePreferenceToggle("soundEffects")}
+                                    />
+                                    <span className="switch-slider"></span>
+                                </label>
+                            </div>
+
+                            <div className="slider-group">
+                                <div className="slider-label">
+                                    <span>Meta de Estudo Diária</span>
+                                    <span className="slider-value">{preferences.dailyGoal}h</span>
+                                </div>
+                                <input 
+                                    type="range"
+                                    className="slider"
+                                    min="1"
+                                    max="8"
+                                    step="0.5"
+                                    value={preferences.dailyGoal}
+                                    onChange={(e) => handlePreferenceChange("dailyGoal", parseFloat(e.target.value))}
+                                />
+                            </div>
+
+                            <div className="config-actions">
+                                <button className="btn-primary" onClick={handleSavePreferences}>
+                                    Salvar Preferências
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+
+            case "privacidade":
+                return (
+                    <div className="config-content">
+                        <div className="config-section">
+                            <h3 className="config-section-header">Dados e Privacidade</h3>
+                            <p className="config-section-desc">
+                                Gerencie seus dados pessoais e configurações de privacidade
+                            </p>
+
+                            <div className="config-form-group">
+                                <label>Visibilidade do Perfil</label>
+                                <select 
+                                    value={preferences.profileVisibility}
+                                    onChange={(e) => handlePreferenceChange("profileVisibility", e.target.value)}
+                                >
+                                    <option value="public">Público</option>
+                                    <option value="friends">Apenas Amigos</option>
+                                    <option value="private">Privado</option>
+                                </select>
+                            </div>
+
+                            <div className="config-form-group">
+                                <label>Exportar Dados</label>
+                                <button className="btn-secondary full-width" onClick={handleExportData}>
+                                    Solicitar Exportação de Dados
+                                </button>
+                                <small className="muted-text">
+                                    Você receberá um arquivo com todos os seus dados por email
+                                </small>
+                            </div>
+
+                            {/* Estatísticas da conta */}
+                            <div className="stats-container">
+                                <h4 className="stats-header">Estatísticas da Conta</h4>
+                                <div className="stats-grid">
+                                    <div className="stat-card">
+                                        <div className="stat-value">0h</div>
+                                        <div className="stat-label">Horas Estudadas</div>
+                                    </div>
+                                    <div className="stat-card">
+                                        <div className="stat-value">0</div>
+                                        <div className="stat-label">Conquistas</div>
+                                    </div>
+                                    <div className="stat-card">
+                                        <div className="stat-value">0</div>
+                                        <div className="stat-label">Tarefas Completas</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="config-section">
+                                <h3 className="config-section-header">Políticas e Termos</h3>
+                                <div className="link-group">
+                                    <a href="#" className="action-link">📄 Política de Privacidade</a>
+                                    <a href="#" className="action-link">📋 Termos de Uso</a>
+                                    <a href="#" className="action-link">🍪 Política de Cookies</a>
+                                </div>
+                            </div>
+
+                            <div className="config-section danger-zone">
+                                <h3 className="config-section-header">Zona de Perigo</h3>
+                                <p className="config-section-desc">
+                                    Ações irreversíveis que afetam permanentemente sua conta
+                                </p>
+
+                                <div className="link-group">
+                                    <button className="btn-danger full-width" onClick={handleDeleteAccount}>
+                                        Excluir Conta Permanentemente
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+
+            default:
+                return null;
+        }
+    };
+
+    return (
+        <>
+            <Sidebar />
+            <div className="config-root">
+                <header className="config-header">
+                    <h1>Configurações</h1>
+                    <p>Gerencie suas preferências e informações da conta</p>
+                </header>
+
+                {/* Tabs */}
+                <div className="config-tabs">
+                    <button 
+                        className={`config-tab ${activeTab === "perfil" ? "active" : ""}`}
+                        onClick={() => setActiveTab("perfil")}
+                    >
+                        👤 Perfil
+                    </button>
+                    <button 
+                        className={`config-tab ${activeTab === "notificacoes" ? "active" : ""}`}
+                        onClick={() => setActiveTab("notificacoes")}
+                    >
+                        🔔 Notificações
+                    </button>
+                    <button 
+                        className={`config-tab ${activeTab === "aparencia" ? "active" : ""}`}
+                        onClick={() => setActiveTab("aparencia")}
+                    >
+                        🎨 Aparência
+                    </button>
+                    <button 
+                        className={`config-tab ${activeTab === "privacidade" ? "active" : ""}`}
+                        onClick={() => setActiveTab("privacidade")}
+                    >
+                        🔒 Privacidade
+                    </button>
+                </div>
+
+                {/* Conteúdo da aba ativa */}
+                {renderTabContent()}
+
+                {/* Toast notification */}
+                {toast && (
+                    <div className={`toast ${toast.type}`}>
+                        <span>{toast.type === "success" ? "✓" : "✗"}</span>
+                        <span>{toast.message}</span>
+                    </div>
+                )}
+            </div>
+        </>
+    );
+}

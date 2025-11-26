@@ -23,15 +23,19 @@ def create_app():
     #Inicializando extensões
     db.init_app(app)
     jwt.init_app(app)
-    CORS(app, supports_credentials=True, origins='http://localhost:3000')
+    CORS(app, supports_credentials=True, origins=['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:5173'])
     migrate = Migrate(app, db)
 
 
     import utils.jwt_handlers
     from blueprints.home import home
     from blueprints import auth
+    from blueprints.events import events_bp
+    from blueprints.subjects import subjects_bp
 
     app.register_blueprint(auth, url_prefix='/api/auth')
     app.register_blueprint(home, url_prefix='/api/dashboard')
+    app.register_blueprint(events_bp, url_prefix='/api')
+    app.register_blueprint(subjects_bp, url_prefix='/api')
 
     return app
