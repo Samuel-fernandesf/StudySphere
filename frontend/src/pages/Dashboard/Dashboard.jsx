@@ -63,7 +63,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-root">
       <header className="dashboard-header">
         <div>
           <h1 className="welcome">

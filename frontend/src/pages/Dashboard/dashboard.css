@@ -10,6 +10,7 @@
   gap: 24px;
   flex: 1;
   width: 100%;
+  box-sizing: border-box;
 }
 
 /* Linha inicial de boas-vindas + botão */

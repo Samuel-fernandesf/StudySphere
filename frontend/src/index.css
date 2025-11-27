@@ -50,7 +50,10 @@ body{
   margin-left: var(--sidebar-width);
   transition: margin-left 0.3s ease-in-out;
   overflow-y: auto;
+  overflow-x: hidden;
   background-color: var(--bg);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .main-content.collapsed {
@@ -75,6 +78,7 @@ body{
   display: flex;
   flex-direction: column;
   min-height: 100%;
+  box-sizing: border-box;
 }
 
 /* Botões e inputs neutros */
