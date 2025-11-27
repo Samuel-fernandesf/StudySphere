@@ -26,7 +26,7 @@ export default function Layout({ children }) {
   };
 
   return (
-    <div className='layout-container'>
+    <div className="app-layout">
       <Sidebar
         isOpen={isMobileSidebarOpen}
         onClose={handleCloseMobileSidebar}

@@ -22,7 +22,6 @@ MarkupSafe==3.0.3
 marshmallow==4.1.0
 marshmallow-sqlalchemy==1.4.2
 moviepy==2.2.1
-mysqlclient==2.2.7
 numpy==2.3.5
 pillow==11.3.0
 proglog==0.1.12
