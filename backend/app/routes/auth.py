@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import request, jsonify, Blueprint
 from sqlalchemy.exc import IntegrityError
 from repositories import userRepository, tokenRepository
 from models import Usuario
@@ -11,7 +11,8 @@ from flask_jwt_extended import (jwt_required,
                                 unset_jwt_cookies,
                                 get_jwt_identity, 
                                 get_jwt)
-from . import auth
+
+auth = Blueprint('auth', __name__)
 
 @auth.route("/check-email", methods=["GET"])
 def check_email():
