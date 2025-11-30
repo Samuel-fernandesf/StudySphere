@@ -14,7 +14,7 @@ def user_lookup_callback(jwt_headers, jwt_payload):
 @jwt.additional_claims_loader
 def make_additional_claims(identity):
     user = userRepository.get_by_id(identity)
-    is_admin = (user.email == 'samuelfernandesfilho2007@gmail.com')
+    is_admin = (user.email == 'suporte.studysphere@gmail.com')
 
     return {'username': user.username, 'is_admin': is_admin}
 

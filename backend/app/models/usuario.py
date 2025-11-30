@@ -15,6 +15,8 @@ class Usuario(db.Model, UserMixin):
     nome_completo = db.Column(db.String(100), nullable=False)
     username = db.Column(db.String(100), unique=True, nullable=False)
     nascimento = db.Column(db.Date, nullable=True)
+    curso = db.Column(db.String(200), nullable=True)
+    biografia = db.Column(db.Text, nullable=True)
     confirm_user = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
 
@@ -84,9 +86,11 @@ class Usuario(db.Model, UserMixin):
     def conversor_pwd(self, senha_descripto):
         return bcrypt.check_password_hash(self.senha, senha_descripto)
 
-    def __init__(self, email, senha, nome_completo, username, nascimento):
+    def __init__(self, email, senha, nome_completo, username, nascimento, curso=None, biografia=None):
         self.email = email
         self.cripto_pwd = senha
         self.nome_completo = nome_completo
         self.username = username
         self.nascimento = nascimento
+        self.curso = curso
+        self.biografia = biografia
