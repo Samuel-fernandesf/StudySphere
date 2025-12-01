@@ -1,6 +1,7 @@
 // src/pages/Dashboard/Dashboard.jsx
 import React from "react";
 import "./dashboard.css";
+import Sidebar from "../../components/layout/Sidebar";
 import { useAuthContext } from "../../contexts/AuthContext";
 
 /* --- Componentes visuais pequenos --- */

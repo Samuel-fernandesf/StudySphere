@@ -13,7 +13,7 @@ def create_app():
 
     #Chaves de configuração em um arquivo .env - Pega todas as chaves de uma vez
     app.config.from_prefixed_env()
-    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(seconds=30)
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=10)
     app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=7)
     app.config["JWT_TOKEN_LOCATION"] = ["cookies", "headers"]
     app.config["JWT_COOKIE_SECURE"] = False  # True somente em produção HTTPS
@@ -28,10 +28,14 @@ def create_app():
 
 
     import utils.jwt_handlers
+<<<<<<< HEAD
     from blueprints.home import home
     from blueprints import auth
     from blueprints.events import events_bp
     from blueprints.subjects import subjects_bp
+=======
+    from routes import auth, home
+>>>>>>> 36b1f9821e543b79326894092595ed3bc71520fc
 
     app.register_blueprint(auth, url_prefix='/api/auth')
     app.register_blueprint(home, url_prefix='/api/dashboard')

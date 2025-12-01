@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-
+import Sidebar from "../../components/layout/Sidebar";
 import { useAuthContext } from "../../contexts/AuthContext";
 import api from "../../api/api";
 import "./UserConfig.css";
@@ -194,8 +194,9 @@ export default function UserConfig() {
                                     value={profileData.email}
                                     onChange={handleProfileChange}
                                     disabled
+                                    style={{ opacity: 0.6, cursor: "not-allowed" }}
                                 />
-                                <small className="muted-text">
+                                <small style={{ color: "var(--muted)", fontSize: "0.85rem" }}>
                                     O email não pode ser alterado
                                 </small>
                             </div>
@@ -246,7 +247,7 @@ export default function UserConfig() {
 
                             <div className="config-form-group">
                                 <label>Alterar Senha</label>
-                                <button className="btn-secondary full-width">
+                                <button className="btn-secondary" style={{ width: "100%" }}>
                                     Redefinir Senha
                                 </button>
                             </div>
@@ -454,17 +455,17 @@ export default function UserConfig() {
 
                             <div className="config-form-group">
                                 <label>Exportar Dados</label>
-                                <button className="btn-secondary full-width" onClick={handleExportData}>
+                                <button className="btn-secondary" style={{ width: "100%" }} onClick={handleExportData}>
                                     Solicitar Exportação de Dados
                                 </button>
-                                <small className="muted-text">
+                                <small style={{ color: "var(--muted)", fontSize: "0.85rem" }}>
                                     Você receberá um arquivo com todos os seus dados por email
                                 </small>
                             </div>
 
                             {/* Estatísticas da conta */}
-                            <div className="stats-container">
-                                <h4 className="stats-header">Estatísticas da Conta</h4>
+                            <div style={{ marginTop: 24 }}>
+                                <h4 style={{ marginBottom: 12, fontSize: "1rem" }}>Estatísticas da Conta</h4>
                                 <div className="stats-grid">
                                     <div className="stat-card">
                                         <div className="stat-value">0h</div>
@@ -480,27 +481,27 @@ export default function UserConfig() {
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <div className="config-section">
-                                <h3 className="config-section-header">Políticas e Termos</h3>
-                                <div className="link-group">
-                                    <a href="#" className="action-link">📄 Política de Privacidade</a>
-                                    <a href="#" className="action-link">📋 Termos de Uso</a>
-                                    <a href="#" className="action-link">🍪 Política de Cookies</a>
-                                </div>
+                        <div className="config-section">
+                            <h3 className="config-section-header">Políticas e Termos</h3>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                                <a href="#" className="action-link">📄 Política de Privacidade</a>
+                                <a href="#" className="action-link">📋 Termos de Uso</a>
+                                <a href="#" className="action-link">🍪 Política de Cookies</a>
                             </div>
+                        </div>
 
-                            <div className="config-section danger-zone">
-                                <h3 className="config-section-header">Zona de Perigo</h3>
-                                <p className="config-section-desc">
-                                    Ações irreversíveis que afetam permanentemente sua conta
-                                </p>
+                        <div className="config-section">
+                            <h3 className="config-section-header" style={{ color: "#ef4444" }}>Zona de Perigo</h3>
+                            <p className="config-section-desc">
+                                Ações irreversíveis que afetam permanentemente sua conta
+                            </p>
 
-                                <div className="link-group">
-                                    <button className="btn-danger full-width" onClick={handleDeleteAccount}>
-                                        Excluir Conta Permanentemente
-                                    </button>
-                                </div>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                                <button className="btn-danger" onClick={handleDeleteAccount}>
+                                    Excluir Conta Permanentemente
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -512,7 +513,9 @@ export default function UserConfig() {
     };
 
     return (
-        <div className="config-root">
+        <>
+            <Sidebar />
+            <div className="config-root">
                 <header className="config-header">
                     <h1>Configurações</h1>
                     <p>Gerencie suas preferências e informações da conta</p>
@@ -557,5 +560,6 @@ export default function UserConfig() {
                     </div>
                 )}
             </div>
+        </>
     );
 }
