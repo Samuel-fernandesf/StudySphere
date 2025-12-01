@@ -1,36 +1,14 @@
-/* src/components/layout/Layout.css */
+/* Layout.css (ATUALIZADO) */
 
-.app-layout {
-  display: flex;
-  height: 100vh;
-  width: 100%;
-  overflow: hidden; /* Evita scroll duplo */
-}
+/* este arquivo assume que index.css define as variáveis e padding do app-layout */
 
-.main-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  margin-left: 0;
-  transition: margin-left 0.3s ease-in-out;
-  overflow-y: auto;
-  overflow-x: hidden;
-  background-color: var(--bg);
-  position: relative;
-}
-
-.main-content.collapsed {
-  margin-left: var(--sidebar-collapsed-width);
-}
-
-/* Resto do CSS (mobile-menu-toggle, media queries) mantém igual... */
-
+/* mobile menu toggle (botão) */
 .mobile-menu-toggle {
   display: none;
   position: fixed;
   top: 16px;
   left: 16px;
-  z-index: 1001;
+  z-index: 1101; /* acima da sidebar quando aberta */
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 8px;
@@ -41,19 +19,10 @@
   box-shadow: 0 2px 5px var(--surface-shadow);
   transition: all 0.2s;
 }
+.mobile-menu-toggle:hover { transform: translateY(-2px); }
 
-.mobile-menu-toggle:hover {
-  background: var(--secondary);
-  box-shadow: 0 4px 8px var(--surface-shadow);
-}
-
-/* Responsividade para mobile */
+/* Responsividade */
 @media (max-width: 768px) {
-  .main-content,
-  .main-content.collapsed {
-    margin-left: 0;
-  }
-
   .mobile-menu-toggle {
     display: block;
   }

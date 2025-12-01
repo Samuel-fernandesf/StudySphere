@@ -1,8 +1,8 @@
-"""empty message
+"""initial migration
 
-Revision ID: 336448f33844
-Revises: 1b00675f9e20
-Create Date: 2025-11-27 13:24:43.893083
+Revision ID: 9c33c6995486
+Revises: 
+Create Date: 2025-12-01 18:50:41.202935
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '336448f33844'
-down_revision = '1b00675f9e20'
+revision = '9c33c6995486'
+down_revision = None
 branch_labels = None
 depends_on = None
 
@@ -44,6 +44,10 @@ def upgrade():
     sa.ForeignKeyConstraint(['user_id'], ['usuario.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    with op.batch_alter_table('revoked_tokens', schema=None) as batch_op:
+        batch_op.drop_constraint(batch_op.f('revoked_tokens_ibfk_1'), type_='foreignkey')
+        batch_op.create_foreign_key(None, 'usuario', ['user_id'], ['id'], ondelete='CASCADE')
+
     with op.batch_alter_table('usuario', schema=None) as batch_op:
         batch_op.add_column(sa.Column('curso', sa.String(length=200), nullable=True))
         batch_op.add_column(sa.Column('biografia', sa.Text(), nullable=True))
@@ -56,6 +60,10 @@ def downgrade():
     with op.batch_alter_table('usuario', schema=None) as batch_op:
         batch_op.drop_column('biografia')
         batch_op.drop_column('curso')
+
+    with op.batch_alter_table('revoked_tokens', schema=None) as batch_op:
+        batch_op.drop_constraint(None, type_='foreignkey')
+        batch_op.create_foreign_key(batch_op.f('revoked_tokens_ibfk_1'), 'usuario', ['user_id'], ['id'])
 
     op.drop_table('subject')
     op.drop_table('event')

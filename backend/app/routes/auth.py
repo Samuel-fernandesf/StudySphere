@@ -45,15 +45,8 @@ def register():
 
     try:
         user = userRepository.create_user(dados)
-<<<<<<< HEAD:backend/app/blueprints/auth/routes.py
-        # send_confirm_email(user)  # Desabilitado para testes locais
-        user.confirm_user = True  # Auto-confirmar usuário para testes
-        db.session.commit()
-        return jsonify({'message': 'Cadastrado realizado com sucesso! Faça o Login.'}), 201
-=======
         send_confirm_email(user)
         return jsonify({'message': 'Cadastro realizado. Verifique seu e-mail para confirmar a conta.'}), 201
->>>>>>> 36b1f9821e543b79326894092595ed3bc71520fc:backend/app/routes/auth.py
     
     except IntegrityError:
         db.session.rollback()

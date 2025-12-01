@@ -1,25 +1,39 @@
-/* index.css (global) */
+/* index.css (global) - ATUALIZADO */
+
+/* Variáveis */
 :root{
-  /* Cores baseadas no Figma */
-  --bg: #f8fafc; /* Fundo principal */
-  --primary: #334155; /* Azul escuro principal */
+  --bg: #f8fafc;
+  --primary: #334155;
   --primary-contrast: #ffffff;
-  --secondary: #f1f5f9; /* Cinza claro para botões secundários */
-  --muted: #64748b; /* Texto secundário */
-  --text: #1e293b; /* Texto principal */
+  --secondary: #f1f5f9;
+  --muted: #64748b;
+  --text: #1e293b;
   --card-bg: #ffffff;
   --card-border: #f1f5f9;
   --surface-shadow: rgba(0,0,0,0.1);
   --radius: 12px;
   --gap: 20px;
-  --sidebar-collapsed-width: 80px;
+
+  /* IMPORTANTES */
+  --sidebar-width: 260px;            /* largura da sidebar quando aberta */
+  --sidebar-collapsed-width: 80px;  /* largura quando recolhida */
 }
 
 /* RESET / BASE */
-*
-html,body,#root { height: 100%; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 body{
-  margin:0;
   font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   background-color: var(--bg);
   color: var(--text);
@@ -28,61 +42,52 @@ body{
   line-height:1.4;
 }
 
-#root {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-/* Layout wrapper para Sidebar + Conteúdo */
+/* APP LAYOUT - usa padding-left para reservar espaço para a sidebar fixa */
 .app-layout {
-  display: flex;
-  height: 100vh;
+  display: block; /* sidebar é fixed, não precisa de flex obrigatório aqui */
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  /* reserva o espaço à esquerda para a sidebar */
+  padding-left: var(--sidebar-width);
+  height: 100vh;
+  overflow: hidden;
 }
 
-/* Main content area que se ajusta com a sidebar */
+/* Quando o estado 'collapsed' estiver ativo (sidebar menor) */
+.app-layout.collapsed {
+  padding-left: var(--sidebar-collapsed-width);
+}
+
+/* wrapper do conteúdo principal */
 .main-content {
-  flex: 1;
+  /* ocupa todo o espaço disponível (app-layout dá o padding) */
+  width: 100%;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
-  margin-left: var(--sidebar-width);
-  transition: margin-left 0.3s ease-in-out;
   overflow-y: auto;
   overflow-x: hidden;
   background-color: var(--bg);
-  width: 100%;
-  box-sizing: border-box;
+  padding: 24px;
 }
 
+/* se precisar de uma classe collapsed no main-content também, deixar compatível */
 .main-content.collapsed {
-  margin-left: var(--sidebar-collapsed-width);
+  /* sem alterações obrigatórias aqui — app-layout controla o padding */
 }
 
-/* Responsividade para mobile */
-@media (max-width: 768px) {
-  .main-content,
-  .main-content.collapsed {
-    margin-left: 0;
-  }
-}
-
-/* Layout container mais flexível */
+/* Container flexível (componentes internos) */
 .container {
   width: 100%;
-  max-width: 100%;  /* Ocupa toda a largura disponível */
+  max-width: 100%;
   margin: 0;
-  padding: 24px;
-  flex: 1;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  min-height: 100%;
-  box-sizing: border-box;
+  gap: var(--gap);
 }
-
-/* Botões e inputs neutros */
-button { font-family: inherit; cursor:pointer; border: none; background: none; }
-input,textarea,select { font-family: inherit; font-size: 1rem; color: var(--text); }
 
 /* Utilitário .card */
 .card {
@@ -90,5 +95,16 @@ input,textarea,select { font-family: inherit; font-size: 1rem; color: var(--text
   border-radius: var(--radius);
   box-shadow: 0 1px 3px var(--surface-shadow);
   border: 1px solid var(--card-border);
-  padding: 24px; /* Aumentar padding padrão */
+  padding: 24px;
+}
+
+/* Mobile: quando a viewport é pequena, a sidebar deve sobrepor o conteúdo (menu lateral) */
+@media (max-width: 768px) {
+  .app-layout,
+  .app-layout.collapsed {
+    padding-left: 0; /* sidebar ficará sobre o conteúdo (transform), então remove o padding */
+  }
+  .main-content {
+    padding: 16px;
+  }
 }

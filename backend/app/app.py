@@ -28,14 +28,7 @@ def create_app():
 
 
     import utils.jwt_handlers
-<<<<<<< HEAD
-    from blueprints.home import home
-    from blueprints import auth
-    from blueprints.events import events_bp
-    from blueprints.subjects import subjects_bp
-=======
-    from routes import auth, home
->>>>>>> 36b1f9821e543b79326894092595ed3bc71520fc
+    from routes import auth, home, events_bp, subjects_bp
 
     app.register_blueprint(auth, url_prefix='/api/auth')
     app.register_blueprint(home, url_prefix='/api/dashboard')
