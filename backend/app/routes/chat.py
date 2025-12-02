@@ -54,7 +54,7 @@ def ensure_member(f):
         return f(chat_id, *args, **kwargs)
     return wrapper
 
-@chat.route('/', methods=["GET"])
+@chat.route('', methods=["GET"])
 @jwt_required()
 def list_chats():
     user_id = get_jwt_identity()
@@ -98,7 +98,7 @@ def list_messages(chat_id):
         current_app.logger.exception("Erro ao listar mensagens")
         return _error("SERVER_ERROR", "Erro interno ao listar mensagens", 500)
 
-@chat.route('/', methods=["POST"])
+@chat.route('', methods=["POST"])
 @jwt_required()
 def create_chat():
     user_id = get_jwt_identity()
