@@ -28,11 +28,14 @@ def create_app():
 
 
     import utils.jwt_handlers
-    from routes import auth, home, events_bp, subjects_bp
+    from routes import auth, home, events_bp, subjects_bp, tasks_bp, files_bp, progress_bp
 
     app.register_blueprint(auth, url_prefix='/api/auth')
     app.register_blueprint(home, url_prefix='/api/dashboard')
     app.register_blueprint(events_bp, url_prefix='/api')
     app.register_blueprint(subjects_bp, url_prefix='/api')
+    app.register_blueprint(tasks_bp, url_prefix='/api')
+    app.register_blueprint(files_bp, url_prefix='/api')
+    app.register_blueprint(progress_bp, url_prefix='/api')
 
     return app

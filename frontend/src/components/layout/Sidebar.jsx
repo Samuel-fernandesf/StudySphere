@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useLocation, Link } from 'react-router-dom';
 import LogoutButton from '../Auth/LogoutButton';
 import './Sidebar.css';
 // Importa todos os ícones necessários (do App e do Sidebar)
@@ -17,6 +18,13 @@ import {
 
 // Componente Sidebar
 export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }) {
+    const location = useLocation();
+    
+    // Função para verificar se o link está ativo
+    const isActive = (path) => {
+        return location.pathname === path;
+    };
+
     return (
         <>
             <div
@@ -37,40 +45,58 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                 <div className="sidebar__content">
                     <ul className="sidebar__nav">
                         <li>
-                            <a href="/dashboard" className="navLink navLinkActive">
+                            <Link 
+                                to="/dashboard" 
+                                className={`navLink ${isActive('/dashboard') ? 'navLinkActive' : ''}`}
+                            >
                                 <LayoutDashboard size={20} />
                                 <span>Dashboard</span>
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <a href="/subjects" className="navLink">
+                            <Link 
+                                to="/subjects" 
+                                className={`navLink ${isActive('/subjects') ? 'navLinkActive' : ''}`}
+                            >
                                 <BookOpen size={20} />
                                 <span>Matérias</span>
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <a href="/calendar" className="navLink">
+                            <Link 
+                                to="/calendar" 
+                                className={`navLink ${isActive('/calendar') ? 'navLinkActive' : ''}`}
+                            >
                                 <Calendar size={20} />
                                 <span>Calendário</span>
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <a href="/progress" className="navLink">
+                            <Link 
+                                to="/progress" 
+                                className={`navLink ${isActive('/progress') ? 'navLinkActive' : ''}`}
+                            >
                                 <TrendingUp size={20} />
                                 <span>Progresso</span>
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <a href="/chats" className="navLink">
+                            <Link 
+                                to="/chats" 
+                                className={`navLink ${isActive('/chats') ? 'navLinkActive' : ''}`}
+                            >
                                 <MessageSquare size={20} />
                                 <span>Chats</span>
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <a href="/quiz" className="navLink">
+                            <Link 
+                                to="/quiz" 
+                                className={`navLink ${isActive('/quiz') ? 'navLinkActive' : ''}`}
+                            >
                                 <FileQuestion size={20} />
                                 <span>Questionários</span>
-                            </a>
+                            </Link>
                         </li>
                     </ul>
                 </div>
@@ -85,10 +111,13 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                             </a>
                         </li>
                         <li>
-                            <a href="/config" className="navLink">
+                            <Link 
+                                to="/config" 
+                                className={`navLink ${isActive('/config') ? 'navLinkActive' : ''}`}
+                            >
                                 <Settings size={20} />
                                 <span>Configurações</span>
-                            </a>
+                            </Link>
                         </li>
                         <li>
                             <LogoutButton/>
@@ -100,92 +129,5 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                 </div>
             </nav>
         </>
-    );
-}
-
-// --- FIM DO CÓDIGO DO SIDEBAR ---
-
-
-// --- INÍCIO DOS ESTILOS DO APP (EMBUTIDOS) ---
-// (Isso corrige o erro "Could not resolve ./App.module.css")
-const appStyles = `
-    body {
-        font-family: 'Inter', sans-serif;
-        background-color: #f0f2f5;
-        margin: 0;
-        color: #333;
-    }
-    .mainContent {
-        padding: 24px;
-        margin-left: 260px; /* Espaço para o sidebar */
-        transition: margin-left 0.3s ease;
-    }
-    .mainContentCollapsed {
-        margin-left: 80px; /* Espaço para o sidebar recolhido */
-    }
-    .menuToggle {
-        display: none; /* Escondido no desktop */
-        background: #fff;
-        border: 1px solid #dfe4ea;
-        border-radius: 8px;
-        padding: 8px;
-        position: fixed;
-        top: 16px;
-        left: 16px;
-        z-index: 1001;
-        cursor: pointer;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-    @media (max-width: 768px) {
-        .menuToggle {
-            display: block; /* Visível no mobile */
-        }
-        .mainContent,
-        .mainContentCollapsed {
-            margin-left: 0; /* Conteúdo ocupa a tela toda */
-        }
-    }
-`;
-// --- FIM DOS ESTILOS DO APP ---
-
-
-function App() {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
-
-    const toggleSidebar = () => {
-        setIsSidebarOpen(!isSidebarOpen);
-    };
-
-    const toggleDesktopCollapse = () => {
-        setIsDesktopCollapsed(!isDesktopCollapsed);
-    };
-
-    return (
-        // Remove 'styles.appLayout'
-        <div className="appLayout">
-            {/* Adiciona os estilos do App */}
-            <style>{appStyles}</style>
-            
-            {/* Sidebar agora está definida neste arquivo */}
-            <Sidebar
-                isOpen={isSidebarOpen}
-                onClose={toggleSidebar}
-                isCollapsed={isDesktopCollapsed}
-                onToggleCollapse={toggleDesktopCollapse}
-            />
-
-            {/* Remove 'styles.' das classes */}
-            <main
-                className={`mainContent ${
-                    isDesktopCollapsed ? 'mainContentCollapsed' : ''
-                }`}
-            >
-                {/* Remove 'styles.' das classes */}
-                <button className="menuToggle" onClick={toggleSidebar}>
-                    <Menu size={24} />
-                </button>
-            </main>
-        </div>
     );
 }

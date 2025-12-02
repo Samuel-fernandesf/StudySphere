@@ -1,0 +1,175 @@
+from flask import Blueprint, request, jsonify, send_file
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from repositories import fileRepository
+from werkzeug.utils import secure_filename
+import os
+import uuid
+
+files_bp = Blueprint('files', __name__)
+
+# Configuração de upload
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'uploads')
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'zip', 'rar', 'mp3', 'mp4', 'avi', 'mov'}
+MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
+
+# Criar diretório de uploads se não existir
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+def allowed_file(filename):
+    """Verifica se a extensão do arquivo é permitida"""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@files_bp.route('/files', methods=['GET'])
+@jwt_required()
+def get_files():
+    """Retorna todos os arquivos do usuário autenticado"""
+    user_id = get_jwt_identity()
+    
+    # Parâmetro opcional para filtrar por matéria
+    subject_id = request.args.get('subject_id', type=int)
+    
+    files = fileRepository.get_files_by_user(user_id, subject_id)
+    return jsonify({'files': [file.to_dict() for file in files]}), 200
+
+@files_bp.route('/files/upload', methods=['POST'])
+@jwt_required()
+def upload_file():
+    """Faz upload de um arquivo"""
+    user_id = get_jwt_identity()
+    
+    # Verificar se o arquivo foi enviado
+    if 'file' not in request.files:
+        return jsonify({'message': 'Nenhum arquivo enviado'}), 400
+    
+    file = request.files['file']
+    
+    # Verificar se o arquivo tem nome
+    if file.filename == '':
+        return jsonify({'message': 'Nome de arquivo inválido'}), 400
+    
+    # Verificar extensão permitida
+    if not allowed_file(file.filename):
+        return jsonify({'message': 'Tipo de arquivo não permitido'}), 400
+    
+    try:
+        # Obter subject_id se fornecido
+        subject_id = request.form.get('subject_id', type=int)
+        
+        # Gerar nome único para o arquivo
+        file_extension = os.path.splitext(file.filename)[1]
+        unique_filename = f"{uuid.uuid4()}{file_extension}"
+        file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
+        
+        # Salvar arquivo
+        file.save(file_path)
+        
+        # Obter tamanho do arquivo
+        file_size = os.path.getsize(file_path)
+        
+        # Verificar tamanho máximo
+        if file_size > MAX_FILE_SIZE:
+            os.remove(file_path)
+            return jsonify({'message': 'Arquivo muito grande. Tamanho máximo: 50 MB'}), 400
+        
+        # Criar registro no banco
+        file_record = fileRepository.create_file(
+            user_id=user_id,
+            original_filename=file.filename,
+            file_path=file_path,
+            file_size=file_size,
+            mime_type=file.content_type,
+            subject_id=subject_id
+        )
+        
+        return jsonify({
+            'message': 'Arquivo enviado com sucesso!',
+            'file': file_record.to_dict()
+        }), 201
+    except Exception as e:
+        print(f"Erro ao fazer upload: {e}")
+        # Tentar remover arquivo se houver erro
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        return jsonify({'message': 'Erro ao fazer upload do arquivo'}), 500
+
+@files_bp.route('/files/<int:file_id>', methods=['GET'])
+@jwt_required()
+def get_file(file_id):
+    """Retorna informações de um arquivo específico"""
+    user_id = get_jwt_identity()
+    file_record = fileRepository.get_file_by_id(file_id)
+    
+    if not file_record:
+        return jsonify({'message': 'Arquivo não encontrado'}), 404
+    
+    if file_record.user_id != user_id:
+        return jsonify({'message': 'Acesso não autorizado'}), 403
+    
+    return jsonify({'file': file_record.to_dict()}), 200
+
+@files_bp.route('/files/<int:file_id>/download', methods=['GET'])
+@jwt_required()
+def download_file(file_id):
+    """Faz download de um arquivo"""
+    user_id = get_jwt_identity()
+    file_record = fileRepository.get_file_by_id(file_id)
+    
+    if not file_record:
+        return jsonify({'message': 'Arquivo não encontrado'}), 404
+    
+    if file_record.user_id != user_id:
+        return jsonify({'message': 'Acesso não autorizado'}), 403
+    
+    if not os.path.exists(file_record.file_path):
+        return jsonify({'message': 'Arquivo físico não encontrado'}), 404
+    
+    try:
+        return send_file(
+            file_record.file_path,
+            as_attachment=True,
+            download_name=file_record.original_filename,
+            mimetype=file_record.mime_type
+        )
+    except Exception as e:
+        print(f"Erro ao fazer download: {e}")
+        return jsonify({'message': 'Erro ao fazer download do arquivo'}), 500
+
+@files_bp.route('/files/<int:file_id>', methods=['DELETE'])
+@jwt_required()
+def delete_file(file_id):
+    """Deleta um arquivo"""
+    user_id = get_jwt_identity()
+    file_record = fileRepository.get_file_by_id(file_id)
+    
+    if not file_record:
+        return jsonify({'message': 'Arquivo não encontrado'}), 404
+    
+    if file_record.user_id != user_id:
+        return jsonify({'message': 'Acesso não autorizado'}), 403
+    
+    try:
+        fileRepository.delete_file(file_id)
+        return jsonify({'message': 'Arquivo deletado com sucesso!'}), 200
+    except Exception as e:
+        print(f"Erro ao deletar arquivo: {e}")
+        return jsonify({'message': 'Erro ao deletar arquivo'}), 500
+
+@files_bp.route('/files/storage', methods=['GET'])
+@jwt_required()
+def get_storage_info():
+    """Retorna informações de armazenamento do usuário"""
+    user_id = get_jwt_identity()
+    
+    try:
+        total_used = fileRepository.get_total_storage_used(user_id)
+        file_count = len(fileRepository.get_files_by_user(user_id))
+        
+        return jsonify({
+            'total_used': total_used,
+            'total_used_mb': round(total_used / (1024 * 1024), 2),
+            'file_count': file_count
+        }), 200
+    except Exception as e:
+        print(f"Erro ao obter informações de armazenamento: {e}")
+        return jsonify({'message': 'Erro ao obter informações de armazenamento'}), 500

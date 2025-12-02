@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import SubjectCard from "../../components/subjects/SubjectCard";
 import SubjectModal from "../../components/subjects/SubjectModal";
+import SubjectTasksModal from "../../components/subjects/SubjectTasksModal";
+import SubjectFilesModal from "../../components/subjects/SubjectFilesModal";
 import { listarMaterias, deletarMateria } from "../../services/subjectService";
 import { Plus, Grid, List } from "lucide-react";
 import "./SubjectsPage.css";
@@ -9,6 +11,8 @@ export default function SubjectsPage() {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTasksModalOpen, setIsTasksModalOpen] = useState(false);
+  const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' ou 'list'
 
@@ -38,6 +42,16 @@ export default function SubjectsPage() {
     setIsModalOpen(true);
   }
 
+  function handleOpenTasks(subject) {
+    setSelectedSubject(subject);
+    setIsTasksModalOpen(true);
+  }
+
+  function handleOpenFiles(subject) {
+    setSelectedSubject(subject);
+    setIsFilesModalOpen(true);
+  }
+
   async function handleDeleteSubject(subjectId) {
     if (!confirm("Tem certeza que deseja excluir esta matéria?")) {
       return;
@@ -56,6 +70,16 @@ export default function SubjectsPage() {
     setIsModalOpen(false);
     setSelectedSubject(null);
     loadSubjects();
+  }
+
+  function handleTasksModalClose() {
+    setIsTasksModalOpen(false);
+    setSelectedSubject(null);
+  }
+
+  function handleFilesModalClose() {
+    setIsFilesModalOpen(false);
+    setSelectedSubject(null);
   }
 
   return (
@@ -105,6 +129,8 @@ export default function SubjectsPage() {
                 subject={subject}
                 onEdit={handleEditSubject}
                 onDelete={handleDeleteSubject}
+                onOpenTasks={handleOpenTasks}
+                onOpenFiles={handleOpenFiles}
                 viewMode={viewMode}
               />
             ))}
@@ -115,6 +141,20 @@ export default function SubjectsPage() {
           <SubjectModal
             subject={selectedSubject}
             onClose={handleModalClose}
+          />
+        )}
+
+        {isTasksModalOpen && (
+          <SubjectTasksModal
+            subject={selectedSubject}
+            onClose={handleTasksModalClose}
+          />
+        )}
+
+        {isFilesModalOpen && (
+          <SubjectFilesModal
+            subject={selectedSubject}
+            onClose={handleFilesModalClose}
           />
         )}
       </main>

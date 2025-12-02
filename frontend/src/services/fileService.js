@@ -14,3 +14,25 @@ export async function listarArquivos() {
   const res = await api.get("/files");
   return res.data;
 }
+
+export async function deletarArquivo(fileId) {
+  try {
+    await api.delete(`/files/${fileId}`);
+    return true;
+  } catch (error) {
+    console.error("Erro ao deletar arquivo:", error);
+    throw error;
+  }
+}
+
+export async function baixarArquivo(fileId) {
+  try {
+    const res = await api.get(`/files/${fileId}/download`, {
+      responseType: 'blob'
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Erro ao baixar arquivo:", error);
+    throw error;
+  }
+}

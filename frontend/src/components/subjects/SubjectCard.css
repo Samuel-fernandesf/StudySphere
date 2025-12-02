@@ -54,6 +54,50 @@
   background-color: var(--secondary);
 }
 
+.card-actions {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.subject-card {
+  position: relative;
+}
+
+.subject-card:hover .card-actions {
+  opacity: 1;
+}
+
+.action-icon-button {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text);
+}
+
+.action-icon-button:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.delete-action-button:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: white;
+}
+
 .footer-button {
   flex: 1;
   display: flex;

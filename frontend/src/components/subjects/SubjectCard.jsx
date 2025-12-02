@@ -1,9 +1,9 @@
 import React from "react";
 import * as Icons from "lucide-react";
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2, FileText, ListTodo } from "lucide-react";
 import "./SubjectCard.css";
 
-export default function SubjectCard({ subject, onEdit, onDelete, viewMode = 'grid' }) {
+export default function SubjectCard({ subject, onEdit, onDelete, onOpenTasks, onOpenFiles, viewMode = 'grid' }) {
   // Obter o ícone dinamicamente
   const IconComponent = Icons[subject.icon] || Icons.BookOpen;
 
@@ -28,6 +28,20 @@ export default function SubjectCard({ subject, onEdit, onDelete, viewMode = 'gri
           </div>
         </div>
         <div className="list-actions">
+          <button
+            onClick={() => onOpenTasks && onOpenTasks(subject)}
+            className="action-button"
+            title="Tarefas"
+          >
+            <ListTodo size={16} />
+          </button>
+          <button
+            onClick={() => onOpenFiles && onOpenFiles(subject)}
+            className="action-button"
+            title="Arquivos"
+          >
+            <FileText size={16} />
+          </button>
           <button
             onClick={() => onEdit(subject)}
             className="action-button"
@@ -67,18 +81,35 @@ export default function SubjectCard({ subject, onEdit, onDelete, viewMode = 'gri
 
       <div className="card-footer">
         <button
-          onClick={() => onEdit(subject)}
+          onClick={() => onOpenTasks && onOpenTasks(subject)}
           className="footer-button"
+          title="Tarefas"
+        >
+          <ListTodo size={16} />
+          Tarefas
+        </button>
+        <button
+          onClick={() => onOpenFiles && onOpenFiles(subject)}
+          className="footer-button"
+          title="Arquivos"
+        >
+          <FileText size={16} />
+          Arquivos
+        </button>
+      </div>
+      
+      <div className="card-actions">
+        <button
+          onClick={() => onEdit(subject)}
+          className="action-icon-button"
         >
           <Edit2 size={16} />
-          Editar
         </button>
         <button
           onClick={() => onDelete(subject.id)}
-          className="footer-button delete-footer-button"
+          className="action-icon-button delete-action-button"
         >
           <Trash2 size={16} />
-          Excluir
         </button>
       </div>
     </div>

@@ -249,3 +249,145 @@
     padding: 16px;
   }
 }
+
+/* Estilos para Subject Items */
+.subjects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.subject-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg);
+  border-radius: 8px;
+  border-left: 3px solid;
+  transition: all 0.2s;
+}
+
+.subject-item:hover {
+  background: var(--card-border);
+  transform: translateX(4px);
+}
+
+.subject-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.subject-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.subject-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.subject-description {
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Estilos para Task Items */
+.tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg);
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.task-item:hover {
+  background: var(--card-border);
+  transform: translateX(4px);
+}
+
+.task-indicator {
+  width: 4px;
+  height: 100%;
+  min-height: 40px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.task-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.task-date {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Mensagens vazias e links */
+.empty-message {
+  text-align: center;
+  padding: 20px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.empty-message a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.empty-message a:hover {
+  text-decoration: underline;
+}
+
+.view-more {
+  text-align: center;
+  padding: 8px;
+  margin-top: 4px;
+}
+
+.view-more a {
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.view-more a:hover {
+  text-decoration: underline;
+}
+
+.dashboard-loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--muted);
+  font-size: 16px;
+}

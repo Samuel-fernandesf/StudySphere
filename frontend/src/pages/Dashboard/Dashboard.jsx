@@ -1,8 +1,12 @@
 // src/pages/Dashboard/Dashboard.jsx
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "./dashboard.css";
-import Sidebar from "../../components/layout/Sidebar";
 import { useAuthContext } from "../../contexts/AuthContext";
+import { listarMaterias } from "../../services/subjectService";
+import { listarEventos } from "../../services/eventService";
+import * as Icons from "lucide-react";
+import { format, parseISO, isAfter, isBefore, addDays } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 /* --- Componentes visuais pequenos --- */
 const KpiCard = ({ titulo, valor, descricao }) => (
@@ -20,47 +24,103 @@ const SectionCard = ({ titulo, children }) => (
   </div>
 );
 
-const PlaceholderItem = ({ text }) => (
-  <div className="placeholder-item" aria-hidden="true">
-    <div className="ph-dot" />
-    <div className="ph-text">{text}</div>
-  </div>
-);
+const SubjectItem = ({ subject }) => {
+  const IconComponent = Icons[subject.icon] || Icons.BookOpen;
+  
+  return (
+    <div className="subject-item" style={{ borderLeftColor: subject.color }}>
+      <div 
+        className="subject-icon" 
+        style={{ backgroundColor: `${subject.color}20`, color: subject.color }}
+      >
+        <IconComponent size={20} />
+      </div>
+      <div className="subject-info">
+        <div className="subject-name">{subject.name}</div>
+        {subject.description && (
+          <div className="subject-description">{subject.description}</div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const TaskItem = ({ event }) => {
+  const startDate = parseISO(event.start_date);
+  const formattedDate = format(startDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+  
+  return (
+    <div className="task-item">
+      <div 
+        className="task-indicator" 
+        style={{ backgroundColor: event.color || '#3b82f6' }}
+      />
+      <div className="task-content">
+        <div className="task-title">{event.title}</div>
+        <div className="task-date">{formattedDate}</div>
+      </div>
+    </div>
+  );
+};
 
 /* --- Componente principal do Dashboard --- */
 export default function Dashboard() {
   // Busca dados do usuário do contexto de autenticação
   const { userDetails } = useAuthContext();
+  
+  // Estados para dados
+  const [subjects, setSubjects] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Extrai o primeiro nome do nome completo
   const primeiroNome = userDetails?.nome_completo 
     ? userDetails.nome_completo.split(" ")[0] 
     : userDetails?.username || "";
 
-  // Placeholders até as features estarem prontas
-  const tempoHoje = "Nenhum progresso hoje";
-  const tarefasConcluidas = "Nenhuma tarefa concluída";
-  const sequencia = "Nenhuma sequência";
-  const metaSemanal = "0%";
+  // Carregar dados ao montar o componente
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
 
-  // placeholders para listas (serão substituídas pelos dados reais)
-  const materiasPlaceholders = [
-    "Sem dados — aguardando o serviço de matérias",
-    "Card pronto para popular quando o backend estiver pronto",
-  ];
-  const tarefasPlaceholders = [
-    "Adicione tarefas ou aguarde o serviço de tasks",
-    "Nenhuma tarefa disponível no momento",
-    "Componente de listagem pronto para receber dados",
-  ];
-  const proximasPlaceholders = [
-    "Nenhuma tarefa agendada",
-    "Aqui aparecerão as próximas tarefas quando o serviço estiver pronto",
-  ];
+  async function loadDashboardData() {
+    try {
+      setLoading(true);
+      
+      // Carregar matérias
+      const subjectsData = await listarMaterias();
+      setSubjects(subjectsData);
+      
+      // Carregar eventos (próximos 30 dias)
+      const today = new Date();
+      const futureDate = addDays(today, 30);
+      const eventsData = await listarEventos(
+        today.toISOString(),
+        futureDate.toISOString()
+      );
+      setEvents(eventsData);
+    } catch (error) {
+      console.error("Erro ao carregar dados do dashboard:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
-  // Ação do botão "Nova Tarefa" (por enquanto apenas placeholder)
+  // Filtrar eventos futuros e ordenar por data
+  const upcomingEvents = events
+    .filter(event => isAfter(parseISO(event.start_date), new Date()))
+    .sort((a, b) => parseISO(a.start_date) - parseISO(b.start_date))
+    .slice(0, 5); // Mostrar apenas os 5 próximos
+
+  // Calcular KPIs
+  const totalSubjects = subjects.length;
+  const totalEvents = events.length;
+  const completedToday = 0; // Placeholder - implementar quando houver sistema de conclusão
+  const weeklyProgress = "0%"; // Placeholder - implementar quando houver sistema de progresso
+
+  // Ação do botão "Nova Tarefa"
   function handleNovaTarefa() {
-    alert("Criar nova tarefa — funcionalidade ainda não implementada.");
+    window.location.href = "/calendar";
   }
 
   return (
@@ -83,33 +143,69 @@ export default function Dashboard() {
       <main className="dashboard-right">
         {/* KPIs */}
         <section className="kpi-row" aria-label="Indicadores">
-          <KpiCard titulo="Tempo Hoje" valor={tempoHoje} />
-          <KpiCard titulo="Tarefas Concluídas" valor={tarefasConcluidas} />
-          <KpiCard titulo="Sequência" valor={sequencia} />
-          <KpiCard titulo="Meta Semanal" valor={metaSemanal} descricao="Progresso semanal" />
+          <KpiCard titulo="Matérias" valor={totalSubjects} />
+          <KpiCard titulo="Eventos" valor={totalEvents} />
+          <KpiCard titulo="Concluídas Hoje" valor={completedToday} />
+          <KpiCard titulo="Meta Semanal" valor={weeklyProgress} descricao="Progresso semanal" />
         </section>
 
-        {/* Cards principais */}
-        <section className="grid-main" aria-label="Conteúdo principal">
-          <SectionCard titulo="Suas Matérias">
-            {materiasPlaceholders.map((t, i) => (
-              <PlaceholderItem key={i} text={t} />
-            ))}
-          </SectionCard>
+        {loading ? (
+          <div className="dashboard-loading">Carregando dados...</div>
+        ) : (
+          <section className="grid-main" aria-label="Conteúdo principal">
+            <SectionCard titulo="Suas Matérias">
+              {subjects.length === 0 ? (
+                <div className="empty-message">
+                  Nenhuma matéria cadastrada. <a href="/subjects">Criar matéria</a>
+                </div>
+              ) : (
+                <div className="subjects-list">
+                  {subjects.slice(0, 5).map(subject => (
+                    <SubjectItem key={subject.id} subject={subject} />
+                  ))}
+                  {subjects.length > 5 && (
+                    <div className="view-more">
+                      <a href="/subjects">Ver todas ({subjects.length})</a>
+                    </div>
+                  )}
+                </div>
+              )}
+            </SectionCard>
 
-          <SectionCard titulo="Lista de Tarefas">
-            <div style={{ color: "var(--muted)", marginBottom: 8, fontSize: 14 }}>
-              {tarefasPlaceholders.length === 0 ? "Nenhuma tarefa" : "Adicione tarefas ou aguarde o serviço de tasks"}
-            </div>
-            <div className="task-list-placeholder">
-              {tarefasPlaceholders.map((t, i) => <PlaceholderItem key={i} text={t} />)}
-            </div>
-          </SectionCard>
+            <SectionCard titulo="Todos os Eventos">
+              {events.length === 0 ? (
+                <div className="empty-message">
+                  Nenhum evento criado. <a href="/calendar">Criar evento</a>
+                </div>
+              ) : (
+                <div className="tasks-list">
+                  {events.slice(0, 5).map(event => (
+                    <TaskItem key={event.id} event={event} />
+                  ))}
+                  {events.length > 5 && (
+                    <div className="view-more">
+                      <a href="/calendar">Ver todos ({events.length})</a>
+                    </div>
+                  )}
+                </div>
+              )}
+            </SectionCard>
 
-          <SectionCard titulo="Próximas Tarefas">
-            {proximasPlaceholders.map((t, i) => <PlaceholderItem key={i} text={t} />)}
-          </SectionCard>
-        </section>
+            <SectionCard titulo="Próximas Tarefas">
+              {upcomingEvents.length === 0 ? (
+                <div className="empty-message">
+                  Nenhuma tarefa próxima agendada.
+                </div>
+              ) : (
+                <div className="tasks-list">
+                  {upcomingEvents.map(event => (
+                    <TaskItem key={event.id} event={event} />
+                  ))}
+                </div>
+              )}
+            </SectionCard>
+          </section>
+        )}
       </main>
     </div>
   );
