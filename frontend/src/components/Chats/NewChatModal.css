@@ -1,21 +1,181 @@
+:root {
+    /* Cores */
+    --primary-color: #3b5a74; /* Azul Escuro Principal */
+    --primary-dark-color: #2c3e50;
+    --secondary-color: #e9ecef; /* Cinza Claro (Inativo/Fundo) */
+    --text-color: #495057;
+    --heading-color: #212529;
+    --background-color: #f8f9fa; /* Fundo principal muito claro - O NOVO FUNDO UNIFICADO */
+    --card-background: #ffffff;
+    --border-color: #ced4da;
+    --active-dot: #868e96;
+    --error-color: #dc3545;
+
+    /* Escala de Espaçamento (em rem para escalabilidade) */
+    --space-xs: 0.5rem;    /* 8px */
+    --space-sm: 1rem;      /* 16px */
+    --space-md: 1.5rem;    /* 24px */
+}
+
+/* Modal Overlay */
 .modal-overlay {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 1000;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
 }
+
+/* Modal Content */
 .modal-content {
-  background: white; padding: 20px; border-radius: 8px;
-  width: 90%; max-width: 500px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    background-color: var(--card-background);
+    border-radius: 8px;
+    padding: var(--space-md);
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
 }
-.modal-header { display: flex; justify-content: space-between; margin-bottom: 15px; }
-.tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #eee; }
-.tab { flex: 1; padding: 10px; border: none; background: none; cursor: pointer; }
-.tab.active { font-weight: bold; border-bottom: 2px solid #007bff; }
-.user-tag { background: #e0f0ff; padding: 4px 8px; border-radius: 12px; display: inline-flex; align-items: center; gap: 5px; margin: 2px; }
-.search-result-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #f0f0f0; }
-.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-.btn-primary { background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
-.btn-secondary { background: #ccc; color: black; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
-input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-sm);
+    padding-bottom: var(--space-xs);
+    border-bottom: 1px solid var(--secondary-color);
+}
+
+.modal-header h3 {
+    color: var(--heading-color);
+    margin: 0;
+}
+
+.modal-header button {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 1.25rem;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    margin-bottom: var(--space-sm);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tab {
+    padding: var(--space-xs) var(--space-sm);
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.tab.active {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+    font-weight: 700;
+}
+
+/* Inputs e Resultados */
+input[type="text"], input:not([type]) {
+    width: 100%;
+    padding: var(--space-xs);
+    margin-bottom: var(--space-xs);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.search-results-box {
+    margin-top: var(--space-xs);
+    border: 1px solid var(--secondary-color);
+    border-radius: 4px;
+    padding: var(--space-xs);
+}
+
+.search-result-item {
+    border-bottom: 1px solid #f0f0f0; /* Um cinza bem clarinho */
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item .font-medium {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.search-result-item .text-xs {
+    font-size: 0.75rem;
+    color: #6c757d; /* Um cinza mais escuro que o secondary */
+}
+
+/* User Tag (para seleção de grupo) */
+.user-tag {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--secondary-color);
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 0.875rem;
+    color: var(--text-color);
+}
+
+.user-tag button {
+    margin-left: 4px;
+    background: none;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    font-weight: bold;
+    line-height: 1;
+}
+
+/* Botões */
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--card-background);
+    border: 1px solid var(--primary-color);
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-color: var(--primary-dark-color);
+}
+
+.btn-primary:disabled {
+    background-color: var(--secondary-color);
+    color: #999;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background-color: var(--card-background);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background-color: #f0f0f0;
+}

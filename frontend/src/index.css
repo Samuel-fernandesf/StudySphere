@@ -1,4 +1,4 @@
-/* index.css (global) - ATUALIZADO */
+/* index.css (global) - REVISADO */
 
 /* Variáveis */
 :root{
@@ -15,8 +15,8 @@
   --gap: 20px;
 
   /* IMPORTANTES */
-  --sidebar-width: 260px;            /* largura da sidebar quando aberta */
-  --sidebar-collapsed-width: 80px;  /* largura quando recolhida */
+  --sidebar-width: 260px;               /* largura da sidebar quando aberta */
+  --sidebar-collapsed-width: 80px;      /* largura quando recolhida */
 }
 
 /* RESET / BASE */
@@ -26,6 +26,7 @@
   box-sizing: border-box;
 }
 
+/* Garante 100% para o corpo da página */
 html, body, #root {
   height: 100%;
   width: 100%;
@@ -42,17 +43,26 @@ body{
   line-height:1.4;
 }
 
-/* APP LAYOUT - usa padding-left para reservar espaço para a sidebar fixa */
+---
+
+/* APP LAYOUT - REVISADO */
+/* Usamos display: flex e overflow: hidden para garantir que o layout ocupe 100% e só o main-content role */
 .app-layout {
-  display: block; /* sidebar é fixed, não precisa de flex obrigatório aqui */
+  display: flex; /* Permite que o conteúdo e o padding sejam tratados lado a lado */
   width: 100%;
   max-width: 100%;
-  min-width: 0;
+  height: 100vh; /* Ocupa 100% da altura da viewport */
+  overflow: hidden; /* Garante que NADA fora do main-content role */
+  position: relative; /* Base para o posicionamento da sidebar (se ela for fixed/absolute) */
+}
 
-  /* reserva o espaço à esquerda para a sidebar */
-  padding-left: var(--sidebar-width);
-  height: 100vh;
-  overflow: hidden;
+/* O "padding" da sidebar agora é simulado pelo uso do Flexbox e Margin/Transform na sidebar,
+   MAS mantendo o fluxo do main-content. */
+
+/* Se a sidebar for FIXED, o padding-left é colocado aqui.
+   Como o padrão é FIXED, manteremos o padding-left, mas com uma estrutura mais limpa: */
+.app-layout {
+  padding-left: var(--sidebar-width); 
 }
 
 /* Quando o estado 'collapsed' estiver ativo (sidebar menor) */
@@ -60,25 +70,26 @@ body{
   padding-left: var(--sidebar-collapsed-width);
 }
 
-/* wrapper do conteúdo principal */
+---
+
+/* WRAPPER DO CONTEÚDO PRINCIPAL (REVISADO) */
+/* O main-content deve ser o único elemento rolável */
 .main-content {
-  /* ocupa todo o espaço disponível (app-layout dá o padding) */
-  width: 100%;
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
+  /* Ocupa todo o espaço restante após o padding-left */
+  flex-grow: 1; 
+  height: 100%; 
+  
+
+  overflow-y: auto; 
   overflow-x: hidden;
+  
+
   background-color: var(--bg);
   padding: 24px;
+  display: flex; 
+  flex-direction: column;
 }
 
-/* se precisar de uma classe collapsed no main-content também, deixar compatível */
-.main-content.collapsed {
-  /* sem alterações obrigatórias aqui — app-layout controla o padding */
-}
-
-/* Container flexível (componentes internos) */
 .container {
   width: 100%;
   max-width: 100%;
@@ -89,7 +100,6 @@ body{
   gap: var(--gap);
 }
 
-/* Utilitário .card */
 .card {
   background: var(--card-bg);
   border-radius: var(--radius);
@@ -98,13 +108,5 @@ body{
   padding: 24px;
 }
 
-/* Mobile: quando a viewport é pequena, a sidebar deve sobrepor o conteúdo (menu lateral) */
-@media (max-width: 768px) {
-  .app-layout,
-  .app-layout.collapsed {
-    padding-left: 0; /* sidebar ficará sobre o conteúdo (transform), então remove o padding */
-  }
-  .main-content {
-    padding: 16px;
-  }
-}
+
+

@@ -5,16 +5,17 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Layout from "./components/layout/Layout";
 import { SocketProvider } from "./contexts/SocketContext";
 
+// CÓDIGO CORRIGIDO
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <SocketProvider>
-          <Layout>
-            <AppRoutes/>
-          </Layout>
-        </SocketProvider>
-      </BrowserRouter>
-    </AuthProvider>
+    <BrowserRouter> 
+      <AuthProvider>
+        <Layout>
+          <SocketProvider>
+              <AppRoutes/>
+          </SocketProvider>
+        </Layout>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }

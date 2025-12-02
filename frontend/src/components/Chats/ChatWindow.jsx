@@ -2,8 +2,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSocket } from '../../contexts/SocketContext';
 import api from '../../api/api';
+import './ChatList.css';
+import './NewChatModal.css';
 
-// ---------------- AddMemberSearchModal ----------------
+
 function AddMemberSearchModal({ onClose, chat, onMemberAdded }) {
   const { socket } = useSocket();
   const [searchTerm, setSearchTerm] = useState('');

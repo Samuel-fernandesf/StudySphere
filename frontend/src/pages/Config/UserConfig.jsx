@@ -486,9 +486,9 @@ export default function UserConfig() {
                         <div className="config-section">
                             <h3 className="config-section-header">Políticas e Termos</h3>
                             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                                <a href="#" className="action-link">📄 Política de Privacidade</a>
-                                <a href="#" className="action-link">📋 Termos de Uso</a>
-                                <a href="#" className="action-link">🍪 Política de Cookies</a>
+                                <a href="#" className="action-link">Política de Privacidade</a>
+                                <a href="#" className="action-link">Termos de Uso</a>
+                                <a href="#" className="action-link">Política de Cookies</a>
                             </div>
                         </div>
 
@@ -527,25 +527,25 @@ export default function UserConfig() {
                         className={`config-tab ${activeTab === "perfil" ? "active" : ""}`}
                         onClick={() => setActiveTab("perfil")}
                     >
-                        👤 Perfil
+                        Perfil
                     </button>
                     <button 
                         className={`config-tab ${activeTab === "notificacoes" ? "active" : ""}`}
                         onClick={() => setActiveTab("notificacoes")}
                     >
-                        🔔 Notificações
+                        Notificações
                     </button>
                     <button 
                         className={`config-tab ${activeTab === "aparencia" ? "active" : ""}`}
                         onClick={() => setActiveTab("aparencia")}
                     >
-                        🎨 Aparência
+                        Aparência
                     </button>
                     <button 
                         className={`config-tab ${activeTab === "privacidade" ? "active" : ""}`}
                         onClick={() => setActiveTab("privacidade")}
                     >
-                        🔒 Privacidade
+                        Privacidade
                     </button>
                 </div>
 

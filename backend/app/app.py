@@ -28,11 +28,16 @@ def create_app():
     socket_io.init_app(app)
 
     from utils import jwt_handlers, socket_handlers
-    from routes import auth, home, chat, users
+    from routes import auth, home, chat, users, events_bp, subjects_bp, tasks_bp, files_bp, progress_bp
 
     app.register_blueprint(auth, url_prefix='/api/auth')
     app.register_blueprint(home, url_prefix='/api/dashboard')
     app.register_blueprint(chat, url_prefix='/api/chats')
     app.register_blueprint(users, url_prefix='/api/users')
+    app.register_blueprint(events_bp, url_prefix='/api')
+    app.register_blueprint(subjects_bp, url_prefix='/api')
+    app.register_blueprint(tasks_bp, url_prefix='/api')
+    app.register_blueprint(files_bp, url_prefix='/api')
+    app.register_blueprint(progress_bp, url_prefix='/api')
 
     return app

@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useChatService } from '../../services/chatService';
 import NewChatModal from './NewChatModal';
+import './ChatList.css';
 
 export default function ChatList({ onOpenChat }) {
   const { loadChats, createChat, registerChatListListeners } = useChatService();

@@ -1,0 +1,112 @@
+/* Estilos Internos para ChatList.jsx */
+/* Assumindo que o ChatList é parte de uma interface maior */
+
+.chat-list {
+    /* Estilo do container já está no JSX, mas aqui estão as cores */
+    border-right-color: var(--border-color); 
+    background-color: var(--card-background);
+    box-shadow: 1px 0 3px rgba(0, 0, 0, 0.05); /* Sombra suave para separação */
+}
+
+.chat-list h3 {
+    color: var(--heading-color);
+}
+
+.chat-list ul {
+    list-style: none; 
+    padding: 0; 
+    margin: 0; 
+}
+
+.chat-list li {
+    transition: background-color 0.15s;
+    border-bottom-color: #f3f3f3;
+}
+
+.chat-list li:hover {
+    background-color: var(--secondary-color);
+}
+
+.chat-list li:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: -2px;
+}
+
+.chat-list li .font-bold {
+    color: var(--text-color);
+}
+
+.chat-list li small {
+    color: #666;
+}
+
+
+/* Estilos Internos para ChatWindow.jsx (inclui AddMemberSearchModal) */
+
+/* Estilos de Botões (reutilizando do modal) */
+/* .btn-primary, .btn-secondary, etc. aplicam-se aqui também */
+
+/* Chat Window Container */
+.chat-window-container {
+    flex: 1; 
+    display: flex; 
+    flex-direction: column;
+    background-color: var(--background-color);
+}
+
+/* Header da Janela de Chat */
+.chat-header {
+    padding: var(--space-xs) var(--space-sm);
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--card-background);
+}
+
+/* Lista de Mensagens */
+.messages-list {
+    flex: 1; 
+    overflow-y: auto; 
+    padding: var(--space-sm);
+}
+
+.message-item {
+    margin-bottom: var(--space-xs);
+    padding: 4px;
+    background-color: var(--card-background);
+    border-radius: 6px;
+    max-width: 80%;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Adaptação: Se você tiver classes para 'minhas mensagens' e 'mensagens de outros', o estilo seria diferente */
+.message-item small {
+    font-size: 0.75rem;
+}
+
+.message-item .content {
+    color: var(--text-color);
+}
+
+.message-item small[style*="color: red"] {
+    color: var(--error-color) !important;
+    font-weight: 600;
+}
+
+/* Área de Input */
+.chat-input-area {
+    padding: var(--space-xs) var(--space-sm);
+    border-top: 1px solid var(--border-color);
+    background-color: var(--card-background);
+}
+
+.chat-input-area input {
+    /* Estilo de input já definido */
+    margin: 0;
+}
+
+/* Estilos Específicos do AddMemberSearchModal (reutilizando modal-overlay, modal-content) */
+/* Se necessário ajustar a largura ou cores, seria aqui */
+
+.modal-overlay {
+    /* Corrigir sobreposição do modal */
+    z-index: 1010; 
+}
