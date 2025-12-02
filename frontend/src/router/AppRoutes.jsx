@@ -17,6 +17,7 @@ import QuizPlay from "../pages/Quiz/QuizPlay";
 import NotFound from "../pages/NotFound";
 import ProgressView from "../pages/Progress/Progress";
 import Chats from "../pages/Chats/Chats";
+import ChatRoom from "../pages/Chats/ChatRoom";
 import UserConfig from "../pages/Config/UserConfig";
 
 export default function AppRoutes() {
@@ -64,6 +65,7 @@ export default function AppRoutes() {
         <Route path="/quiz/:id" element={<QuizPlay />} />
         <Route path="/progress" element={<ProgressView />} />
         <Route path="/chats" element={<Chats />} />
+        <Route path="/chats/:id" element={<ChatRoom />} />
         <Route path="/config" element={<UserConfig />} />
       </Route>
 

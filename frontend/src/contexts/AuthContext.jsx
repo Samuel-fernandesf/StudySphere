@@ -27,10 +27,11 @@ export function AuthProvider({ children }) {
     }
   }
 
-  function entrar(id, token) {
+  function entrar(id, token, user_name) {
     // Salva a persistencia da sessão no navegador
     localStorage.setItem("user_id", id);
     localStorage.setItem("access_token", token);
+    localStorage.setItem('user_name', user_name)
     
     // Atualiza o estado global do react
     setUsuario(id);
