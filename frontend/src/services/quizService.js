@@ -1,7 +1,11 @@
 import api from "../api/api";
 
-export async function listarQuizzes() {
-  const res = await api.get("/quizzes");
+export async function listarQuizzes(filtros = {}) {
+  const params = {};
+  if (filtros.materia) params.materia = filtros.materia;
+  if (filtros.dificuldade) params.dificuldade = filtros.dificuldade;
+  
+  const res = await api.get("/quizzes", { params });
   return res.data;
 }
 
@@ -11,31 +15,39 @@ export async function buscarQuiz(id) {
 }
 
 export async function criarQuiz(quizData) {
-  try {
-    const response = await api.post("/quizzes", quizData);
-    return response.data.quiz;
-  } catch (error) {
-    console.error("Erro ao criar quiz:", error);
-    throw error;
-  }
+  const res = await api.post("/quizzes", quizData);
+  return res.data;
 }
 
-export async function atualizarQuiz(quizId, quizData) {
-  try {
-    const response = await api.put(`/quizzes/${quizId}`, quizData);
-    return response.data.quiz;
-  } catch (error) {
-    console.error("Erro ao atualizar quiz:", error);
-    throw error;
-  }
+export async function atualizarQuiz(id, quizData) {
+  const res = await api.put(`/quizzes/${id}`, quizData);
+  return res.data;
 }
 
-export async function deletarQuiz(quizId) {
-  try {
-    await api.delete(`/quizzes/${quizId}`);
-    return true;
-  } catch (error) {
-    console.error("Erro ao deletar quiz:", error);
-    throw error;
-  }
+export async function deletarQuiz(id) {
+  const res = await api.delete(`/quizzes/${id}`);
+  return res.data;
+}
+
+export async function submeterQuiz(id, respostas, tempoGasto) {
+  const res = await api.post(`/quizzes/${id}/submit`, {
+    respostas,
+    tempo_gasto: tempoGasto
+  });
+  return res.data;
+}
+
+export async function listarTentativas() {
+  const res = await api.get("/quizzes/tentativas");
+  return res.data;
+}
+
+export async function obterEstatisticas() {
+  const res = await api.get("/quizzes/estatisticas");
+  return res.data;
+}
+
+export async function obterRanking(quizId) {
+  const res = await api.get(`/quizzes/${quizId}/ranking`);
+  return res.data;
 }
