@@ -4,6 +4,7 @@ from repositories import userRepository, tokenRepository
 from models import Usuario
 from utils.db import db
 from utils.mail import send_confirm_email, send_reset_email
+from utils.socket_handlers.auth import disconnect_user
 from flask_jwt_extended import (jwt_required, 
                                 create_access_token, 
                                 create_refresh_token,
@@ -130,6 +131,7 @@ def login():
             {
                 'message': 'Login bem-sucedido.',
                 'user_id': str(user.id),
+                'user_name': user.username, 
                 'access_token': access_token,
             })
         
@@ -184,6 +186,7 @@ def logout():
     identity = get_jwt_identity()
 
     tokenRepository.revoke_token(jti=jti, user_id=identity)
+    disconnect_user(identity)
 
     response = jsonify({'message': 'Logout efetuado com sucesso.'})
     unset_jwt_cookies(response) #remove os cookies

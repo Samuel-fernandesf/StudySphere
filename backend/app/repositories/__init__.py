@@ -8,3 +8,10 @@ from . import progressRepository
 
 userRepository = UserRepository()
 tokenRepository = TokenRepository()
+from .chat_repo import ChatRepository, MessageRepository, ChatUsuarioRepository
+
+userRepository = UserRepository()
+tokenRepository = TokenRepository()
+chatRepository = ChatRepository()
+messageRepository = MessageRepository()
+chatUsuarioRepository = ChatUsuarioRepository()

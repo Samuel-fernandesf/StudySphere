@@ -3,14 +3,17 @@ import { BrowserRouter } from "react-router-dom";
 import AppRoutes from "./router/AppRoutes";
 import { AuthProvider } from "./contexts/AuthContext";
 import Layout from "./components/layout/Layout";
+import { SocketProvider } from "./contexts/SocketContext";
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Layout>
-          <AppRoutes />
-        </Layout>
+        <SocketProvider>
+          <Layout>
+            <AppRoutes/>
+          </Layout>
+        </SocketProvider>
       </BrowserRouter>
     </AuthProvider>
   );

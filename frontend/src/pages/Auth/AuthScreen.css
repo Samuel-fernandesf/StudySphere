@@ -1,8 +1,4 @@
-/* ------------------------------------------------------------------- */
-/* REFINAMENTO DE ESTILOS E RESPONSIVIDADE */
-/* ------------------------------------------------------------------- */
 
-/* Variáveis para fácil manutenção e escalabilidade */
 :root {
     /* Cores */
     --primary-color: #3b5a74; /* Azul Escuro Principal */
@@ -272,10 +268,6 @@ form {
     font-size: 1rem;
 }
 
-/* ------------------------------------------------------------------- */
-/* RESPONSIVIDADE (Telas menores que 992px - Tablets e Mobile) */
-/* ------------------------------------------------------------------- */
-
 @media (max-width: 992px) {
     /* Oculta o left-panel */
     .left-panel {
@@ -319,10 +311,6 @@ form {
         }
     }
 }
-
-/* ------------------------------------------- */
-/* CÓDIGO DO TOGGLE BUTTON (VERSÃO SUAVE/SLIDER) */
-/* ------------------------------------------- */
 
 /* O contêiner do toggle (a "caixa" de fundo cinza) */
 .button-group.toggle-button-group {
@@ -438,10 +426,6 @@ form {
     border-color: #dc3545 !important; /* Vermelho forte */
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25); /* Sombra suave vermelha */
 }
-
-/* ------------------------------------------- */
-/* CSS PARA MOSTRAR/OCULTAR SENHA */
-/* ------------------------------------------- */
 
 /* 1. O contêiner precisa ser 'relative' */
 .password-container {
