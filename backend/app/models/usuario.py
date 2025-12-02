@@ -20,7 +20,10 @@ class Usuario(db.Model, UserMixin):
     confirm_user = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
 
+    #Relacionamentos
     revoked_tokens = db.relationship('RevokedToken', back_populates='user', lazy='dynamic', cascade='all, delete-orphan')
+    chat_participa = db.relationship('ChatUsuario', back_populates='usuario_relacionado', lazy='dynamic', cascade='all, delete-orphan')
+    mensagem_enviadas = db.relationship('Mensagem', back_populates='usuario_remetente', lazy='dynamic', cascade='all, delete-orphan')
     
     def get_confirmation_token(self):
         s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
