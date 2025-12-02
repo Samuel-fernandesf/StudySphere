@@ -6,6 +6,6 @@ class UserSchema(Schema):
     username = fields.Str(required=True)
     nome_completo = fields.Str(required=True)
 
-    curso = fields.Str(required=True, allow_none=None)
-    biografia = fields.Str(required=True, allow_none=None)
-    nascimento = fields.Date(required=True, allow_none=None)
+    curso = fields.Str(required=True, allow_none=True)
+    biografia = fields.Str(required=True, allow_none=True)
+    nascimento = fields.Date(required=True, allow_none=False)
