@@ -23,7 +23,8 @@ export default function SubjectTasksModal({ subject, onClose }) {
     try {
       setLoading(true);
       // Carregar tarefas desta matéria
-      const allTasks = await listarTarefas(subject.id);
+      // O subject.id deve ser passado como string para a API se for um parâmetro de query
+      const allTasks = await listarTarefas(String(subject.id));
       setTasks(allTasks);
     } catch (error) {
       console.error("Erro ao carregar tarefas:", error);

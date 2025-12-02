@@ -4,6 +4,8 @@ export async function listarTarefas(subjectId = null, completed = null) {
   try {
     const params = {};
     if (subjectId !== null) params.subject_id = subjectId;
+    // Garantir que subject_id seja tratado como string na URL, se for o caso
+    if (typeof subjectId === 'number') params.subject_id = String(subjectId);
     if (completed !== null) params.completed = completed;
     
     const response = await api.get("/tasks", { params });

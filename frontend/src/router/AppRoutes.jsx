@@ -14,6 +14,7 @@ import FileView from "../pages/Files/FileView";
 import CalendarPage from "../pages/Calendar/CalendarPage";
 import QuizList from "../pages/Quiz/QuizList";
 import QuizPlay from "../pages/Quiz/QuizPlay";
+import QuizCreate from "../pages/Quiz/QuizCreate";
 import NotFound from "../pages/NotFound";
 import ProgressView from "../pages/Progress/Progress";
 import Chats from "../pages/Chats/Chats";
@@ -63,6 +64,7 @@ export default function AppRoutes() {
         <Route path="/files/:id" element={<FileView />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/quiz" element={<QuizList />} />
+        <Route path="/quiz/create" element={<QuizCreate />} />
         <Route path="/quiz/:id" element={<QuizPlay />} />
         <Route path="/progress" element={<ProgressView />} />
         <Route path="/chats" element={<Chats />} />

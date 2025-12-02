@@ -204,28 +204,30 @@ export default function ProgressView() {
                     const startRad = (startAngle - 90) * (Math.PI / 180);
                     const endRad = (endAngle - 90) * (Math.PI / 180);
                     
-                    const innerRadius = 60;
-                    const outerRadius = 90;
-                    
-                    const x1 = 100 + innerRadius * Math.cos(startRad);
-                    const y1 = 100 + innerRadius * Math.sin(startRad);
-                    const x2 = 100 + outerRadius * Math.cos(startRad);
-                    const y2 = 100 + outerRadius * Math.sin(startRad);
-                    const x3 = 100 + outerRadius * Math.cos(endRad);
-                    const y3 = 100 + outerRadius * Math.sin(endRad);
-                    const x4 = 100 + innerRadius * Math.cos(endRad);
-                    const y4 = 100 + innerRadius * Math.sin(endRad);
-                    
-                    const largeArc = angle > 180 ? 1 : 0;
-                    
-                    const pathData = [
-                      `M ${x1} ${y1}`,
-                      `L ${x2} ${y2}`,
-                      `A ${outerRadius} ${outerRadius} 0 ${largeArc} 1 ${x3} ${y3}`,
-                      `L ${x4} ${y4}`,
-                      `A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${x1} ${y1}`,
-                      'Z'
-                    ].join(' ');
+                      const innerRadius = 60;
+                      const outerRadius = 90;
+                      const centerX = 100;
+                      const centerY = 100;
+                      
+                      const x1_outer = centerX + outerRadius * Math.cos(startRad);
+                      const y1_outer = centerY + outerRadius * Math.sin(startRad);
+                      const x2_outer = centerX + outerRadius * Math.cos(endRad);
+                      const y2_outer = centerY + outerRadius * Math.sin(endRad);
+                      
+                      const x1_inner = centerX + innerRadius * Math.cos(endRad);
+                      const y1_inner = centerY + innerRadius * Math.sin(endRad);
+                      const x2_inner = centerX + innerRadius * Math.cos(startRad);
+                      const y2_inner = centerY + innerRadius * Math.sin(startRad);
+                      
+                      const largeArc = angle > 180 ? 1 : 0;
+                      
+                      const pathData = [
+                        `M ${x1_outer} ${y1_outer}`,
+                        `A ${outerRadius} ${outerRadius} 0 ${largeArc} 1 ${x2_outer} ${y2_outer}`,
+                        `L ${x1_inner} ${y1_inner}`,
+                        `A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${x2_inner} ${y2_inner}`,
+                        `Z`
+                      ].join(' ');
                     
                     return (
                       <path

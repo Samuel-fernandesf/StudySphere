@@ -14,7 +14,7 @@ export async function buscarQuiz(id) {
   return res.data;
 }
 
-export async function criarQuiz(quizData) {
+export async function createQuiz(quizData) {
   const res = await api.post("/quizzes", quizData);
   return res.data;
 }

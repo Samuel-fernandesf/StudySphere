@@ -221,9 +221,27 @@ export default function QuizList() {
               <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#232946', marginBottom: '16px' }}>
                 Questionários Disponíveis
               </h2>
-              <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '16px' }}>
-                Escolha um questionário para testar seus conhecimentos
-              </p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <p style={{ margin: 0, fontSize: '14px', color: '#64748b' }}>
+                  Escolha um questionário para testar seus conhecimentos
+                </p>
+                <button
+                  onClick={() => navigate('/quiz/create')}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#2563eb',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  + Criar Quiz
+                </button>
+              </div>
 
               {loading ? (
                 <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
