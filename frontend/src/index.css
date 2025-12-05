@@ -70,7 +70,7 @@ body{
   overflow-y: auto;
   overflow-x: hidden;
   background-color: var(--bg);
-  padding: 24px;
+  padding: 10px;
 }
 
 /* se precisar de uma classe collapsed no main-content também, deixar compatível */
@@ -78,16 +78,6 @@ body{
   /* sem alterações obrigatórias aqui — app-layout controla o padding */
 }
 
-/* Container flexível (componentes internos) */
-.container {
-  width: 100%;
-  max-width: 100%;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--gap);
-}
 
 /* Utilitário .card */
 .card {

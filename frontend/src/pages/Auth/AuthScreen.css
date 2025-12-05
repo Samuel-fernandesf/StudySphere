@@ -54,11 +54,11 @@ body {
 /* Container principal para o layout de duas colunas (Flexbox) */
 .container {
     display: flex;
-    width: 100%;
     /* Ocupa a altura total do viewport, permitindo que os painéis se ajustem sem scroll */
     height: 100vh; 
-    max-width: 1400px; 
+    max-width: 900px; 
     padding: 0; 
+    margin: 0 auto;
     background: transparent; 
 }
 

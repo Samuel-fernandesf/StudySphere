@@ -50,54 +50,50 @@ export default function Chats() {
 
   return (
     <SocketProvider>
-      <div className="chats-container">
+      <div className="chats-page">
         <Sidebar />
-        
-        <div className="main-content">
-          <div className="chats-header">
-            <div className="chats-header-left">
-              <h1>Chats Colaborativos</h1>
-              <p>Conecte-se com seus colegas de estudo</p>
-            </div>
-            <button className="btn-new-chat" onClick={handleNewChat}>
-              + Novo Grupo
-            </button>
+
+        <div className="chats-header">
+          <div>
+            <h1 className="chats-title">Chats Colaborativos</h1>
+            <p className="chats-subtitle">Conecte-se com seus colegas de estudo</p>
           </div>
+          <button className="btn-new-chat" onClick={handleNewChat}>
+            + Novo Grupo
+          </button>
+        </div>
 
-          <div className="chats-main">
-            <div className="chats-sidebar">
-              <div className="chats-sidebar-header">
-                <h3>Grupos de Estudo</h3>
-                <span className="chat-count">{chats.length}</span>
-              </div>
-              
-              <div className="chats-search">
-                <input 
-                  type="text" 
-                  placeholder="Buscar grupos..." 
-                  className="search-input"
-                />
-              </div>
-
-              <ChatList
-                chats={chats}
-                selectedChatId={selectedChat?.id}
-                onOpenChat={handleOpenChat}
-                loading={loading}
+        <div className="chats-main">
+          <div className="chats-sidebar">
+            <div className="chats-sidebar-header">
+              <h3>Grupos de Estudo</h3>
+              <span className="chat-count">{chats.length}</span>
+            </div>
+            <div className="chats-search">
+              <input
+                type="text"
+                placeholder="Buscar grupos..."
+                className="search-input"
               />
             </div>
+            <ChatList
+              chats={chats}
+              selectedChatId={selectedChat?.id}
+              onOpenChat={handleOpenChat}
+              loading={loading}
+            />
+          </div>
 
-            <div className="chats-window">
-              {selectedChat ? (
-                <ChatWindow chat={selectedChat} onClose={handleCloseChat} />
-              ) : (
-                <div className="no-chat-selected">
-                  <div className="no-chat-icon">💬</div>
-                  <h3>Selecione um chat</h3>
-                  <p>Escolha uma conversa para começar a interagir</p>
-                </div>
-              )}
-            </div>
+          <div className="chats-window">
+            {selectedChat ? (
+              <ChatWindow chat={selectedChat} onClose={handleCloseChat} />
+            ) : (
+              <div className="no-chat-selected">
+                <div className="no-chat-icon">💬</div>
+                <h3>Selecione um chat</h3>
+                <p>Escolha uma conversa para começar a interagir</p>
+              </div>
+            )}
           </div>
         </div>
 
