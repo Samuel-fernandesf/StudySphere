@@ -294,35 +294,59 @@
   color: #94a3b8;
 }
 
-/* Gráfico de Donut */
+/* Gráfico de Donut - CORRIGIDO */
 .donut-chart {
   width: 100%;
-  max-width: 300px;
-  margin: 0 auto 24px;
+  max-width: 320px;
+  margin: 0 auto 32px;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f8fafc;
+  border-radius: 12px;
 }
 
 .donut-svg {
   width: 100%;
   height: auto;
+  display: block;
+  max-width: 280px;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
 }
 
+/* Legenda das Matérias */
 .subject-legend {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  padding: 16px;
+  background-color: #f8fafc;
+  border-radius: 12px;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  padding: 12px;
+  background-color: white;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.legend-item:hover {
+  transform: translateX(4px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .legend-color {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
   flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .legend-content {
@@ -330,18 +354,21 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
 }
 
 .legend-name {
   font-size: 14px;
   color: #475569;
-  font-weight: 500;
+  font-weight: 600;
+  flex: 1;
 }
 
 .legend-value {
   font-size: 14px;
   color: #1e293b;
-  font-weight: 600;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 /* Responsivo */
@@ -374,5 +401,26 @@
 
   .bar-container {
     padding: 0 4px;
+  }
+
+  .donut-chart {
+    max-width: 100%;
+    padding: 16px;
+  }
+
+  .donut-svg {
+    max-width: 240px;
+  }
+
+  .legend-item {
+    padding: 10px;
+  }
+
+  .legend-name {
+    font-size: 13px;
+  }
+
+  .legend-value {
+    font-size: 13px;
   }
 }
