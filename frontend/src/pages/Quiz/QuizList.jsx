@@ -59,7 +59,7 @@ export default function QuizList() {
     <>
       <Sidebar />
       <div style={{
-        marginLeft: '260px',
+        marginLeft: '0px',
         padding: '32px',
         backgroundColor: '#f8fafc',
         minHeight: '100vh',
@@ -355,91 +355,6 @@ export default function QuizList() {
                 </div>
               )}
             </div>
-
-            {/* Estatísticas do Usuário */}
-            {estatisticas && (
-              <div style={{
-                backgroundColor: 'white',
-                borderRadius: '12px',
-                padding: '24px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-              }}>
-                <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#232946', marginBottom: '16px' }}>
-                  Suas Estatísticas
-                </h2>
-                
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-                  <div>
-                    <div style={{ fontSize: '14px', color: '#64748b', marginBottom: '4px' }}>
-                      Questionários Completos
-                    </div>
-                    <div style={{ fontSize: '24px', fontWeight: '700', color: '#232946' }}>
-                      {estatisticas.total_tentativas || 0}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div style={{ fontSize: '14px', color: '#64748b', marginBottom: '4px' }}>
-                      Média Geral
-                    </div>
-                    <div style={{ fontSize: '24px', fontWeight: '700', color: '#4ade80' }}>
-                      {estatisticas.media_geral || 0}%
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div style={{ fontSize: '14px', color: '#64748b', marginBottom: '4px' }}>
-                      Tempo Médio
-                    </div>
-                    <div style={{ fontSize: '24px', fontWeight: '700', color: '#232946' }}>
-                      {Math.floor((estatisticas.tempo_medio || 0) / 60)}:{String(Math.floor((estatisticas.tempo_medio || 0) % 60)).padStart(2, '0')}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div style={{ fontSize: '14px', color: '#64748b', marginBottom: '4px' }}>
-                      Posição Geral
-                    </div>
-                    <div style={{ fontSize: '24px', fontWeight: '700', color: '#7c3aed' }}>
-                      #6 de 47
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ marginTop: '24px' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#232946', marginBottom: '12px' }}>
-                    Progresso por Matéria
-                  </h3>
-                  
-                  {['Matemática', 'Física', 'Química', 'História'].map((materia, idx) => {
-                    const percentuais = [74, 89, 69, 79];
-                    return (
-                      <div key={materia} style={{ marginBottom: '12px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                          <span style={{ fontSize: '14px', color: '#64748b' }}>{materia}</span>
-                          <span style={{ fontSize: '14px', fontWeight: '600', color: '#232946' }}>
-                            {percentuais[idx]}%
-                          </span>
-                        </div>
-                        <div style={{
-                          height: '8px',
-                          backgroundColor: '#e2e8f0',
-                          borderRadius: '4px',
-                          overflow: 'hidden'
-                        }}>
-                          <div style={{
-                            height: '100%',
-                            width: `${percentuais[idx]}%`,
-                            backgroundColor: '#232946',
-                            transition: 'width 0.3s'
-                          }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
           </>
         )}
 

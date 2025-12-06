@@ -119,7 +119,7 @@ export default function QuizCreate() {
     <>
       <Sidebar />
       <div style={{
-        marginLeft: '260px',
+        marginLeft: '0px',
         padding: '32px',
         backgroundColor: '#f8fafc',
         minHeight: '100vh',
