@@ -1,7 +1,7 @@
-/* index.css (global) - ATUALIZADO */
+/* index.css (global) - CORRIGIDO PARA SCROLL */
 
-/* Variáveis */
-:root{
+/* Variáveis Globais */
+:root {
   --bg: #f8fafc;
   --primary: #334155;
   --primary-contrast: #ffffff;
@@ -10,13 +10,17 @@
   --text: #1e293b;
   --card-bg: #ffffff;
   --card-border: #f1f5f9;
-  --surface-shadow: rgba(0,0,0,0.1);
+  --surface-shadow: rgba(0, 0, 0, 0.1);
   --radius: 12px;
   --gap: 20px;
 
-  /* IMPORTANTES */
-  --sidebar-width: 260px;            /* largura da sidebar quando aberta */
-  --sidebar-collapsed-width: 80px;  /* largura quando recolhida */
+  /* Sidebar */
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 80px;
+  --sidebar-bg: #334155;
+  --sidebar-bg-active: #1e293b;
+  --sidebar-text: #ffffff;
+  --sidebar-text-muted: #cbd5e1;
 }
 
 /* RESET / BASE */
@@ -26,58 +30,58 @@
   box-sizing: border-box;
 }
 
-html, body, #root {
-  height: 100%;
+html {
   width: 100%;
   margin: 0;
   padding: 0;
 }
 
-body{
-  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+body {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
   background-color: var(--bg);
   color: var(--text);
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  line-height:1.4;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.4;
 }
 
-/* APP LAYOUT - usa padding-left para reservar espaço para a sidebar fixa */
-.app-layout {
-  display: block; /* sidebar é fixed, não precisa de flex obrigatório aqui */
+#root {
   width: 100%;
-  max-width: 100%;
-  min-width: 0;
-
-  /* reserva o espaço à esquerda para a sidebar */
-  padding-left: var(--sidebar-width);
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Quando o estado 'collapsed' estiver ativo (sidebar menor) */
+/* APP LAYOUT - ⚠️ IMPORTANTE: NÃO use height: 100vh aqui */
+.app-layout {
+  display: flex; /* ← MUDADO para flex */
+  flex-direction: column;
+  width: 100%;
+  min-height: 100vh; /* ← min-height, não height */
+  padding-left: var(--sidebar-width);
+  transition: padding-left 0.3s ease-in-out;
+  position: relative;
+}
+
 .app-layout.collapsed {
   padding-left: var(--sidebar-collapsed-width);
 }
 
-/* wrapper do conteúdo principal */
+/* MAIN CONTENT */
 .main-content {
-  /* ocupa todo o espaço disponível (app-layout dá o padding) */
+  flex: 1; 
   width: 100%;
-  min-height: 100%;
+  min-height: auto;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
   background-color: var(--bg);
-  padding: 10px;
+  padding: 20px;
+  overflow-y: auto; 
 }
-
-/* se precisar de uma classe collapsed no main-content também, deixar compatível */
-.main-content.collapsed {
-  /* sem alterações obrigatórias aqui — app-layout controla o padding */
-}
-
 
 /* Utilitário .card */
 .card {
@@ -88,12 +92,12 @@ body{
   padding: 24px;
 }
 
-/* Mobile: quando a viewport é pequena, a sidebar deve sobrepor o conteúdo (menu lateral) */
+/* RESPONSIVO */
 @media (max-width: 768px) {
-  .app-layout,
-  .app-layout.collapsed {
-    padding-left: 0; /* sidebar ficará sobre o conteúdo (transform), então remove o padding */
+  .app-layout {
+    padding-left: 0;
   }
+
   .main-content {
     padding: 16px;
   }

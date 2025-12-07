@@ -1,14 +1,12 @@
-/* Layout.css (ATUALIZADO) */
+/* Layout.css */
 
-/* este arquivo assume que index.css define as variáveis e padding do app-layout */
-
-/* mobile menu toggle (botão) */
+/* Mobile Menu Toggle */
 .mobile-menu-toggle {
   display: none;
   position: fixed;
   top: 16px;
   left: 16px;
-  z-index: 1101; /* acima da sidebar quando aberta */
+  z-index: 1101;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 8px;
@@ -19,9 +17,17 @@
   box-shadow: 0 2px 5px var(--surface-shadow);
   transition: all 0.2s;
 }
-.mobile-menu-toggle:hover { transform: translateY(-2px); }
 
-/* Responsividade */
+.mobile-menu-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px var(--surface-shadow);
+}
+
+.mobile-menu-toggle:active {
+  transform: translateY(0);
+}
+
+/* RESPONSIVO */
 @media (max-width: 768px) {
   .mobile-menu-toggle {
     display: block;

@@ -30,7 +30,7 @@ def create_app():
 
 
     from utils import jwt_handlers, socket_handlers
-    from routes import auth, home, events_bp, subjects_bp, tasks_bp, files_bp, progress_bp, chat, quiz_bp, users
+    from routes import auth, home, events_bp, subjects_bp, tasks_bp, files_bp, progress_bp, chat, quiz_bp, users, assistant_bp
 
     app.register_blueprint(auth, url_prefix='/api/auth')
     app.register_blueprint(users, url_prefix='/api/users')
@@ -42,5 +42,6 @@ def create_app():
     app.register_blueprint(progress_bp, url_prefix='/api')
     app.register_blueprint(chat, url_prefix='/api/chats')
     app.register_blueprint(quiz_bp, url_prefix='/api/quizzes')
+    app.register_blueprint(assistant_bp, url_prefix='/api/assistant')
 
     return app
