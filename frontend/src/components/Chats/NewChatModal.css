@@ -115,9 +115,9 @@
 }
 
 .tab.active {
-  color: #2563eb;
+  color: #1e293b;
   background: #eff6ff;
-  border-bottom-color: #2563eb;
+  border-bottom-color: #1e293b;
 }
 
 /* ===== INPUTS ===== */

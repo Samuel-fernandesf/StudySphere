@@ -1,124 +1,92 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { fazerPergunta, pesquisarConteudo, limparHistorico } from '../../services/assistantService';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { useModal } from '../../contexts/ModalContext'
+import { fazerPergunta, limparHistorico } from '../../services/assistantService';
 import './EducationalAssistant.css';
 
-const EducationalAssistant = ({ materia = 'Geral' }) => {
+const EducationalAssistant = ({ materia = 'Geral', onNovaConversa, sugestao }) => {
   const [pergunta, setPergunta] = useState('');
   const [mensagens, setMensagens] = useState([]);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState(null);
   const messagesEndRef = useRef(null);
 
-  // Auto-scroll para a última mensagem
+  // Hook do Modal
+  const { showAlert, showConfirm } = useModal(); 
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [mensagens]);
 
+  useEffect(() => {
+    if (sugestao) setPergunta(sugestao);
+  }, [sugestao]);
+
   const handlePergunta = async (e) => {
-  e.preventDefault();
-  
-  if (!pergunta.trim()) {
-    setErro('Digite uma pergunta');
-    return;
-  }
+    if (e) e.preventDefault();
+    
+    if (!pergunta.trim()) {
 
-  setCarregando(true);
-  setErro(null);
-  
-  const novaPergunta = {
-    id: Date.now(),
-    tipo: 'usuario',
-    conteudo: pergunta,
-    timestamp: new Date()
-  };
-  
-  setMensagens(prev => [...prev, novaPergunta]);
-
-  try {
-    const resultado = await fazerPergunta(pergunta, materia);
-    
-    const novaResposta = {
-      id: Date.now() + 1,
-      tipo: 'assistente',
-      conteudo: resultado.answer,
-      citacoes: resultado.citations || [],
-      timestamp: new Date()
-    };
-    
-    setMensagens(prev => [...prev, novaResposta]);
-    
-    // 🆕 Chamar callback com a conversa
-    if (props.onNovaConversa) {
-      props.onNovaConversa(pergunta);
-    }
-    
-    setPergunta('');
-  } catch (error) {
-    console.error('Erro completo:', error);
-    // ... resto do código
-  } finally {
-    setCarregando(false);
-  }
-};
-  const handlePesquisa = async (topico) => {
-    if (!topico.trim()) {
-      setErro('Digite um tópico para pesquisar');
+      setErro('Por favor, digite uma pergunta.');
       return;
     }
 
     setCarregando(true);
     setErro(null);
     
-    const novaPesquisa = {
+    const novaPergunta = {
       id: Date.now(),
       tipo: 'usuario',
-      conteudo: `🔍 Pesquisando: ${topico}`,
+      conteudo: pergunta,
       timestamp: new Date()
     };
     
-    setMensagens(prev => [...prev, novaPesquisa]);
+    setMensagens(prev => [...prev, novaPergunta]);
 
     try {
-      const resultado = await pesquisarConteudo(topico);
+      const resultado = await fazerPergunta(pergunta, materia);
       
       const novaResposta = {
         id: Date.now() + 1,
         tipo: 'assistente',
-        conteudo: resultado.research,
+        conteudo: resultado.answer,
         citacoes: resultado.citations || [],
-        tipo_msg: 'pesquisa',
         timestamp: new Date()
       };
       
       setMensagens(prev => [...prev, novaResposta]);
+      
+      if (onNovaConversa) onNovaConversa(pergunta);
+      setPergunta('');
+
     } catch (error) {
-      console.error('Erro na pesquisa:', error);
+      console.error('Erro completo:', error);
+      const msgErro = error.response?.data?.error || 'Não foi possível obter a resposta.';
       
-      const mensagemErro = error.response?.data?.error || 
-                          'Erro ao realizar a pesquisa.';
-      
-      const erroMensagem = {
-        id: Date.now() + 1,
-        tipo: 'erro',
-        conteudo: mensagemErro,
-        timestamp: new Date()
-      };
-      setMensagens(prev => [...prev, erroMensagem]);
-      setErro(mensagemErro);
+      // Usa o Modal para erros de sistema/API
+      showAlert(msgErro, 'error', 'Erro na Comunicação');
+      setErro(msgErro); // Mantém o erro visual também se quiser
     } finally {
       setCarregando(false);
     }
   };
 
   const handleLimparHistorico = async () => {
-    if (window.confirm('Tem certeza que deseja limpar o histórico?')) {
+    const confirmado = await showConfirm(
+      'Tem certeza que deseja apagar todo o histórico dessa conversa? Isso não pode ser desfeito.',
+      'Limpar Histórico',
+      'warning'
+    );
+
+    if (confirmado) {
       try {
         await limparHistorico();
         setMensagens([]);
         setErro(null);
+        await showAlert('Histórico limpo com sucesso!', 'success', 'Pronto');
       } catch (error) {
-        console.error('Erro ao limpar histórico:', error);
-        setErro('Erro ao limpar histórico');
+        await showAlert('Erro ao limpar histórico. Tente novamente.', 'error');
       }
     }
   };
@@ -126,63 +94,64 @@ const EducationalAssistant = ({ materia = 'Geral' }) => {
   return (
     <div className="assistant-container">
       <div className="assistant-header">
-        <h2>📚 Assistente de Estudos</h2>
-        {materia && <span className="materia-badge">{materia}</span>}
+        <h2>📚 Assistente de {materia}</h2>
         <button 
           className="btn-limpar"
           onClick={handleLimparHistorico}
-          title="Limpar histórico de conversa"
+          title="Limpar histórico"
+          disabled={mensagens.length === 0}
         >
           🗑️
         </button>
       </div>
 
-      {erro && (
-        <div className="error-banner">
-          ⚠️ {erro}
-        </div>
-      )}
+      {erro && <div className="error-banner">⚠️ {erro}</div>}
 
       <div className="messages-container">
         {mensagens.length === 0 && (
           <div className="welcome-message">
-            <h3>👋 Bem-vindo ao Assistente de Estudos!</h3>
-            <p>Faça uma pergunta sobre <strong>{materia || 'qualquer assunto'}</strong> e receba respostas com fontes acadêmicas.</p>
-            <p style={{fontSize: '12px', marginTop: '10px', color: '#999'}}>
-              💡 Dica: Quanto mais específica sua pergunta, melhor será a resposta!
-            </p>
+            <h3>👋 Olá!</h3>
+            <p>Pergunte-me qualquer coisa sobre <strong>{materia}</strong>.</p>
           </div>
         )}
         
         {mensagens.map((msg) => (
           <div key={msg.id} className={`message message-${msg.tipo}`}>
-            <div className="message-content">
-              {msg.conteudo}
+            <div className="message-content markdown-body">
+                {msg.tipo === 'assistente' ? (
+                    <ReactMarkdown 
+                        children={msg.conteudo} 
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                            a: ({node, ...props}) => <a {...props} target="_blank" rel="noopener noreferrer" />
+                        }}
+                    />
+                ) : (
+                    <p>{msg.conteudo}</p>
+                )}
+
               {msg.citacoes && msg.citacoes.length > 0 && (
                 <div className="citations">
                   <strong>📖 Fontes:</strong>
                   <ul>
                     {msg.citacoes.map((cit, idx) => (
-                      <li key={idx}>{cit}</li>
+                      <li key={idx}>
+                         <a href={cit.url} target="_blank" rel="noopener noreferrer">[{idx + 1}] {cit.name}</a>
+                      </li>
                     ))}
                   </ul>
                 </div>
               )}
             </div>
             <small className="message-time">
-              {msg.timestamp.toLocaleTimeString('pt-BR', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-              })}
+              {msg.timestamp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
             </small>
           </div>
         ))}
         
         {carregando && (
           <div className="message message-assistente">
-            <div className="loading-spinner">
-              <span>⏳</span> Pensando...
-            </div>
+            <div className="typing-indicator"><span>●</span><span>●</span><span>●</span></div>
           </div>
         )}
         
@@ -196,27 +165,19 @@ const EducationalAssistant = ({ materia = 'Geral' }) => {
             setPergunta(e.target.value);
             setErro(null);
           }}
-          placeholder="Digite sua dúvida..."
+          placeholder="Digite sua dúvida aqui..."
           disabled={carregando}
-          rows="3"
+          rows="1"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handlePergunta(e);
+            }
+          }}
         />
-        <div className="button-group">
-          <button 
-            type="submit" 
-            disabled={carregando || !pergunta.trim()}
-            className="btn-enviar"
-          >
-            ✉️ Enviar
-          </button>
-          <button
-            type="button"
-            onClick={() => handlePesquisa(pergunta || 'conteúdo educacional')}
-            disabled={carregando}
-            className="btn-pesquisa"
-          >
-            🔍 Pesquisar
-          </button>
-        </div>
+        <button type="submit" disabled={carregando || !pergunta.trim()} className="btn-enviar">
+          ➤
+        </button>
       </form>
     </div>
   );

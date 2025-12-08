@@ -134,7 +134,7 @@ export default function Dashboard() {
         </div>
 
         <div className="header-actions">
-          <button className="btn" onClick={handleNovaTarefa}>+ Nova Tarefa</button>
+          <button className="btn" onClick={handleNovaTarefa}>+ Novo Evento</button>
         </div>
       </header>
 

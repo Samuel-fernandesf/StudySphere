@@ -13,7 +13,8 @@ import {
     FileQuestion,
     Settings,
     ChevronsLeft,
-    ChevronsRight
+    ChevronsRight,
+    Sparkles
 } from 'lucide-react';
 
 // Componente Sidebar
@@ -103,7 +104,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                                 to="/assistant" 
                                 className={`navLink ${isActive('/assistant') ? 'navLinkActive' : ''}`}
                             >
-                                <FileQuestion size={20} />
+                                <Sparkles size={20} />
                                 <span>Assistente</span>
                             </Link>
                         </li>

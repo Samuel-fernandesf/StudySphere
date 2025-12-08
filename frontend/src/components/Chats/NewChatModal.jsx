@@ -126,7 +126,7 @@ export default function NewChatModal({ onClose, onChatCreated }) {
 
         <div className="modal-header">
           <h3 className="text-lg font-semibold">Nova Conversa</h3>
-          <button type="button" onClick={onClose} aria-label="Fechar">Fechar</button>
+          <button type="button" onClick={onClose} aria-label="Fechar">X</button>
         </div>
 
         <div className="tabs">
