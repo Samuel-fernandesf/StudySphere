@@ -2,21 +2,24 @@
 
 _Sua plataforma completa para otimizar os estudos, aumentar a produtividade e facilitar a colaboração entre estudantes._
 
+
+<div align="center">
+
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)
 ![Frontend](https://img.shields.io/badge/frontend-React-blue?logo=react)
 ![Backend](https://img.shields.io/badge/backend-Flask-black?logo=flask)
 ![Database](https://img.shields.io/badge/database-MySQL-orange?logo=mysql)
 
----
+</div>
 
-## 🎯 Sobre o Projeto
+## Sobre o Projeto
 
-O StudySphere é uma plataforma digital inovadora, desenvolvida para auxiliar estudantes na organização de seus estudos, promover a colaboração com colegas e monitorar o desempenho acadêmico. Em um cenário onde a sobrecarga de informações e as distrações digitais são constantes, o StudySphere surge como uma solução para centralizar materiais, gerenciar o tempo de forma eficaz e combater a procrastinação, que afeta o rendimento de 80% dos estudantes [1].
+O StudySphere é uma plataforma digital inovadora, desenvolvida para auxiliar estudantes na organização de seus estudos, promover a colaboração com colegas e monitorar o desempenho acadêmico. Em um cenário onde a sobrecarga de informações e as distrações digitais são constantes, o StudySphere surge como uma solução para centralizar materiais, gerenciar o tempo de forma eficaz e combater a procrastinação, que afeta o rendimento de 80% dos estudantes.
 
 O projeto foi idealizado por estudantes do Curso Técnico em Informática do **Instituto Federal de São Paulo (IFSP)**, campus Araraquara, como uma ferramenta para transformar a experiência de aprendizado em algo mais dinâmico, colaborativo e motivador.
 
-## ✨ Funcionalidades Principais
+## Funcionalidades Principais
 
 O StudySphere oferece um conjunto de ferramentas integradas para facilitar a vida do estudante:
 
@@ -29,7 +32,7 @@ O StudySphere oferece um conjunto de ferramentas integradas para facilitar a vid
 *   **🎮 Gamificação:** Acompanhe seu progresso com um sistema de pontos, *badges* e metas semanais, tornando o estudo mais engajante.
 *   **♿ Acessibilidade:** Interface projetada com foco em acessibilidade (WCAG 2.1 AA), garantindo uma experiência inclusiva para todos.
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 O projeto foi construído utilizando tecnologias modernas e robustas, visando performance, escalabilidade e manutenibilidade.
 
@@ -42,7 +45,7 @@ O projeto foi construído utilizando tecnologias modernas e robustas, visando pe
 | **Autenticação** | JWT (JSON Web Tokens) | Padrão para criação de tokens de acesso que permitem a autenticação segura de usuários. |
 | **Segurança** | Bcrypt / AES | Algoritmos para criptografia de senhas e dados sensíveis. |
 
-## 🚀 Começando
+## Começando
 
 Para executar o projeto localmente, siga os passos abaixo.
 
@@ -127,9 +130,9 @@ Para executar o projeto localmente, siga os passos abaixo.
     npm run dev
     ```
 
-    A aplicação estará acessível em `http://127.0.0.1:5173`.
+    A aplicação estará acessível em `http://127.0.0.1:3000`.
 
-## 🤝 Como Contribuir
+## Como Contribuir
 
 Contribuições são o que tornam a comunidade de código aberto um lugar incrível para aprender, inspirar e criar. Qualquer contribuição que você fizer será **muito apreciada**.
 
@@ -141,17 +144,12 @@ Se você tiver uma sugestão para melhorar o projeto, por favor, faça um fork d
 4.  Push para a Branch (`git push origin feature/AmazingFeature`)
 5.  Abra uma Pull Request
 
-## 📝 Licença
+## Licença
 
 Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
 
-## 👨‍💻 Autores
+## Autores
 
 *   **Luiz Gabriel Leli Pereira** - [ImLuizz](https://github.com/ImLuizz)
 *   **Samuel Fernandes Filho** - [Samuel-fernandesf](https://github.com/Samuel-fernandesf)
 
----
-
-### Referências
-
-[1] SILVA, A. B. (2023). *Procrastinação e Saúde Mental de Estudantes*. Editora Exemplo.
