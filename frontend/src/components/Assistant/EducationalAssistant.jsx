@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useModal } from '../../contexts/ModalContext'
-import { fazerPergunta, limparHistorico } from '../../services/assistantService';
+import { fazerPergunta, limparHistorico } from '../../services/assistantservice';
 import './EducationalAssistant.css';
 
 const EducationalAssistant = ({ materia = 'Geral', onNovaConversa, sugestao }) => {
