@@ -527,25 +527,25 @@ export default function UserConfig() {
                         className={`config-tab ${activeTab === "perfil" ? "active" : ""}`}
                         onClick={() => setActiveTab("perfil")}
                     >
-                        👤 Perfil
+                        Perfil
                     </button>
                     <button 
                         className={`config-tab ${activeTab === "notificacoes" ? "active" : ""}`}
                         onClick={() => setActiveTab("notificacoes")}
                     >
-                        🔔 Notificações
+                        Notificações
                     </button>
                     <button 
                         className={`config-tab ${activeTab === "aparencia" ? "active" : ""}`}
                         onClick={() => setActiveTab("aparencia")}
                     >
-                        🎨 Aparência
+                        Aparência
                     </button>
                     <button 
                         className={`config-tab ${activeTab === "privacidade" ? "active" : ""}`}
                         onClick={() => setActiveTab("privacidade")}
                     >
-                        🔒 Privacidade
+                        Privacidade
                     </button>
                 </div>
 
