@@ -23,21 +23,23 @@ def create_app():
     #Inicializando extensões
     db.init_app(app)
     jwt.init_app(app)
-    CORS(app, supports_credentials=True, origins=['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:5173'])
+    CORS(app, supports_credentials=True, origins='*')
     migrate = Migrate(app, db)
     socket_io.init_app(app)
 
     from utils import jwt_handlers, socket_handlers
-    from routes import auth, home, chat, users, events_bp, subjects_bp, tasks_bp, files_bp, progress_bp
+    from routes import auth, home, events_bp, subjects_bp, tasks_bp, files_bp, progress_bp, chat, quiz_bp, users, assistant_bp
 
     app.register_blueprint(auth, url_prefix='/api/auth')
+    app.register_blueprint(users, url_prefix='/api/users')
     app.register_blueprint(home, url_prefix='/api/dashboard')
     app.register_blueprint(chat, url_prefix='/api/chats')
-    app.register_blueprint(users, url_prefix='/api/users')
     app.register_blueprint(events_bp, url_prefix='/api')
     app.register_blueprint(subjects_bp, url_prefix='/api')
     app.register_blueprint(tasks_bp, url_prefix='/api')
     app.register_blueprint(files_bp, url_prefix='/api')
     app.register_blueprint(progress_bp, url_prefix='/api')
+    app.register_blueprint(quiz_bp, url_prefix='/api/quizzes')
+    app.register_blueprint(assistant_bp, url_prefix='/api/assistant')
 
     return app

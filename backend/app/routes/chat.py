@@ -254,3 +254,58 @@ def leave_chat(chat_id):
     except Exception:
         current_app.logger.exception("Erro ao sair do chat")
         return _error('SERVER_ERROR', 'Erro ao sair do chat', 500)
+
+@chat.route("/<int:chat_id>", methods=["PUT"])
+@jwt_required()
+@ensure_member
+def update_chat(chat_id):
+    """PUT /api/chats/<chat_id>
+    Atualiza informações do chat (ex: nome do grupo).
+    """
+    user_id = get_jwt_identity()
+    data = request.get_json() or {}
+    novo_nome = data.get('nome_grupo')
+
+    if not novo_nome or not isinstance(novo_nome, str) or not novo_nome.strip():
+        return _error('INVALID_PAYLOAD', 'nome_grupo inválido')
+
+    try:
+        chat_obj = chatRepository.get_by_id(chat_id)
+        if not chat_obj:
+            return _error('NOT_FOUND', 'Chat não encontrado', 404)
+        
+        # Verifica se é admin (apenas para grupos públicos)
+        if chat_obj.tipo == TipoChat.publico:
+            if not chatUsuarioRepository.is_admin(int(user_id), chat_id):
+                return _error('FORBIDDEN', 'Apenas administradores podem editar o grupo', 403)
+        
+        updated_chat = chatRepository.update_chat_name(chat_obj, novo_nome.strip())
+        return jsonify({'status': 'ok', 'chat': chat_schema.dump(updated_chat)})
+    except Exception:
+        current_app.logger.exception("Erro ao atualizar chat")
+        return _error('SERVER_ERROR', 'Erro ao atualizar chat', 500)
+
+@chat.route("/<int:chat_id>", methods=["DELETE"])
+@jwt_required()
+@ensure_member
+def delete_chat(chat_id):
+    """DELETE /api/chats/<chat_id>
+    Deleta o chat (apenas admin em grupos públicos).
+    """
+    user_id = get_jwt_identity()
+    
+    try:
+        chat_obj = chatRepository.get_by_id(chat_id)
+        if not chat_obj:
+            return _error('NOT_FOUND', 'Chat não encontrado', 404)
+        
+        # Verifica se é admin (apenas para grupos públicos)
+        if chat_obj.tipo == TipoChat.publico:
+            if not chatUsuarioRepository.is_admin(int(user_id), chat_id):
+                return _error('FORBIDDEN', 'Apenas administradores podem deletar o grupo', 403)
+        
+        chatRepository.delete_chat(chat_obj)
+        return jsonify({'status': 'ok', 'message': 'Chat deletado com sucesso'})
+    except Exception:
+        current_app.logger.exception("Erro ao deletar chat")
+        return _error('SERVER_ERROR', 'Erro ao deletar chat', 500)

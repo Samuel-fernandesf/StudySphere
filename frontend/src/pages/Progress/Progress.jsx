@@ -17,6 +17,7 @@ export default function ProgressView() {
     try {
       setLoading(true);
       const data = await obterResumoProgresso();
+      console.log("Dados de progresso carregados:", data);
       setProgressData(data);
     } catch (error) {
       console.error("Erro ao carregar dados de progresso:", error);
@@ -59,6 +60,21 @@ export default function ProgressView() {
 
   // Calcular total de horas para distribuição por matéria
   const totalSubjectHours = timeBySubject.reduce((sum, s) => sum + s.total_hours, 0);
+
+  // Cores padrão para as matérias
+  const defaultColors = [
+    '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
+    '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16'
+  ];
+
+  // Garantir que cada matéria tenha uma cor
+  const timeBySubjectWithColors = timeBySubject.map((subject, index) => ({
+    ...subject,
+    color: subject.color || defaultColors[index % defaultColors.length]
+  }));
+
+  console.log("Matérias com cores:", timeBySubjectWithColors);
+  console.log("Total de horas por matéria:", totalSubjectHours);
 
   return (
     <main className="progress-page">
@@ -176,7 +192,7 @@ export default function ProgressView() {
           <h3 className="chart-title">Distribuição por Matéria</h3>
           <p className="chart-subtitle">Tempo dedicado a cada disciplina este mês</p>
           
-          {timeBySubject.length === 0 ? (
+          {timeBySubjectWithColors.length === 0 ? (
             <div className="chart-empty">
               <p>Nenhum dado de estudo registrado ainda.</p>
               <button onClick={() => setIsModalOpen(true)} className="empty-action-button">
@@ -186,73 +202,94 @@ export default function ProgressView() {
           ) : (
             <>
               <div className="donut-chart">
-                <svg viewBox="0 0 200 200" className="donut-svg">
-                  {timeBySubject.map((subject, index) => {
+                <svg viewBox="0 0 200 200" className="donut-svg" style={{ display: 'block' }}>
+                  {timeBySubjectWithColors.map((subject, index) => {
+                    // Calcular porcentagem e ângulo
                     const percentage = (subject.total_hours / totalSubjectHours) * 100;
                     const angle = (percentage / 100) * 360;
                     
-                    // Calcular ângulos acumulados
+                    // Calcular ângulo inicial acumulado
                     let startAngle = 0;
                     for (let i = 0; i < index; i++) {
-                      const prevPercentage = (timeBySubject[i].total_hours / totalSubjectHours) * 100;
+                      const prevPercentage = (timeBySubjectWithColors[i].total_hours / totalSubjectHours) * 100;
                       startAngle += (prevPercentage / 100) * 360;
                     }
                     
                     const endAngle = startAngle + angle;
                     
-                    // Converter ângulos para coordenadas
-                    const startRad = (startAngle - 90) * (Math.PI / 180);
-                    const endRad = (endAngle - 90) * (Math.PI / 180);
+                    // Converter ângulos para radianos (começando do topo = -90°)
+                    const startRad = ((startAngle - 90) * Math.PI) / 180;
+                    const endRad = ((endAngle - 90) * Math.PI) / 180;
                     
+                    // Raios e centro
                     const innerRadius = 60;
                     const outerRadius = 90;
+                    const centerX = 100;
+                    const centerY = 100;
                     
-                    const x1 = 100 + innerRadius * Math.cos(startRad);
-                    const y1 = 100 + innerRadius * Math.sin(startRad);
-                    const x2 = 100 + outerRadius * Math.cos(startRad);
-                    const y2 = 100 + outerRadius * Math.sin(startRad);
-                    const x3 = 100 + outerRadius * Math.cos(endRad);
-                    const y3 = 100 + outerRadius * Math.sin(endRad);
-                    const x4 = 100 + innerRadius * Math.cos(endRad);
-                    const y4 = 100 + innerRadius * Math.sin(endRad);
+                    // Calcular pontos do arco externo
+                    const x1_outer = centerX + outerRadius * Math.cos(startRad);
+                    const y1_outer = centerY + outerRadius * Math.sin(startRad);
+                    const x2_outer = centerX + outerRadius * Math.cos(endRad);
+                    const y2_outer = centerY + outerRadius * Math.sin(endRad);
                     
+                    // Calcular pontos do arco interno
+                    const x1_inner = centerX + innerRadius * Math.cos(endRad);
+                    const y1_inner = centerY + innerRadius * Math.sin(endRad);
+                    const x2_inner = centerX + innerRadius * Math.cos(startRad);
+                    const y2_inner = centerY + innerRadius * Math.sin(startRad);
+                    
+                    // Determinar se é um arco grande (> 180°)
                     const largeArc = angle > 180 ? 1 : 0;
                     
+                    // Construir o path do segmento do donut
                     const pathData = [
-                      `M ${x1} ${y1}`,
-                      `L ${x2} ${y2}`,
-                      `A ${outerRadius} ${outerRadius} 0 ${largeArc} 1 ${x3} ${y3}`,
-                      `L ${x4} ${y4}`,
-                      `A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${x1} ${y1}`,
+                      `M ${x1_outer.toFixed(2)} ${y1_outer.toFixed(2)}`,
+                      `A ${outerRadius} ${outerRadius} 0 ${largeArc} 1 ${x2_outer.toFixed(2)} ${y2_outer.toFixed(2)}`,
+                      `L ${x1_inner.toFixed(2)} ${y1_inner.toFixed(2)}`,
+                      `A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${x2_inner.toFixed(2)} ${y2_inner.toFixed(2)}`,
                       'Z'
                     ].join(' ');
                     
+                    console.log(`Matéria ${index}: ${subject.subject_name}, Ângulo: ${angle.toFixed(2)}°, Path: ${pathData}`);
+                    
                     return (
                       <path
-                        key={index}
+                        key={`donut-segment-${index}`}
                         d={pathData}
-                        fill={subject.color || '#3b82f6'}
+                        fill={subject.color}
                         stroke="white"
                         strokeWidth="2"
-                      />
+                        style={{ 
+                          transition: 'opacity 0.2s',
+                          cursor: 'pointer'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                        onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                      >
+                        <title>{`${subject.subject_name}: ${subject.total_hours}h (${percentage.toFixed(1)}%)`}</title>
+                      </path>
                     );
                   })}
                 </svg>
               </div>
               
               <div className="subject-legend">
-                {timeBySubject.map((subject, index) => (
-                  <div key={index} className="legend-item">
-                    <div 
-                      className="legend-color" 
-                      style={{ backgroundColor: subject.color || '#3b82f6' }}
-                    ></div>
-                    <div className="legend-content">
-                      <span className="legend-name">{subject.subject_name}</span>
-                      <span className="legend-value">{subject.total_hours}h</span>
+                {timeBySubjectWithColors.map((subject, index) => {
+                  const percentage = ((subject.total_hours / totalSubjectHours) * 100).toFixed(1);
+                  return (
+                    <div key={`legend-${index}`} className="legend-item">
+                      <div 
+                        className="legend-color" 
+                        style={{ backgroundColor: subject.color }}
+                      ></div>
+                      <div className="legend-content">
+                        <span className="legend-name">{subject.subject_name}</span>
+                        <span className="legend-value">{subject.total_hours}h ({percentage}%)</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           )}

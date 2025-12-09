@@ -6,4 +6,6 @@ from .tasks import tasks_bp
 from .files import files_bp
 from .progress import progress_bp
 from .chat import chat
+from .quiz import quiz_bp
 from .users import users
+from .assistant import assistant_bp

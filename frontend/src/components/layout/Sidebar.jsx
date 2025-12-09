@@ -13,7 +13,8 @@ import {
     FileQuestion,
     Settings,
     ChevronsLeft,
-    ChevronsRight
+    ChevronsRight,
+    Sparkles
 } from 'lucide-react';
 
 // Componente Sidebar
@@ -98,6 +99,15 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                                 <span>Questionários</span>
                             </Link>
                         </li>
+                        <li>
+                            <Link 
+                                to="/assistant" 
+                                className={`navLink ${isActive('/assistant') ? 'navLinkActive' : ''}`}
+                            >
+                                <Sparkles size={20} />
+                                <span>Assistente</span>
+                            </Link>
+                        </li>
                     </ul>
                 </div>
 
@@ -124,7 +134,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                         </li>
                     </ul>
                     <div className="sidebar__version">
-                        <span>StudySphere v1.0</span>
+                        <span>StudySphere v1.5</span>
                     </div>
                 </div>
             </nav>

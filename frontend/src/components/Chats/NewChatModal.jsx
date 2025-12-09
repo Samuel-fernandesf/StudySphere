@@ -15,11 +15,9 @@ export default function NewChatModal({ onClose, onChatCreated }) {
   const [groupName, setGroupName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const searchControllerRef = useRef(null); // <-- usado para abortar fetches anteriores
+  const searchControllerRef = useRef(null); 
 
-  // -------------- Search users (debounced + abort) --------------
   useEffect(() => {
-    // cancela fetch anterior
     if (searchControllerRef.current) {
       searchControllerRef.current.abort();
       searchControllerRef.current = null;
@@ -39,12 +37,11 @@ export default function NewChatModal({ onClose, onChatCreated }) {
           params: { q: searchTerm },
           signal: controller.signal
         });
-        // ajuste conforme o shape real: res.data.users ou res.data
+    
         const users = res?.data?.users ?? res?.data ?? [];
         setSearchResults(users.filter(u => !selectedUsers.some(s => String(s.id) === String(u.id))));
       } catch (err) {
         if (err.name === "CanceledError" || err.name === "AbortError") {
-          // cancelado — ignora
         } else {
           console.error("Erro na busca:", err);
         }
@@ -58,32 +55,25 @@ export default function NewChatModal({ onClose, onChatCreated }) {
     };
   }, [searchTerm, selectedUsers]);
 
-  // -------------- Toggle user selection --------------
   function toggleUser(user) {
-    // private: iniciar conversa imediatamente
     if (activeTab === "private") {
       handleCreatePrivate(user.id);
       return;
     }
 
-    // group: adiciona/remove da lista de seleção
     const exists = selectedUsers.some(u => String(u.id) === String(user.id));
     if (exists) {
-      // remover da seleção e re-adicionar ao topo dos resultados (opcional)
       setSelectedUsers(prev => prev.filter(u => String(u.id) !== String(user.id)));
       setSearchResults(prev => {
-        // evita duplicata
         if (prev.some(u => String(u.id) === String(user.id))) return prev;
         return [user, ...prev];
       });
     } else {
-      // adicionar e remover dos resultados
       setSelectedUsers(prev => [...prev, user]);
       setSearchResults(prev => prev.filter(u => String(u.id) !== String(user.id)));
     }
   }
 
-  // -------------- Criar chat privado --------------
   async function handleCreatePrivate(otherUserId) {
     setIsLoading(true);
     try {
@@ -98,7 +88,6 @@ export default function NewChatModal({ onClose, onChatCreated }) {
     }
   }
 
-  // -------------- Criar grupo --------------
   async function handleCreateGroup() {
     if (!groupName || selectedUsers.length === 0) {
       alert("Forneça nome do grupo e pelo menos 1 membro.");
@@ -118,15 +107,13 @@ export default function NewChatModal({ onClose, onChatCreated }) {
       setIsLoading(false);
     }
   }
-
-  // -------------- Render --------------
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true">
       <div className="modal-content">
 
         <div className="modal-header">
           <h3 className="text-lg font-semibold">Nova Conversa</h3>
-          <button type="button" onClick={onClose} aria-label="Fechar">Fechar</button>
+          <button type="button" onClick={onClose} aria-label="Fechar">X</button>
         </div>
 
         <div className="tabs">
@@ -214,7 +201,6 @@ export default function NewChatModal({ onClose, onChatCreated }) {
               {isLoading ? "Criando..." : "Criar Grupo"}
             </button>
           ) : (
-            // Em private mode, o botão global é redundante porque cada resultado tem o botão 'Conversar'.
             <button type="button" className="btn-primary" disabled>Conversar</button>
           )}
         </div>

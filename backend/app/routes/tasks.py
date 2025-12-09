@@ -93,7 +93,7 @@ def update_task(task_id):
         if 'completed' in data:
             update_data['completed'] = data['completed']
             if data['completed']:
-                update_data['completed_at'] = datetime.now()
+                update_data['completed_at'] = datetime.utcnow()
             else:
                 update_data['completed_at'] = None
         

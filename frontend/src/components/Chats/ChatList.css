@@ -1,112 +1,242 @@
-/* Estilos Internos para ChatList.jsx */
-/* Assumindo que o ChatList é parte de uma interface maior */
-
 .chat-list {
-    /* Estilo do container já está no JSX, mas aqui estão as cores */
-    border-right-color: var(--border-color); 
-    background-color: var(--card-background);
-    box-shadow: 1px 0 3px rgba(0, 0, 0, 0.05); /* Sombra suave para separação */
+  flex: 1;
+  overflow-y: hidden;
+  padding: 8px 0;
+  min-height: 0;
 }
 
-.chat-list h3 {
-    color: var(--heading-color);
+.chat-list::-webkit-scrollbar {
+  width: 6px;
 }
 
-.chat-list ul {
-    list-style: none; 
-    padding: 0; 
-    margin: 0; 
+.chat-list::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.chat-list li {
-    transition: background-color 0.15s;
-    border-bottom-color: #f3f3f3;
+.chat-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+  transition: background 0.2s;
 }
 
-.chat-list li:hover {
-    background-color: var(--secondary-color);
+.chat-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
-.chat-list li:focus {
-    outline: 2px solid var(--primary-color);
-    outline-offset: -2px;
+.chat-item {
+  display: flex;
+  gap: 14px;
+  padding: 16px 24px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border-left: 3px solid transparent;
+  position: relative;
+  background: white;
 }
 
-.chat-list li .font-bold {
-    color: var(--text-color);
+.chat-item:hover {
+  background: linear-gradient(to right, #f8fafc 0%, #f1f5f9 100%);
+  transform: translateX(2px);
 }
 
-.chat-list li small {
-    color: #666;
+.chat-item.selected {
+  background: linear-gradient(to right, #eff6ff 0%, #dbeafe 100%);
+  border-left-color: #2563eb;
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.1);
 }
 
-
-/* Estilos Internos para ChatWindow.jsx (inclui AddMemberSearchModal) */
-
-/* Estilos de Botões (reutilizando do modal) */
-/* .btn-primary, .btn-secondary, etc. aplicam-se aqui também */
-
-/* Chat Window Container */
-.chat-window-container {
-    flex: 1; 
-    display: flex; 
-    flex-direction: column;
-    background-color: var(--background-color);
+.chat-item.unread {
+  background: linear-gradient(to right, #fefce8 0%, #fef9c3 100%);
 }
 
-/* Header da Janela de Chat */
-.chat-header {
-    padding: var(--space-xs) var(--space-sm);
-    border-bottom: 1px solid var(--border-color);
-    background-color: var(--card-background);
+.chat-item.unread:hover {
+  background: linear-gradient(to right, #fef9c3 0%, #fef08a 100%);
 }
 
-/* Lista de Mensagens */
-.messages-list {
-    flex: 1; 
-    overflow-y: auto; 
-    padding: var(--space-sm);
+.chat-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+  transition: transform 0.2s ease;
 }
 
-.message-item {
-    margin-bottom: var(--space-xs);
-    padding: 4px;
-    background-color: var(--card-background);
-    border-radius: 6px;
-    max-width: 80%;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+.chat-item:hover .chat-icon {
+  transform: scale(1.05);
 }
 
-/* Adaptação: Se você tiver classes para 'minhas mensagens' e 'mensagens de outros', o estilo seria diferente */
-.message-item small {
-    font-size: 0.75rem;
+.chat-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
 }
 
-.message-item .content {
-    color: var(--text-color);
+.chat-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
 }
 
-.message-item small[style*="color: red"] {
-    color: var(--error-color) !important;
-    font-weight: 600;
+.chat-name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+  letter-spacing: -0.01em;
 }
 
-/* Área de Input */
-.chat-input-area {
-    padding: var(--space-xs) var(--space-sm);
-    border-top: 1px solid var(--border-color);
-    background-color: var(--card-background);
+.unread-badge {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+  animation: pulse-badge 2s ease-in-out infinite;
 }
 
-.chat-input-area input {
-    /* Estilo de input já definido */
-    margin: 0;
+@keyframes pulse-badge {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
 }
 
-/* Estilos Específicos do AddMemberSearchModal (reutilizando modal-overlay, modal-content) */
-/* Se necessário ajustar a largura ou cores, seria aqui */
+.chat-members {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
 
-.modal-overlay {
-    /* Corrigir sobreposição do modal */
-    z-index: 1010; 
+.members-icon {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.members-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.online-indicator {
+  color: #10b981;
+  font-size: 8px;
+  animation: pulse-online 2s infinite;
+}
+
+@keyframes pulse-online {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.95);
+  }
+}
+
+.chat-last-message {
+  font-size: 13px;
+  color: #64748b;
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.chat-item.unread .chat-last-message {
+  font-weight: 600;
+  color: #475569;
+}
+
+.chat-time {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.chat-list-loading,
+.chat-list-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  color: #94a3b8;
+  text-align: center;
+  min-height: 200px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.chat-list-loading p,
+.chat-list-empty p {
+  margin: 0 0 6px 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.chat-list-empty small {
+  font-size: 13px;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .chat-item {
+    padding: 14px 20px;
+    gap: 12px;
+  }
+
+  .chat-icon {
+    width: 46px;
+    height: 46px;
+    font-size: 22px;
+  }
+
+  .chat-name {
+    font-size: 14px;
+  }
+
+  .chat-last-message {
+    font-size: 12px;
+  }
 }

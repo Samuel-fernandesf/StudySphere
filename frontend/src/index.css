@@ -1,7 +1,4 @@
-/* index.css (global) - REVISADO */
-
-/* Variáveis */
-:root{
+:root {
   --bg: #f8fafc;
   --primary: #334155;
   --primary-contrast: #ffffff;
@@ -10,13 +7,17 @@
   --text: #1e293b;
   --card-bg: #ffffff;
   --card-border: #f1f5f9;
-  --surface-shadow: rgba(0,0,0,0.1);
+  --surface-shadow: rgba(0, 0, 0, 0.1);
   --radius: 12px;
   --gap: 20px;
 
-  /* IMPORTANTES */
-  --sidebar-width: 260px;               /* largura da sidebar quando aberta */
-  --sidebar-collapsed-width: 80px;      /* largura quando recolhida */
+  /* Sidebar */
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 80px;
+  --sidebar-bg: #334155;
+  --sidebar-bg-active: #1e293b;
+  --sidebar-text: #ffffff;
+  --sidebar-text-muted: #cbd5e1;
 }
 
 /* RESET / BASE */
@@ -26,78 +27,56 @@
   box-sizing: border-box;
 }
 
-/* Garante 100% para o corpo da página */
-html, body, #root {
-  height: 100%;
+html {
   width: 100%;
   margin: 0;
   padding: 0;
 }
 
-body{
-  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+body {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
   background-color: var(--bg);
   color: var(--text);
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  line-height:1.4;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.4;
 }
 
----
-
-/* APP LAYOUT - REVISADO */
-/* Usamos display: flex e overflow: hidden para garantir que o layout ocupe 100% e só o main-content role */
-.app-layout {
-  display: flex; /* Permite que o conteúdo e o padding sejam tratados lado a lado */
+#root {
   width: 100%;
-  max-width: 100%;
-  height: 100vh; /* Ocupa 100% da altura da viewport */
-  overflow: hidden; /* Garante que NADA fora do main-content role */
-  position: relative; /* Base para o posicionamento da sidebar (se ela for fixed/absolute) */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* O "padding" da sidebar agora é simulado pelo uso do Flexbox e Margin/Transform na sidebar,
-   MAS mantendo o fluxo do main-content. */
-
-/* Se a sidebar for FIXED, o padding-left é colocado aqui.
-   Como o padrão é FIXED, manteremos o padding-left, mas com uma estrutura mais limpa: */
 .app-layout {
-  padding-left: var(--sidebar-width); 
+  display: flex; 
+  flex-direction: column;
+  width: 100%;
+  min-height: 100vh;
+  padding-left: var(--sidebar-width);
+  transition: padding-left 0.3s ease-in-out;
+  position: relative;
 }
 
-/* Quando o estado 'collapsed' estiver ativo (sidebar menor) */
 .app-layout.collapsed {
   padding-left: var(--sidebar-collapsed-width);
 }
 
----
-
-/* WRAPPER DO CONTEÚDO PRINCIPAL (REVISADO) */
-/* O main-content deve ser o único elemento rolável */
+/* MAIN CONTENT */
 .main-content {
-  /* Ocupa todo o espaço restante após o padding-left */
-  flex-grow: 1; 
-  height: 100%; 
-  
-
-  overflow-y: auto; 
-  overflow-x: hidden;
-  
-
-  background-color: var(--bg);
-  padding: 24px;
-  display: flex; 
-  flex-direction: column;
-}
-
-.container {
+  flex: 1; 
   width: 100%;
-  max-width: 100%;
-  margin: 0;
-  padding: 0;
+  min-height: auto;
   display: flex;
   flex-direction: column;
-  gap: var(--gap);
+  background-color: var(--bg);
+  padding: 20px;
+  overflow-y: auto; 
 }
 
 .card {
@@ -108,5 +87,12 @@ body{
   padding: 24px;
 }
 
+@media (max-width: 768px) {
+  .app-layout {
+    padding-left: 0;
+  }
 
-
+  .main-content {
+    padding: 16px;
+  }
+}

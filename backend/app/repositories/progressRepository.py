@@ -11,7 +11,7 @@ def create_study_session(user_id, subject_id, duration_minutes, date=None, notes
         user_id=user_id,
         subject_id=subject_id,
         duration_minutes=duration_minutes,
-        date=date or datetime.now().date(),
+        date=date or datetime.utcnow().date(),
         notes=notes
     )
     db.session.add(session)
@@ -75,7 +75,7 @@ def get_study_time_by_subject(user_id, start_date=None, end_date=None):
 
 def get_study_time_by_day(user_id, days=7):
     """Retorna tempo de estudo dos últimos N dias"""
-    end_date = datetime.now().date()
+    end_date = datetime.utcnow().date()
     start_date = end_date - timedelta(days=days-1)
     
     query = db.session.query(
@@ -112,7 +112,7 @@ def get_study_time_by_day(user_id, days=7):
 
 def get_current_streak(user_id):
     """Retorna a sequência atual de dias consecutivos de estudo"""
-    today = datetime.now().date()
+    today = datetime.utcnow().date()
     streak = 0
     current_date = today
     
@@ -140,7 +140,7 @@ def get_current_streak(user_id):
 def get_weekly_goal_progress(user_id, weekly_goal_hours=20):
     """Retorna o progresso da meta semanal"""
     # Calcular início da semana (segunda-feira)
-    today = datetime.now().date()
+    today = datetime.utcnow().date()
     start_of_week = today - timedelta(days=today.weekday())
     
     total_minutes = get_total_study_time(user_id, start_of_week, today)
@@ -157,7 +157,7 @@ def get_weekly_goal_progress(user_id, weekly_goal_hours=20):
 
 def get_daily_average(user_id, days=7):
     """Retorna a média diária de estudo"""
-    end_date = datetime.now().date()
+    end_date = datetime.utcnow().date()
     start_date = end_date - timedelta(days=days-1)
     
     total_minutes = get_total_study_time(user_id, start_date, end_date)
@@ -187,7 +187,7 @@ def get_progress_summary(user_id):
     weekly_goal = get_weekly_goal_progress(user_id)
     
     # Tempo por matéria (último mês)
-    end_date = datetime.now().date()
+    end_date = datetime.utcnow().date()
     start_date = end_date - timedelta(days=30)
     time_by_subject = get_study_time_by_subject(user_id, start_date, end_date)
     

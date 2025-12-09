@@ -31,7 +31,7 @@ class Task(db.Model):
     def mark_as_completed(self):
         """Marca a tarefa como concluída"""
         self.completed = True
-        self.completed_at = datetime.now()
+        self.completed_at = datetime.utcnow()
 
     def mark_as_incomplete(self):
         """Marca a tarefa como não concluída"""
