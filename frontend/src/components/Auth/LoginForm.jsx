@@ -68,51 +68,51 @@ function LoginForm({ handleLogin, isLoading, successMessage = '', clearSuccess =
     };
 
     return (
-        <form onSubmit={handleSubmit}>
+        <>
+            <GoogleLoginButton/>
+            <form onSubmit={handleSubmit}>
 
-            {successMessage && (
-                <div className='success-message' role="status">
-                    {successMessage}
-                </div>
-            )}
-
-            {(resendStatus !== 'idle') && (
-                <div className={resendStatus === 'error' ? 'error-message' : 'success-message'}>
-                    {resendMessage}
-                </div>
-            )}
-
-            {validationError && (
-                <div className='error-message'>
-                    {validationError}
-                </div>
-            )}
-
-            <div className="form-group">
-
-                <GoogleLoginButton/>
-
-                <label>Email:</label>
-                <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="seu@email.com" required/>
-            </div>
-
-            <PasswordInput label='Senha:' name='senha' value={formData.senha} onChange={handleChange}placeholder="********" required/>
-            
-            <div className='form-link-group'> 
-                <a onClick={(e) => {navigate('/esqueci-a-senha');}} className="forgot-password-link"
-                >Esqueceu a senha?</a>
-
-                {showResendLink && resendStatus !== 'success' && (
-                    <a onClick={handleResend} className='resend-email-link' disabled={resendStatus === 'sending'}>
-                        {resendStatus === 'sending' ? 'Enviando...' : 'Reenviar Confirmação'}
-                    </a>
+                {successMessage && (
+                    <div className='success-message' role="status">
+                        {successMessage}
+                    </div>
                 )}
-            </div>
 
-            <button type="submit" className="btn submit-btn" disabled={isLoading}>
-                {isLoading ? 'Entrando...' : 'Entrar'}
-            </button>
-        </form>
+                {(resendStatus !== 'idle') && (
+                    <div className={resendStatus === 'error' ? 'error-message' : 'success-message'}>
+                        {resendMessage}
+                    </div>
+                )}
+
+                {validationError && (
+                    <div className='error-message'>
+                        {validationError}
+                    </div>
+                )}
+
+                <div className="form-group">
+                    <label>Email:</label>
+                    <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="seu@email.com" required/>
+                </div>
+
+                <PasswordInput label='Senha:' name='senha' value={formData.senha} onChange={handleChange}placeholder="********" required/>
+                
+                <div className='form-link-group'> 
+                    <a onClick={(e) => {navigate('/esqueci-a-senha');}} className="forgot-password-link"
+                    >Esqueceu a senha?</a>
+
+                    {showResendLink && resendStatus !== 'success' && (
+                        <a onClick={handleResend} className='resend-email-link' disabled={resendStatus === 'sending'}>
+                            {resendStatus === 'sending' ? 'Enviando...' : 'Reenviar Confirmação'}
+                        </a>
+                    )}
+                </div>
+
+                <button type="submit" className="btn submit-btn" disabled={isLoading}>
+                    {isLoading ? 'Entrando...' : 'Entrar'}
+                </button>
+            </form>
+        </>
     );
 }
 

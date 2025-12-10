@@ -172,10 +172,20 @@ class UserRepository:
 
         return novo_usuario
 
-
-
     def delete_user(self, user:Usuario):
-        pass
-            
+        try:
+            if not user:
+                raise ValueError("Usuário não encontrado para exclusão.")
+
+            db.session.delete(user)
+            db.session.commit()
+
+        except IntegrityError as e:
+            db.session.rollback()
+            raise ValueError("Erro de integridade do banco de dados ao tentar deletar o usuário.")
+        
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
        

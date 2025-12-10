@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/layout/Sidebar";
 import { useAuthContext } from "../../contexts/AuthContext";
 import api from "../../api/api";
 import "./UserConfig.css";
 
 export default function UserConfig() {
-    const { userDetails, fetchUserDetails } = useAuthContext();
+    const { userDetails, fetchUserDetails, sair } = useAuthContext();
+
     const [activeTab, setActiveTab] = useState("perfil");
     const [toast, setToast] = useState(null);
+    const [deleting, setDeleting] = useState(false);
 
     // Estados para o formulário de perfil
     const [profileData, setProfileData] = useState({
@@ -21,27 +24,21 @@ export default function UserConfig() {
 
     // Estados para preferências
     const [preferences, setPreferences] = useState({
-        // Notificações
         pushNotifications: true,
         emailNotifications: true,
         studyReminders: true,
         weeklyReports: false,
         achievements: true,
-        
-        // Aparência
         theme: "light",
         language: "pt",
         soundEffects: true,
         dailyGoal: 2,
-        
-        // Privacidade
         profileVisibility: "public"
     });
 
     // Avatar
     const [avatarPreview, setAvatarPreview] = useState(null);
 
-    // Carrega dados do usuário ao montar componente
     useEffect(() => {
         if (userDetails) {
             setProfileData({
@@ -55,13 +52,11 @@ export default function UserConfig() {
         }
     }, [userDetails]);
 
-    // Função para mostrar toast
     const showToast = (message, type = "success") => {
         setToast({ message, type });
         setTimeout(() => setToast(null), 3000);
     };
 
-    // Handlers
     const handleProfileChange = (e) => {
         setProfileData({
             ...profileData,
@@ -120,13 +115,41 @@ export default function UserConfig() {
         showToast("Exportação de dados iniciada. Você receberá um email em breve.");
     };
 
-    const handleDeleteAccount = () => {
-        if (window.confirm("Tem certeza que deseja excluir sua conta? Esta ação é irreversível.")) {
-            showToast("Funcionalidade em desenvolvimento", "error");
+    const handleDeleteAccount = async () => {
+        if (!window.confirm("Tem certeza que deseja excluir sua conta? Esta ação é irreversível.")) {
+            return;
+        }
+
+        try {
+            setDeleting(true);
+
+            await api.delete('/users/delete-account');
+            showToast("Conta deletada com sucesso.");
+
+            await sair();
+
+        } catch (error) {
+            console.error(error);
+
+            const status = error?.response?.status;
+
+            if (status === 401 || status === 403) {
+                showToast("Não autorizado. Faça login novamente.", "error");
+                await sair();
+                return;
+            }
+
+            if (status === 404) {
+                showToast("Usuário não encontrado.", "error");
+            } else {
+                showToast("Ocorreu um erro ao deletar a conta.", "error");
+            }
+
+        } finally {
+            setDeleting(false);
         }
     };
 
-    // Renderiza conteúdo da aba ativa
     const renderTabContent = () => {
         switch (activeTab) {
             case "perfil":
@@ -134,8 +157,6 @@ export default function UserConfig() {
                     <div className="config-content">
                         <div className="config-section">
                             <h3 className="config-section-header">Informações Pessoais</h3>
-                            
-                            {/* Avatar */}
                             <div className="avatar-upload">
                                 <div className="avatar-preview">
                                     {avatarPreview ? (
@@ -165,7 +186,6 @@ export default function UserConfig() {
                                 </div>
                             </div>
 
-                            {/* Formulário */}
                             <div className="config-form-group">
                                 <label>Nome Completo</label>
                                 <input 
@@ -452,24 +472,6 @@ export default function UserConfig() {
                                     <option value="private">Privado</option>
                                 </select>
                             </div>
-                            {/* Estatísticas da conta */}
-                            {/* <div style={{ marginTop: 24 }}>
-                                <h4 style={{ marginBottom: 12, fontSize: "1rem" }}>Estatísticas da Conta</h4>
-                                <div className="stats-grid">
-                                    <div className="stat-card">
-                                        <div className="stat-value">0h</div>
-                                        <div className="stat-label">Horas Estudadas</div>
-                                    </div>
-                                    <div className="stat-card">
-                                        <div className="stat-value">0</div>
-                                        <div className="stat-label">Conquistas</div>
-                                    </div>
-                                    <div className="stat-card">
-                                        <div className="stat-value">0</div>
-                                        <div className="stat-label">Tarefas Completas</div>
-                                    </div>
-                                </div>
-                            </div> */}
                         </div>
 
                         <div className="config-section">
@@ -488,8 +490,12 @@ export default function UserConfig() {
                             </p>
 
                             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                                <button className="btn-danger" onClick={handleDeleteAccount}>
-                                    Excluir Conta Permanentemente
+                                <button 
+                                    className="btn-danger" 
+                                    onClick={handleDeleteAccount}
+                                    disabled={deleting}
+                                >
+                                    {deleting ? "Excluindo..." : "Excluir Conta Permanentemente"}
                                 </button>
                             </div>
                         </div>
@@ -510,7 +516,6 @@ export default function UserConfig() {
                     <p>Gerencie suas preferências e informações da conta</p>
                 </header>
 
-                {/* Tabs */}
                 <div className="config-tabs">
                     <button 
                         className={`config-tab ${activeTab === "perfil" ? "active" : ""}`}
@@ -518,18 +523,6 @@ export default function UserConfig() {
                     >
                         Perfil
                     </button>
-                    {/* <button 
-                        className={`config-tab ${activeTab === "notificacoes" ? "active" : ""}`}
-                        onClick={() => setActiveTab("notificacoes")}
-                    >
-                        Notificações
-                    </button> */}
-                    {/* <button 
-                        className={`config-tab ${activeTab === "aparencia" ? "active" : ""}`}
-                        onClick={() => setActiveTab("aparencia")}
-                    >
-                        Aparência
-                    </button> */}
                     <button 
                         className={`config-tab ${activeTab === "privacidade" ? "active" : ""}`}
                         onClick={() => setActiveTab("privacidade")}
@@ -538,10 +531,8 @@ export default function UserConfig() {
                     </button>
                 </div>
 
-                {/* Conteúdo da aba ativa */}
                 {renderTabContent()}
 
-                {/* Toast notification */}
                 {toast && (
                     <div className={`toast ${toast.type}`}>
                         <span>{toast.type === "success" ? "✓" : "✗"}</span>

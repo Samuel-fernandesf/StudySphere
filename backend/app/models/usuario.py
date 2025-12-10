@@ -92,6 +92,8 @@ class Usuario(db.Model, UserMixin):
         self.senha = bcrypt.generate_password_hash(senha_texto).decode('utf-8')
 
     def conversor_pwd(self, senha_descripto):
+        if not self.senha:
+            return False
         return bcrypt.check_password_hash(self.senha, senha_descripto)
 
     def __init__(self, email, senha, nome_completo, username, nascimento, curso=None, biografia=None):
@@ -108,7 +110,7 @@ class UsuarioProvedor(db.Model):
     __tablename__ = 'usuario_provedor'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id', ondelete='CASCADE'), nullable=False)
     provedor = db.Column(db.String(50), nullable=False, default='google') # google
     provedor_user_id = db.Column(db.String(255), nullable=False) # O ID do Google (sub)
     
