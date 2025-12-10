@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { X, Trash2 } from "lucide-react";
 import { criarEvento, atualizarEvento } from "../../services/eventService";
+import { useModal } from "../../contexts/ModalContext";
 import "../../pages/Calendar/CalendarPage.css";
 
 export default function EventModal({ event, selectedDate, onClose, onDelete }) {
@@ -11,23 +12,22 @@ export default function EventModal({ event, selectedDate, onClose, onDelete }) {
     start_date: "",
     end_date: "",
     all_day: false,
-    color: "#3b82f6"
+    color: "#2c3e50"
   });
   const [loading, setLoading] = useState(false);
+  const { showAlert, showConfirm } = useModal();
 
   useEffect(() => {
     if (event) {
-      // Editar evento existente
       setFormData({
         title: event.title || "",
         description: event.description || "",
         start_date: event.start_date ? event.start_date.slice(0, 16) : "",
         end_date: event.end_date ? event.end_date.slice(0, 16) : "",
         all_day: event.all_day || false,
-        color: event.color || "#3b82f6"
+        color: event.color || "#2c3e50"
       });
     } else if (selectedDate) {
-      // Novo evento
       const dateStr = format(selectedDate, "yyyy-MM-dd");
       setFormData({
         title: "",
@@ -35,30 +35,34 @@ export default function EventModal({ event, selectedDate, onClose, onDelete }) {
         start_date: `${dateStr}T09:00`,
         end_date: `${dateStr}T10:00`,
         all_day: false,
-        color: "#3b82f6"
+        color: "#2c3e50"
       });
     }
   }, [event, selectedDate]);
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === "checkbox" ? checked : value
     }));
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
-    
+
     if (!formData.title || !formData.start_date || !formData.end_date) {
-      alert("Preencha todos os campos obrigatórios");
+      await showAlert(
+        "Preencha todos os campos obrigatórios.",
+        "warning",
+        "Campos obrigatórios"
+      );
       return;
     }
 
     try {
       setLoading(true);
-      
+
       const eventData = {
         title: formData.title,
         description: formData.description,
@@ -70,17 +74,37 @@ export default function EventModal({ event, selectedDate, onClose, onDelete }) {
 
       if (event) {
         await atualizarEvento(event.id, eventData);
+        await showAlert("Evento atualizado com sucesso.", "success", "Alterações salvas");
       } else {
         await criarEvento(eventData);
+        await showAlert("Evento criado com sucesso.", "success", "Evento criado");
       }
 
       onClose();
     } catch (error) {
-      console.error("Erro ao salvar evento:", error);
-      alert("Erro ao salvar evento");
+      console.error("Erro ao salvar evento:", error.response?.data || error);
+      await showAlert(
+        error.response?.data?.message || "Erro ao salvar evento. Tente novamente.",
+        "error",
+        "Erro"
+      );
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleDeleteClick() {
+    if (!event) return;
+
+    const confirmado = await showConfirm(
+      "Tem certeza que deseja excluir este evento?",
+      "Excluir evento",
+      "warning"
+    );
+
+    if (!confirmado) return;
+
+    await onDelete(event.id);
   }
 
   const colors = [
@@ -96,9 +120,7 @@ export default function EventModal({ event, selectedDate, onClose, onDelete }) {
     <div className="event-modal-overlay" onClick={onClose}>
       <div className="event-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>
-            {event ? "Editar Evento" : "Novo Evento"}
-          </h3>
+          <h3>{event ? "Editar Evento" : "Novo Evento"}</h3>
           <button onClick={onClose} className="close-button">
             <X size={20} />
           </button>
@@ -167,14 +189,18 @@ export default function EventModal({ event, selectedDate, onClose, onDelete }) {
           <div className="modal-form-group">
             <label>Cor</label>
             <div className="color-grid">
-              {colors.map(color => (
+              {colors.map((color) => (
                 <button
                   key={color.value}
                   type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, color: color.value }))}
-                  className={`color-button ${formData.color === color.value ? 'selected' : ''}`}
+                  onClick={() =>
+                    setFormData((prev) => ({ ...prev, color: color.value }))
+                  }
+                  className={`color-button ${
+                    formData.color === color.value ? "selected" : ""
+                  }`}
                   style={{
-                    backgroundColor: color.value,
+                    backgroundColor: color.value
                   }}
                   title={color.name}
                 />
@@ -186,7 +212,7 @@ export default function EventModal({ event, selectedDate, onClose, onDelete }) {
             {event && (
               <button
                 type="button"
-                onClick={() => onDelete(event.id)}
+                onClick={handleDeleteClick}
                 className="btn-danger"
               >
                 <Trash2 size={16} />

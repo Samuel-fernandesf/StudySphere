@@ -63,8 +63,6 @@ def get_event(event_id):
     if not event:
         return jsonify({'message': 'Evento não encontrado'}), 404
     
-    if event.user_id != user_id:
-        return jsonify({'message': 'Acesso não autorizado'}), 403
     
     return jsonify({'event': event.to_dict()}), 200
 
@@ -78,8 +76,6 @@ def update_event(event_id):
     if not event:
         return jsonify({'message': 'Evento não encontrado'}), 404
     
-    if event.user_id != user_id:
-        return jsonify({'message': 'Acesso não autorizado'}), 403
     
     data = request.get_json()
     
@@ -114,9 +110,6 @@ def delete_event(event_id):
     
     if not event:
         return jsonify({'message': 'Evento não encontrado'}), 404
-    
-    if event.user_id != user_id:
-        return jsonify({'message': 'Acesso não autorizado'}), 403
     
     try:
         eventRepository.delete_event(event_id)

@@ -4,18 +4,21 @@ export async function listarEventos(startDate = null, endDate = null) {
   try {
     let url = "/events";
     const params = new URLSearchParams();
-    
-    if (startDate) params.append('start_date', startDate);
-    if (endDate) params.append('end_date', endDate);
-    
+
+    if (startDate) params.append("start_date", startDate);
+    if (endDate) params.append("end_date", endDate);
+
     if (params.toString()) {
       url += `?${params.toString()}`;
     }
-    
+
     const response = await api.get(url);
     return response.data.events || [];
   } catch (error) {
-    console.error("Erro ao listar eventos:", error);
+    console.error("Erro ao listar eventos:", {
+      status: error.response?.status,
+      data: error.response?.data,
+    });
     throw error;
   }
 }
@@ -25,7 +28,10 @@ export async function criarEvento(eventData) {
     const response = await api.post("/events", eventData);
     return response.data.event;
   } catch (error) {
-    console.error("Erro ao criar evento:", error);
+    console.error("Erro ao criar evento:", {
+      status: error.response?.status,
+      data: error.response?.data,
+    });
     throw error;
   }
 }
@@ -35,7 +41,10 @@ export async function atualizarEvento(eventId, eventData) {
     const response = await api.put(`/events/${eventId}`, eventData);
     return response.data.event;
   } catch (error) {
-    console.error("Erro ao atualizar evento:", error);
+    console.error("Erro ao atualizar evento:", {
+      status: error.response?.status,
+      data: error.response?.data,
+    });
     throw error;
   }
 }
@@ -45,7 +54,10 @@ export async function deletarEvento(eventId) {
     await api.delete(`/events/${eventId}`);
     return true;
   } catch (error) {
-    console.error("Erro ao deletar evento:", error);
+    console.error("Erro ao deletar evento:", {
+      status: error.response?.status,
+      data: error.response?.data,
+    });
     throw error;
   }
 }

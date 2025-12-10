@@ -26,11 +26,15 @@ def get_files():
     """Retorna todos os arquivos do usuário autenticado"""
     user_id = get_jwt_identity()
     
-    # Parâmetro opcional para filtrar por matéria
+    # Parâmetro para filtrar por matéria
     subject_id = request.args.get('subject_id', type=int)
     
     files = fileRepository.get_files_by_user(user_id, subject_id)
-    return jsonify({'files': [file.to_dict() for file in files]}), 200
+    return jsonify({
+        'files': [file.to_dict() for file in files],
+        'subject_id': subject_id  # Para frontend saber o contexto
+    }), 200
+
 
 @files_bp.route('/files/upload', methods=['POST'])
 @jwt_required()
@@ -103,8 +107,6 @@ def get_file(file_id):
     if not file_record:
         return jsonify({'message': 'Arquivo não encontrado'}), 404
     
-    if file_record.user_id != user_id:
-        return jsonify({'message': 'Acesso não autorizado'}), 403
     
     return jsonify({'file': file_record.to_dict()}), 200
 
@@ -118,19 +120,25 @@ def download_file(file_id):
     if not file_record:
         return jsonify({'message': 'Arquivo não encontrado'}), 404
     
-    if file_record.user_id != user_id:
-        return jsonify({'message': 'Acesso não autorizado'}), 403
     
     if not os.path.exists(file_record.file_path):
         return jsonify({'message': 'Arquivo físico não encontrado'}), 404
     
     try:
-        return send_file(
+        # Usar open() para ter mais controle
+        response = send_file(
             file_record.file_path,
             as_attachment=True,
-            download_name=file_record.original_filename,
-            mimetype=file_record.mime_type
+            download_name=secure_filename(file_record.original_filename),
+            mimetype=file_record.mime_type or 'application/octet-stream'
         )
+        
+        # Headers críticos para download correto
+        response.headers['Content-Disposition'] = f'attachment; filename="{secure_filename(file_record.original_filename)}"'
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Expose-Headers'] = 'Content-Disposition, Content-Type, Content-Length'
+        
+        return response
     except Exception as e:
         print(f"Erro ao fazer download: {e}")
         return jsonify({'message': 'Erro ao fazer download do arquivo'}), 500
@@ -144,9 +152,6 @@ def delete_file(file_id):
     
     if not file_record:
         return jsonify({'message': 'Arquivo não encontrado'}), 404
-    
-    if file_record.user_id != user_id:
-        return jsonify({'message': 'Acesso não autorizado'}), 403
     
     try:
         fileRepository.delete_file(file_id)

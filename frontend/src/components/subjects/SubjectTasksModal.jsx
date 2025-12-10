@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { X, Plus, Trash2, Check, Circle, CheckCircle2 } from "lucide-react";
+import { X, Plus, Trash2, Circle, CheckCircle2 } from "lucide-react";
 import { listarTarefas, criarTarefa, deletarTarefa, alternarConclusaoTarefa } from "../../services/taskService";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useModal } from "../../contexts/ModalContext";
 
 export default function SubjectTasksModal({ subject, onClose }) {
   const [tasks, setTasks] = useState([]);
@@ -14,6 +15,7 @@ export default function SubjectTasksModal({ subject, onClose }) {
     due_date: "",
     priority: "medium"
   });
+  const { showAlert, showConfirm } = useModal();
 
   useEffect(() => {
     loadTasks();
@@ -22,21 +24,20 @@ export default function SubjectTasksModal({ subject, onClose }) {
   async function loadTasks() {
     try {
       setLoading(true);
-      // Carregar tarefas desta matéria
-      // O subject.id deve ser passado como string para a API se for um parâmetro de query
       const allTasks = await listarTarefas(String(subject.id));
       setTasks(allTasks);
     } catch (error) {
       console.error("Erro ao carregar tarefas:", error);
       setTasks([]);
+      await showAlert("Erro ao carregar tarefas. Tente novamente.", "error", "Erro");
     } finally {
       setLoading(false);
     }
   }
 
   async function handleCreateTask() {
-    if (!newTaskData.title) {
-      alert("O título da tarefa é obrigatório");
+    if (!newTaskData.title.trim()) {
+      await showAlert("O título da tarefa é obrigatório.", "warning", "Campo obrigatório");
       return;
     }
 
@@ -50,8 +51,7 @@ export default function SubjectTasksModal({ subject, onClose }) {
       };
 
       await criarTarefa(taskData);
-      
-      // Limpar formulário
+
       setNewTaskData({
         title: "",
         description: "",
@@ -59,52 +59,66 @@ export default function SubjectTasksModal({ subject, onClose }) {
         priority: "medium"
       });
       setShowNewTask(false);
-      loadTasks();
+      await loadTasks();
+      await showAlert("Tarefa criada com sucesso.", "success", "Tarefa criada");
     } catch (error) {
       console.error("Erro ao criar tarefa:", error);
-      alert("Erro ao criar tarefa");
+      await showAlert("Erro ao criar tarefa. Tente novamente.", "error", "Erro");
     }
   }
 
   async function handleDeleteTask(taskId) {
-    if (!confirm("Tem certeza que deseja excluir esta tarefa?")) {
-      return;
-    }
+    const confirmado = await showConfirm(
+      "Tem certeza que deseja excluir esta tarefa?",
+      "Excluir tarefa",
+      "warning"
+    );
+
+    if (!confirmado) return;
 
     try {
       await deletarTarefa(taskId);
-      loadTasks();
+      await loadTasks();
+      await showAlert("Tarefa excluída com sucesso.", "success", "Excluída");
     } catch (error) {
       console.error("Erro ao deletar tarefa:", error);
-      alert("Erro ao deletar tarefa");
+      await showAlert("Erro ao deletar tarefa. Tente novamente.", "error", "Erro");
     }
   }
 
   async function handleToggleComplete(taskId) {
     try {
       await alternarConclusaoTarefa(taskId);
-      loadTasks();
+      await loadTasks();
     } catch (error) {
       console.error("Erro ao alternar conclusão:", error);
-      alert("Erro ao atualizar tarefa");
+      await showAlert("Erro ao atualizar tarefa. Tente novamente.", "error", "Erro");
     }
   }
 
   function getPriorityColor(priority) {
     switch (priority) {
-      case 'high': return '#ef4444';
-      case 'medium': return '#f59e0b';
-      case 'low': return '#10b981';
-      default: return '#64748b';
+      case "high":
+        return "#ef4444";
+      case "medium":
+        return "#f59e0b";
+      case "low":
+        return "#10b981";
+      default:
+        return "#64748b";
     }
   }
 
   function getPriorityLabel(priority) {
     switch (priority) {
-      case 'high': return 'Alta';
-      case 'medium': return 'Média';
-      case 'low': return 'Baixa';
-      default: return 'Média';
+      case "high":
+        return "Alta";
+      case "medium":
+        return "Média";
+      case "low":
+        return "Baixa";
+      default:
+        return "Média";
     }
   }
 
@@ -127,7 +141,7 @@ export default function SubjectTasksModal({ subject, onClose }) {
             style={styles.addButton}
           >
             <Plus size={18} />
-            {showNewTask ? 'Cancelar' : 'Nova Tarefa'}
+            {showNewTask ? "Cancelar" : "Nova Tarefa"}
           </button>
 
           {showNewTask && (
@@ -176,8 +190,8 @@ export default function SubjectTasksModal({ subject, onClose }) {
           ) : (
             <div style={styles.tasksList}>
               {tasks.map((task) => (
-                <div 
-                  key={task.id} 
+                <div
+                  key={task.id}
                   style={{
                     ...styles.taskItem,
                     opacity: task.completed ? 0.6 : 1
@@ -193,19 +207,21 @@ export default function SubjectTasksModal({ subject, onClose }) {
                       <Circle size={20} color="#94a3b8" />
                     )}
                   </button>
-                  
+
                   <div style={styles.taskContent}>
-                    <div style={{
-                      ...styles.taskTitle,
-                      textDecoration: task.completed ? 'line-through' : 'none'
-                    }}>
+                    <div
+                      style={{
+                        ...styles.taskTitle,
+                        textDecoration: task.completed ? "line-through" : "none"
+                      }}
+                    >
                       {task.title}
                     </div>
                     {task.description && (
                       <div style={styles.taskDescription}>{task.description}</div>
                     )}
                     <div style={styles.taskMeta}>
-                      <span 
+                      <span
                         style={{
                           ...styles.priorityBadge,
                           backgroundColor: `${getPriorityColor(task.priority)}20`,
@@ -221,7 +237,8 @@ export default function SubjectTasksModal({ subject, onClose }) {
                       )}
                       {task.completed && task.completed_at && (
                         <span style={styles.completedDate}>
-                          Concluída em: {format(parseISO(task.completed_at), "dd/MM/yyyy", { locale: ptBR })}
+                          Concluída em:{" "}
+                          {format(parseISO(task.completed_at), "dd/MM/yyyy", { locale: ptBR })}
                         </span>
                       )}
                     </div>
@@ -245,136 +262,136 @@ export default function SubjectTasksModal({ subject, onClose }) {
 
 const styles = {
   overlay: {
-    position: 'fixed',
+    position: "fixed",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     zIndex: 1000
   },
   modal: {
-    backgroundColor: 'white',
-    borderRadius: '12px',
-    width: '90%',
-    maxWidth: '600px',
-    maxHeight: '90vh',
-    overflow: 'hidden',
-    display: 'flex',
-    flexDirection: 'column',
-    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+    backgroundColor: "white",
+    borderRadius: "12px",
+    width: "90%",
+    maxWidth: "600px",
+    maxHeight: "90vh",
+    overflow: "hidden",
+    display: "flex",
+    flexDirection: "column",
+    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)"
   },
   header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    padding: '20px',
-    borderBottom: '1px solid #e2e8f0'
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    padding: "20px",
+    borderBottom: "1px solid #e2e8f0"
   },
   title: {
-    fontSize: '18px',
-    fontWeight: '600',
-    color: '#1e293b',
-    margin: '0 0 4px 0'
+    fontSize: "18px",
+    fontWeight: "600",
+    color: "#1e293b",
+    margin: "0 0 4px 0"
   },
   subtitle: {
-    fontSize: '14px',
-    color: '#64748b',
+    fontSize: "14px",
+    color: "#64748b",
     margin: 0
   },
   closeButton: {
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    padding: '4px',
-    color: '#64748b'
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    padding: "4px",
+    color: "#64748b"
   },
   content: {
-    padding: '20px',
-    overflowY: 'auto',
+    padding: "20px",
+    overflowY: "auto",
     flex: 1
   },
   addButton: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '10px 16px',
-    backgroundColor: '#334155',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: '500',
-    marginBottom: '16px',
-    width: '100%',
-    justifyContent: 'center'
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    padding: "10px 16px",
+    backgroundColor: "#334155",
+    color: "white",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontSize: "14px",
+    fontWeight: "500",
+    marginBottom: "16px",
+    width: "100%",
+    justifyContent: "center"
   },
   newTaskForm: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-    padding: '16px',
-    backgroundColor: '#f8fafc',
-    borderRadius: '8px',
-    marginBottom: '16px'
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+    padding: "16px",
+    backgroundColor: "#f8fafc",
+    borderRadius: "8px",
+    marginBottom: "16px"
   },
   input: {
-    padding: '10px 12px',
-    fontSize: '14px',
-    border: '1px solid #cbd5e1',
-    borderRadius: '6px',
-    outline: 'none'
+    padding: "10px 12px",
+    fontSize: "14px",
+    border: "1px solid #cbd5e1",
+    borderRadius: "6px",
+    outline: "none"
   },
   textarea: {
-    padding: '10px 12px',
-    fontSize: '14px',
-    border: '1px solid #cbd5e1',
-    borderRadius: '6px',
-    outline: 'none',
-    fontFamily: 'inherit',
-    resize: 'vertical'
+    padding: "10px 12px",
+    fontSize: "14px",
+    border: "1px solid #cbd5e1",
+    borderRadius: "6px",
+    outline: "none",
+    fontFamily: "inherit",
+    resize: "vertical"
   },
   select: {
-    padding: '10px 12px',
-    fontSize: '14px',
-    border: '1px solid #cbd5e1',
-    borderRadius: '6px',
-    outline: 'none',
-    backgroundColor: 'white'
+    padding: "10px 12px",
+    fontSize: "14px",
+    border: "1px solid #cbd5e1",
+    borderRadius: "6px",
+    outline: "none",
+    backgroundColor: "white"
   },
   createButton: {
-    padding: '10px 16px',
-    backgroundColor: '#10b981',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: '500'
+    padding: "10px 16px",
+    backgroundColor: "#10b981",
+    color: "white",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontSize: "14px",
+    fontWeight: "500"
   },
   tasksList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px'
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px"
   },
   taskItem: {
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: '12px',
-    padding: '12px',
-    backgroundColor: '#f8fafc',
-    borderRadius: '8px',
-    transition: 'all 0.2s'
+    display: "flex",
+    alignItems: "flex-start",
+    gap: "12px",
+    padding: "12px",
+    backgroundColor: "#f8fafc",
+    borderRadius: "8px",
+    transition: "all 0.2s"
   },
   checkButton: {
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    padding: '4px',
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    padding: "4px",
     flexShrink: 0
   },
   taskContent: {
@@ -382,55 +399,55 @@ const styles = {
     minWidth: 0
   },
   taskTitle: {
-    fontSize: '14px',
-    fontWeight: '600',
-    color: '#1e293b',
-    marginBottom: '4px'
+    fontSize: "14px",
+    fontWeight: "600",
+    color: "#1e293b",
+    marginBottom: "4px"
   },
   taskDescription: {
-    fontSize: '13px',
-    color: '#64748b',
-    marginBottom: '8px'
+    fontSize: "13px",
+    color: "#64748b",
+    marginBottom: "8px"
   },
   taskMeta: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '8px',
-    alignItems: 'center'
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "8px",
+    alignItems: "center"
   },
   priorityBadge: {
-    fontSize: '11px',
-    fontWeight: '600',
-    padding: '2px 8px',
-    borderRadius: '4px',
-    textTransform: 'uppercase'
+    fontSize: "11px",
+    fontWeight: "600",
+    padding: "2px 8px",
+    borderRadius: "4px",
+    textTransform: "uppercase"
   },
   dueDate: {
-    fontSize: '12px',
-    color: '#64748b'
+    fontSize: "12px",
+    color: "#64748b"
   },
   completedDate: {
-    fontSize: '12px',
-    color: '#10b981',
-    fontWeight: '500'
+    fontSize: "12px",
+    color: "#10b981",
+    fontWeight: "500"
   },
   deleteButton: {
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    padding: '4px',
-    color: '#ef4444',
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    padding: "4px",
+    color: "#ef4444",
     flexShrink: 0
   },
   loading: {
-    textAlign: 'center',
-    padding: '40px',
-    color: '#64748b'
+    textAlign: "center",
+    padding: "40px",
+    color: "#64748b"
   },
   empty: {
-    textAlign: 'center',
-    padding: '40px',
-    color: '#64748b',
-    fontSize: '14px'
+    textAlign: "center",
+    padding: "40px",
+    color: "#64748b",
+    fontSize: "14px"
   }
 };

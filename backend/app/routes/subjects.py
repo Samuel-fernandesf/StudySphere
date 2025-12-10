@@ -47,9 +47,6 @@ def get_subject(subject_id):
     if not subject:
         return jsonify({'message': 'Matéria não encontrada'}), 404
     
-    if subject.user_id != user_id:
-        return jsonify({'message': 'Acesso não autorizado'}), 403
-    
     return jsonify({'subject': subject.to_dict()}), 200
 
 @subjects_bp.route('/subjects/<int:subject_id>', methods=['PUT'])
@@ -62,8 +59,6 @@ def update_subject(subject_id):
     if not subject:
         return jsonify({'message': 'Matéria não encontrada'}), 404
     
-    if subject.user_id != user_id:
-        return jsonify({'message': 'Acesso não autorizado'}), 403
     
     data = request.get_json()
     
@@ -88,19 +83,17 @@ def update_subject(subject_id):
 @subjects_bp.route('/subjects/<int:subject_id>', methods=['DELETE'])
 @jwt_required()
 def delete_subject(subject_id):
-    """Deleta uma matéria"""
     user_id = get_jwt_identity()
     subject = subjectRepository.get_subject_by_id(subject_id)
     
     if not subject:
         return jsonify({'message': 'Matéria não encontrada'}), 404
     
-    if subject.user_id != user_id:
-        return jsonify({'message': 'Acesso não autorizado'}), 403
-    
     try:
         subjectRepository.delete_subject(subject_id)
         return jsonify({'message': 'Matéria deletada com sucesso!'}), 200
     except Exception as e:
-        print(f"Erro ao deletar matéria: {e}")
-        return jsonify({'message': 'Erro ao deletar matéria'}), 500
+        import traceback
+        print("ERRO AO DELETAR MATÉRIA:", e)
+        traceback.print_exc()
+        return jsonify({'message': f'Erro ao deletar matéria: {str(e)}'}), 500

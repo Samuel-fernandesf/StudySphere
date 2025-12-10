@@ -43,7 +43,6 @@ body {
     align-items: center;
     min-height: 100vh; 
     color: var(--text-color);
-    /* CORREÇÃO 2: Remove o overflow-x e o scroll do body (deixa no padrão) */
 }
 
 /* Container principal para o layout de duas colunas (Flexbox) */
