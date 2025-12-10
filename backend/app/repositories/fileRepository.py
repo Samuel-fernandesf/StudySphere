@@ -1,8 +1,7 @@
 from models.file import File
 from utils.db import db
 import os
-from werkzeug.utils import secure_filename
-import uuid
+
 
 def get_files_by_user(user_id, subject_id=None):
     """Retorna arquivos do usuário, com filtro opcional por matéria"""
@@ -13,13 +12,17 @@ def get_files_by_user(user_id, subject_id=None):
     
     return query.order_by(File.created_at.desc()).all()
 
+
 def get_file_by_id(file_id):
     """Retorna um arquivo específico pelo ID"""
     return File.query.get(file_id)
 
+
 def create_file(user_id, original_filename, file_path, file_size, mime_type=None, subject_id=None):
     """Cria um novo registro de arquivo"""
     # Gerar nome único para o arquivo
+    from werkzeug.utils import secure_filename
+    import uuid
     file_extension = os.path.splitext(original_filename)[1]
     unique_filename = f"{uuid.uuid4()}{file_extension}"
     
@@ -36,8 +39,9 @@ def create_file(user_id, original_filename, file_path, file_size, mime_type=None
     db.session.commit()
     return file_record
 
+
 def delete_file(file_id):
-    """Deleta um arquivo do banco e do sistema de arquivos"""
+    """Deleta um arquivo do banco E do sistema de arquivos"""
     file_record = File.query.get(file_id)
     if not file_record:
         return False
@@ -46,13 +50,15 @@ def delete_file(file_id):
     if os.path.exists(file_record.file_path):
         try:
             os.remove(file_record.file_path)
+            print(f"Arquivo físico deletado: {file_record.file_path}")
         except Exception as e:
-            print(f"Erro ao deletar arquivo físico: {e}")
+            print(f"Erro ao deletar arquivo físico {file_record.file_path}: {e}")
     
     # Deletar registro do banco
     db.session.delete(file_record)
     db.session.commit()
     return True
+
 
 def get_total_storage_used(user_id):
     """Retorna o total de armazenamento usado pelo usuário em bytes"""

@@ -41,7 +41,7 @@
 
 .chat-item.selected {
   background: linear-gradient(to right, #eff6ff 0%, #dbeafe 100%);
-  border-left-color: #2563eb;
+  border-left-color: #2c3e50;
   box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.1);
 }
 
@@ -57,7 +57,7 @@
   width: 52px;
   height: 52px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #2c3e50 100%);
   display: flex;
   align-items: center;
   justify-content: center;

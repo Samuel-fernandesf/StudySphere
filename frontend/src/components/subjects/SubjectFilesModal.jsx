@@ -1,23 +1,26 @@
 import React, { useState, useEffect, useRef } from "react";
 import { X, Upload, File, Trash2, Download } from "lucide-react";
 import { useModal } from "../../contexts/ModalContext";
-import { enviarArquivo, listarArquivos } from "../../services/fileService";
+import { enviarArquivo, listarArquivos, deletarArquivo, baixarArquivo } from "../../services/fileService";
 
 export default function SubjectFilesModal({ subject, onClose }) {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(null);
   const fileInputRef = useRef(null);
   const { showAlert, showConfirm } = useModal();
 
   useEffect(() => {
-    loadFiles();
-  }, []);
+    if (subject?.id) {
+      loadFiles();
+    }
+  }, [subject]);
 
   async function loadFiles() {
     try {
       setLoading(true);
-      const filesData = await listarArquivos();
+      const filesData = await listarArquivos(subject.id); // ✅ Filtra por matéria
       setFiles(filesData.files || []);
     } catch (error) {
       console.error("Erro ao carregar arquivos:", error);
@@ -34,7 +37,7 @@ export default function SubjectFilesModal({ subject, onClose }) {
 
     try {
       setUploading(true);
-      await enviarArquivo(file);
+      await enviarArquivo(file, subject.id); // ✅ Envia subject_id
       await loadFiles();
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -42,9 +45,44 @@ export default function SubjectFilesModal({ subject, onClose }) {
       await showAlert("Arquivo enviado com sucesso.", "success", "Upload concluído");
     } catch (error) {
       console.error("Erro ao fazer upload:", error);
-      await showAlert("Erro ao fazer upload do arquivo. Tente novamente.", "error", "Erro no upload");
+      await showAlert(
+        error.response?.data?.message || "Erro ao fazer upload do arquivo. Tente novamente.", 
+        "error", 
+        "Erro no upload"
+      );
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function handleDeleteClick(file) {
+    const confirmado = await showConfirm(
+      `Tem certeza que deseja excluir o arquivo "${file.original_filename || file.name || "sem nome"}"?`,
+      "Excluir arquivo",
+      "warning"
+    );
+
+    if (!confirmado) return;
+
+    setDeleting(file.id);
+    try {
+      await deletarArquivo(file.id); // ✅ Chama API de exclusão
+      await loadFiles();
+      await showAlert("Arquivo excluído com sucesso!", "success", "Excluído");
+    } catch (error) {
+      console.error("Erro ao excluir arquivo:", error);
+      await showAlert("Erro ao excluir arquivo. Tente novamente.", "error", "Erro");
+    } finally {
+      setDeleting(null);
+    }
+  }
+
+  async function handleDownloadClick(fileId, fileName) {
+    try {
+      await baixarArquivo(fileId); // ✅ Download correto com blob
+    } catch (error) {
+      console.error("Erro ao baixar:", error);
+      await showAlert("Erro ao baixar arquivo.", "error", "Erro no download");
     }
   }
 
@@ -56,24 +94,14 @@ export default function SubjectFilesModal({ subject, onClose }) {
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   }
 
-  async function handleDeleteClick(file) {
-    const confirmado = await showConfirm(
-      `Tem certeza que deseja excluir o arquivo "${file.name || file.filename || "sem nome"}"?`,
-      "Excluir arquivo",
-      "warning"
-    );
-
-    if (!confirmado) return;
-
-    await showAlert("Funcionalidade de exclusão em desenvolvimento.", "info", "Em breve");
-  }
+  if (!subject) return null;
 
   return (
     <div style={styles.overlay} onClick={onClose}>
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div style={styles.header}>
           <div>
-            <h3 style={styles.title}>Arquivos - {subject?.name}</h3>
+            <h3 style={styles.title}>Arquivos - {subject.name}</h3>
             <p style={styles.subtitle}>Gerencie os arquivos desta matéria</p>
           </div>
           <button onClick={onClose} style={styles.closeButton}>
@@ -87,12 +115,17 @@ export default function SubjectFilesModal({ subject, onClose }) {
             type="file"
             onChange={handleFileUpload}
             style={{ display: "none" }}
-            accept="*/*"
+            accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.zip,.mp4,.mp3"
+            disabled={uploading}
           />
 
           <button
             onClick={() => fileInputRef.current?.click()}
-            style={styles.uploadButton}
+            style={{
+              ...styles.uploadButton,
+              opacity: uploading ? 0.7 : 1,
+              cursor: uploading ? "not-allowed" : "pointer"
+            }}
             disabled={uploading}
           >
             <Upload size={18} />
@@ -107,36 +140,47 @@ export default function SubjectFilesModal({ subject, onClose }) {
             </div>
           ) : (
             <div style={styles.filesList}>
-              {files.map((file, index) => (
-                <div key={index} style={styles.fileItem}>
+              {files.map((file) => (
+                <div key={file.id} style={styles.fileItem}>
                   <div style={styles.fileIcon}>
                     <File size={24} color="#3b82f6" />
                   </div>
                   <div style={styles.fileContent}>
                     <div style={styles.fileName}>
-                      {file.name || file.filename || "Arquivo sem nome"}
+                      {file.original_filename || file.name || "Arquivo sem nome"}
                     </div>
                     <div style={styles.fileInfo}>
-                      {file.size ? formatFileSize(file.size) : "Tamanho desconhecido"}
+                      {file.size ? formatFileSize(file.size) : "Tamanho desconhecido"} •{' '}
+                      {file.created_at ? new Date(file.created_at).toLocaleDateString('pt-BR') : 'Data desconhecida'}
                     </div>
                   </div>
                   <div style={styles.fileActions}>
-                    {file.url && (
-                      <a
-                        href={file.url}
-                        download
-                        style={styles.downloadButton}
-                        title="Baixar arquivo"
-                      >
-                        <Download size={16} />
-                      </a>
-                    )}
+                    <button
+                      onClick={() => handleDownloadClick(file.id, file.original_filename)}
+                      style={styles.downloadButton}
+                      title="Baixar arquivo"
+                      disabled={deleting === file.id}
+                    >
+                      <Download size={16} />
+                    </button>
                     <button
                       onClick={() => handleDeleteClick(file)}
-                      style={styles.deleteButton}
+                      style={{
+                        ...styles.deleteButton,
+                        opacity: deleting === file.id ? 0.7 : 1,
+                        cursor: deleting === file.id ? "not-allowed" : "pointer"
+                      }}
                       title="Excluir arquivo"
+                      disabled={deleting === file.id}
                     >
-                      <Trash2 size={16} />
+                      {deleting === file.id ? (
+                        <>
+                          <div style={{ width: 12, height: 12, border: '1px solid #dc2626', borderTop: 'none', borderRight: 'none', borderRadius: '50%', animation: 'spin 1s linear infinite', display: 'inline-block', marginRight: 4 }} />
+                          Excluindo...
+                        </>
+                      ) : (
+                        <Trash2 size={16} />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -149,8 +193,9 @@ export default function SubjectFilesModal({ subject, onClose }) {
   );
 }
 
+// Seus styles permanecem iguais ✅
 const styles = {
-  overlay: {
+   overlay: {
     position: "fixed",
     top: 0,
     left: 0,
