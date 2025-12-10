@@ -1,68 +1,126 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createQuiz } from "../../services/quizService";
+import { createQuiz, gerarQuizAutomatico } from "../../services/quizService";
 import Sidebar from "../../components/layout/Sidebar";
-import { FileQuestion, Plus, X, Check } from "lucide-react";
+import { FileQuestion, Sparkles } from "lucide-react";
+import { useModal } from "../../contexts/ModalContext";
+import "./QuizCreate.css";
 
 const DIFICULDADES = [
-  { value: 'facil', label: 'Fácil' },
-  { value: 'medio', label: 'Médio' },
-  { value: 'dificil', label: 'Difícil' },
+  { value: "facil", label: "Fácil" },
+  { value: "medio", label: "Médio" },
+  { value: "dificil", label: "Difícil" }
 ];
 
 const NUM_QUESTOES = 5;
 
 export default function QuizCreate() {
   const navigate = useNavigate();
+  const { showAlert, showConfirm } = useModal();
+
+  const [step, setStep] = useState(1); // 1=Info, 2=Questões, 3=Revisão
   const [quizData, setQuizData] = useState({
-    titulo: '',
-    descricao: '',
-    materia: '',
-    dificuldade: 'medio',
+    titulo: "",
+    descricao: "",
+    materia: "",
+    dificuldade: "medio",
     tempo_estimado: 25,
-    questoes: Array(NUM_QUESTOES).fill(null).map((_, qIndex) => ({
-      enunciado: '',
-      pontos: 1,
-      alternativas: Array(4).fill(null).map((_, aIndex) => ({
-        texto: '',
-        is_correta: false,
-        ordem: aIndex + 1,
-      })),
-    })),
+    questoes: Array(NUM_QUESTOES)
+      .fill(null)
+      .map((_, qIndex) => ({
+        enunciado: "",
+        pontos: 1,
+        alternativas: Array(4)
+          .fill(null)
+          .map((_, aIndex) => ({
+            texto: "",
+            is_correta: false,
+            ordem: aIndex + 1
+          }))
+      }))
   });
+  const [currentQuestion, setCurrentQuestion] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   const handleQuizChange = (e) => {
     const { name, value } = e.target;
-    setQuizData(prev => ({ ...prev, [name]: value }));
+    setQuizData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleQuestaoChange = (qIndex, e) => {
     const { name, value } = e.target;
     const newQuestoes = [...quizData.questoes];
     newQuestoes[qIndex] = { ...newQuestoes[qIndex], [name]: value };
-    setQuizData(prev => ({ ...prev, questoes: newQuestoes }));
+    setQuizData((prev) => ({ ...prev, questoes: newQuestoes }));
   };
+
+  async function handleAutoGenerate() {
+  if (!quizData.titulo || !quizData.materia || !quizData.descricao) {
+    await showAlert(
+      "Preencha o título, a descrição e matéria antes de gerar automaticamente.",
+      "warning",
+      "Dados incompletos"
+    );
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const data = await gerarQuizAutomatico({
+      titulo: quizData.titulo,
+      materia: quizData.materia,
+      dificuldade: quizData.dificuldade,
+      num_questoes: NUM_QUESTOES,
+    });
+
+    setQuizData((prev) => ({
+      ...prev,
+      questoes: data.questoes,
+    }));
+
+    await showAlert(
+      "Questões geradas automaticamente. Revise e ajuste se necessário.",
+      "success",
+      "Quiz gerado"
+    );
+
+    setStep(2);
+  } catch (e) {
+    await showAlert(
+      e.response?.data?.message ||
+        "Não foi possível gerar o quiz automaticamente. Tente novamente.",
+      "error",
+      "Erro"
+    );
+  } finally {
+    setLoading(false);
+  }
+}
 
   const handleAlternativaChange = (qIndex, aIndex, e) => {
     const { value } = e.target;
     const newQuestoes = [...quizData.questoes];
-    newQuestoes[qIndex].alternativas[aIndex] = { ...newQuestoes[qIndex].alternativas[aIndex], texto: value };
-    setQuizData(prev => ({ ...prev, questoes: newQuestoes }));
+    newQuestoes[qIndex].alternativas[aIndex] = {
+      ...newQuestoes[qIndex].alternativas[aIndex],
+      texto: value
+    };
+    setQuizData((prev) => ({ ...prev, questoes: newQuestoes }));
   };
 
   const handleCorretaChange = (qIndex, aIndex) => {
     const newQuestoes = [...quizData.questoes];
-    const newAlternativas = newQuestoes[qIndex].alternativas.map((alt, index) => ({
-      ...alt,
-      is_correta: index === aIndex,
-    }));
+    const newAlternativas = newQuestoes[qIndex].alternativas.map(
+      (alt, index) => ({
+        ...alt,
+        is_correta: index === aIndex
+      })
+    );
     newQuestoes[qIndex] = { ...newQuestoes[qIndex], alternativas: newAlternativas };
-    setQuizData(prev => ({ ...prev, questoes: newQuestoes }));
+    setQuizData((prev) => ({ ...prev, questoes: newQuestoes }));
   };
 
-  const validateForm = () => {
+  const validateAll = () => {
     if (!quizData.titulo || !quizData.materia || !quizData.descricao) {
       return "Preencha o título, matéria e descrição do quiz.";
     }
@@ -92,266 +150,363 @@ export default function QuizCreate() {
     return null;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    const validationError = validateForm();
+  const handleNextFromInfo = async () => {
+    if (!quizData.titulo || !quizData.materia || !quizData.descricao) {
+      await showAlert(
+        "Preencha título, matéria e descrição antes de avançar.",
+        "warning",
+        "Campos obrigatórios"
+      );
+      return;
+    }
+    setStep(2);
+  };
 
+  const handleNextQuestion = () => {
+    if (currentQuestion < NUM_QUESTOES - 1) {
+      setCurrentQuestion((prev) => prev + 1);
+    }
+  };
+
+  const handlePrevQuestion = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion((prev) => prev - 1);
+    }
+  };
+
+  const handleGoToReview = async () => {
+    const validationError = validateAll();
     if (validationError) {
-      setError(validationError);
+      await showAlert(validationError, "warning", "Validação");
+      return;
+    }
+    setStep(3);
+  };
+
+  const handleSubmit = async () => {
+    const confirmed = await showConfirm(
+      "Deseja criar este quiz com as informações preenchidas?",
+      "Confirmar criação",
+      "success"
+    );
+    if (!confirmed) return;
+
+    const validationError = validateAll();
+    if (validationError) {
+      await showAlert(validationError, "warning", "Validação");
       return;
     }
 
     try {
       setLoading(true);
       const newQuiz = await createQuiz(quizData);
-      alert(`Quiz "${newQuiz.titulo}" criado com sucesso!`);
-      navigate('/quiz');
+      await showAlert(
+        `Quiz "${newQuiz.titulo}" criado com sucesso.`,
+        "success",
+        "Quiz criado"
+      );
+      navigate("/quiz");
     } catch (err) {
       console.error("Erro ao criar quiz:", err);
-      setError("Erro ao criar quiz. Verifique sua conexão e tente novamente.");
+      await showAlert(
+        "Erro ao criar quiz. Verifique sua conexão e tente novamente.",
+        "error",
+        "Erro"
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  const currentQuestao = quizData.questoes[currentQuestion];
+
   return (
     <>
       <Sidebar />
-      <div style={{
-        marginLeft: '0px',
-        padding: '32px',
-        backgroundColor: '#f8fafc',
-        minHeight: '100vh',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-      }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+      <div className="quiz-create-root">
+        <div className="quiz-create-container">
           {/* Header */}
-          <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="quiz-header">
+            <div className="quiz-header-left">
               <FileQuestion size={32} color="#232946" />
-              <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '700', color: '#232946' }}>
-                Criar Novo Questionário
-              </h1>
+              <div>
+                <h1>Criar Novo Questionário</h1>
+                <p className="quiz-step-indicator">
+                  Etapa {step} de 3 ·{" "}
+                  {step === 1
+                    ? "Informações do Quiz"
+                    : step === 2
+                    ? "Questões"
+                    : "Revisão e Conclusão"}
+                </p>
+              </div>
             </div>
-            <button
-              onClick={() => navigate('/quiz')}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#e2e8f0',
-                color: '#232946',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-            >
+            <button onClick={() => navigate("/quiz")} className="btn-secondary">
               Voltar
             </button>
           </div>
 
-          {error && (
-            <div style={{
-              backgroundColor: '#fee2e2',
-              color: '#dc2626',
-              padding: '12px',
-              borderRadius: '8px',
-              marginBottom: '24px',
-              fontWeight: '600'
-            }}>
-              {error}
-            </div>
-          )}
+          {/* Etapa 1 – Informações do Quiz */}
+          {step === 1 && (
+            <div className="card">
+              <h2>1. Informações do Quiz</h2>
 
-          <form onSubmit={handleSubmit}>
-            {/* Informações Básicas */}
-            <div style={{
-              backgroundColor: 'white',
-              borderRadius: '12px',
-              padding: '32px',
-              marginBottom: '24px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-            }}>
-              <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#232946', marginBottom: '20px' }}>
-                1. Informações do Quiz
-              </h2>
-
-              <div style={{ marginBottom: '16px' }}>
-                <label style={labelStyle}>Título do Quiz</label>
+              <div className="form-group">
+                <label>Título do Quiz</label>
                 <input
                   type="text"
                   name="titulo"
                   value={quizData.titulo}
                   onChange={handleQuizChange}
-                  style={inputStyle}
                   placeholder="Ex: Quiz de Cálculo I - Derivadas"
                 />
               </div>
 
-              <div style={{ marginBottom: '16px' }}>
-                <label style={labelStyle}>Descrição</label>
+              <div className="form-group">
+                <label>Descrição</label>
                 <textarea
                   name="descricao"
                   value={quizData.descricao}
                   onChange={handleQuizChange}
-                  style={{ ...inputStyle, minHeight: '80px' }}
                   placeholder="Breve descrição do conteúdo do quiz"
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '20px' }}>
-                <div style={{ flex: 1, marginBottom: '16px' }}>
-                  <label style={labelStyle}>Matéria</label>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Matéria</label>
                   <input
                     type="text"
                     name="materia"
                     value={quizData.materia}
                     onChange={handleQuizChange}
-                    style={inputStyle}
                     placeholder="Ex: Matemática"
                   />
                 </div>
 
-                <div style={{ flex: 1, marginBottom: '16px' }}>
-                  <label style={labelStyle}>Dificuldade</label>
+                <div className="form-group">
+                  <label>Dificuldade</label>
                   <select
                     name="dificuldade"
                     value={quizData.dificuldade}
                     onChange={handleQuizChange}
-                    style={inputStyle}
                   >
-                    {DIFICULDADES.map(d => (
-                      <option key={d.value} value={d.value}>{d.label}</option>
+                    {DIFICULDADES.map((d) => (
+                      <option key={d.value} value={d.value}>
+                        {d.label}
+                      </option>
                     ))}
                   </select>
                 </div>
 
-                <div style={{ flex: 1, marginBottom: '16px' }}>
-                  <label style={labelStyle}>Tempo Estimado (min)</label>
+                <div className="form-group">
+                  <label>Tempo Estimado (min)</label>
                   <input
                     type="number"
                     name="tempo_estimado"
                     value={quizData.tempo_estimado}
                     onChange={handleQuizChange}
-                    style={inputStyle}
                     min="1"
                   />
                 </div>
               </div>
+
+              <div className="wizard-nav">
+                <div />
+                {/* Opção 1: gerar com IA */}
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={handleAutoGenerate}
+                    disabled={loading}
+                  >
+                    <Sparkles size={20}/> Gerar automaticamente com IA
+                  </button>
+                  {/* Opção 2: seguir manualmente */}
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={handleNextFromInfo}
+                    disabled={loading}
+                  >
+                    Próxima etapa: Questões
+                  </button>
+              </div>
             </div>
+          )}
 
-            {/* Questões */}
-            <div style={{
-              backgroundColor: 'white',
-              borderRadius: '12px',
-              padding: '32px',
-              marginBottom: '24px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-            }}>
-              <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#232946', marginBottom: '20px' }}>
-                2. Questões ({NUM_QUESTOES} Perguntas)
-              </h2>
+          {/* Etapa 2 – Questões (uma por vez) */}
+          {step === 2 && (
+            <div className="card">
+              <div className="question-header">
+                <h2>2. Questões ({NUM_QUESTOES} Perguntas)</h2>
+                <span className="question-step">
+                  Questão {currentQuestion + 1} de {NUM_QUESTOES}
+                </span>
+              </div>
 
-              {quizData.questoes.map((questao, qIndex) => (
-                <div key={qIndex} style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '20px', marginBottom: '20px' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#2563eb', marginBottom: '16px' }}>
-                    Questão {qIndex + 1}
-                  </h3>
+              <div className="question-card">
+                <h3>Questão {currentQuestion + 1}</h3>
 
-                  <div style={{ marginBottom: '16px' }}>
-                    <label style={labelStyle}>Enunciado</label>
-                    <textarea
-                      name="enunciado"
-                      value={questao.enunciado}
-                      onChange={(e) => handleQuestaoChange(qIndex, e)}
-                      style={{ ...inputStyle, minHeight: '60px' }}
-                      placeholder="Digite o enunciado da questão"
-                    />
-                  </div>
+                <div className="form-group">
+                  <label>Enunciado</label>
+                  <textarea
+                    name="enunciado"
+                    value={currentQuestao.enunciado}
+                    onChange={(e) => handleQuestaoChange(currentQuestion, e)}
+                    placeholder="Digite o enunciado da questão"
+                  />
+                </div>
 
-                  <div style={{ marginBottom: '16px' }}>
-                    <label style={labelStyle}>Alternativas (Selecione a correta)</label>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                      {questao.alternativas.map((alternativa, aIndex) => (
-                        <div key={aIndex} style={{ display: 'flex', alignItems: 'center', gap: '10px', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px' }}>
-                          <button
-                            type="button"
-                            onClick={() => handleCorretaChange(qIndex, aIndex)}
-                            style={{
-                              width: '24px',
-                              height: '24px',
-                              borderRadius: '50%',
-                              border: `2px solid ${alternativa.is_correta ? '#10b981' : '#cbd5e1'}`,
-                              backgroundColor: alternativa.is_correta ? '#10b981' : 'white',
-                              color: 'white',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s',
-                              flexShrink: 0
-                            }}
-                          >
-                            {alternativa.is_correta && <Check size={14} />}
-                          </button>
-                          <input
-                            type="text"
-                            value={alternativa.texto}
-                            onChange={(e) => handleAlternativaChange(qIndex, aIndex, e)}
-                            style={{ ...inputStyle, margin: 0, border: 'none', padding: '4px 0' }}
-                            placeholder={`Alternativa ${aIndex + 1}`}
-                          />
-                        </div>
-                      ))}
-                    </div>
+                <div className="form-group">
+                  <label>Alternativas (Selecione a correta)</label>
+                  <div className="alternatives-grid">
+                    {currentQuestao.alternativas.map((alternativa, aIndex) => (
+                      <div key={aIndex} className="alternative-item">
+                        <button
+                          type="button"
+                          className={
+                            alternativa.is_correta
+                              ? "correct-toggle correct"
+                              : "correct-toggle"
+                          }
+                          onClick={() =>
+                            handleCorretaChange(currentQuestion, aIndex)
+                          }
+                        >
+                          {alternativa.is_correta && "✓"}
+                        </button>
+                        <input
+                          type="text"
+                          value={alternativa.texto}
+                          onChange={(e) =>
+                            handleAlternativaChange(
+                              currentQuestion,
+                              aIndex,
+                              e
+                            )
+                          }
+                          placeholder={`Alternativa ${aIndex + 1}`}
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
 
-            {/* Botão de Submissão */}
-            <div style={{ textAlign: 'right' }}>
-              <button
-                type="submit"
-                disabled={loading}
-                style={{
-                  padding: '12px 32px',
-                  backgroundColor: loading ? '#94a3b8' : '#10b981',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.2s'
-                }}
-              >
-                {loading ? 'Criando Quiz...' : 'Criar Quiz'}
-              </button>
+                <div className="question-nav">
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={handlePrevQuestion}
+                    disabled={currentQuestion === 0}
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={handleNextQuestion}
+                    disabled={currentQuestion === NUM_QUESTOES - 1}
+                  >
+                    Próxima
+                  </button>
+                </div>
+              </div>
+
+              <div className="wizard-nav">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setStep(1)}
+                >
+                  Voltar para informações
+                </button>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={handleGoToReview}
+                >
+                  Próxima etapa: Revisão
+                </button>
+              </div>
             </div>
-          </form>
+          )}
+
+          {/* Etapa 3 – Revisão e Conclusão */}
+          {step === 3 && (
+            <div className="card">
+              <h2>3. Revisão e Conclusão</h2>
+
+              <div className="review-section">
+                <h3>Informações do Quiz</h3>
+                <p>
+                  <strong>Título:</strong> {quizData.titulo}
+                </p>
+                <p>
+                  <strong>Descrição:</strong> {quizData.descricao}
+                </p>
+                <p>
+                  <strong>Matéria:</strong> {quizData.materia}
+                </p>
+                <p>
+                  <strong>Dificuldade:</strong>{" "}
+                  {
+                    DIFICULDADES.find(
+                      (d) => d.value === quizData.dificuldade
+                    )?.label
+                  }
+                </p>
+                <p>
+                  <strong>Tempo estimado:</strong>{" "}
+                  {quizData.tempo_estimado} min
+                </p>
+              </div>
+
+              <div className="review-section">
+                <h3>Questões</h3>
+                {quizData.questoes.map((q, idx) => (
+                  <div key={idx} className="review-question">
+                    <p>
+                      <strong>Questão {idx + 1}:</strong> {q.enunciado}
+                    </p>
+                    <ul>
+                      {q.alternativas.map((alt, aIdx) => (
+                        <li
+                          key={aIdx}
+                          className={
+                            alt.is_correta ? "review-alt correct" : "review-alt"
+                          }
+                        >
+                          {String.fromCharCode(65 + aIdx)}) {alt.texto}
+                          {alt.is_correta && " (correta)"}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+
+              <div className="wizard-nav">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setStep(2)}
+                >
+                  Voltar para questões
+                </button>
+                <button
+                  type="button"
+                  className="btn-submit"
+                  disabled={loading}
+                  onClick={handleSubmit}
+                >
+                  {loading ? "Criando Quiz..." : "Confirmar e Criar Quiz"}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>
   );
 }
-
-const labelStyle = {
-  display: 'block',
-  fontSize: '14px',
-  fontWeight: '600',
-  color: '#232946',
-  marginBottom: '8px',
-};
-
-const inputStyle = {
-  width: '100%',
-  padding: '10px 12px',
-  border: '1px solid #e2e8f0',
-  borderRadius: '8px',
-  fontSize: '14px',
-  transition: 'all 0.2s',
-  boxSizing: 'border-box',
-};

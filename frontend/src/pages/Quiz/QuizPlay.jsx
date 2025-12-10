@@ -2,12 +2,28 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { buscarQuiz, submeterQuiz } from "../../services/quizService";
 import Sidebar from "../../components/layout/Sidebar";
-import { Clock, CheckCircle, XCircle, ArrowLeft, ArrowRight } from "lucide-react";
+import {
+  Clock,
+  CheckCircle,
+  XCircle,
+  ArrowLeft,
+  ArrowRight,
+} from "lucide-react";
+import "./QuizPlay.css";
+
+function shuffleArray(array) {
+  const copy = [...(array || [])];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
 
 export default function QuizPlay() {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
   const [quiz, setQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
   const [questaoAtual, setQuestaoAtual] = useState(0);
@@ -19,13 +35,23 @@ export default function QuizPlay() {
 
   useEffect(() => {
     carregarQuiz();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   async function carregarQuiz() {
     try {
       setLoading(true);
       const data = await buscarQuiz(id);
-      setQuiz(data);
+
+      const quizComAlternativasEmbaralhadas = {
+        ...data,
+        questoes: data.questoes.map((q) => ({
+          ...q,
+          alternativas: shuffleArray(q.alternativas),
+        })),
+      };
+
+      setQuiz(quizComAlternativasEmbaralhadas);
       setTempoInicio(Date.now());
     } catch (error) {
       console.error("Erro ao carregar quiz:", error);
@@ -37,27 +63,31 @@ export default function QuizPlay() {
   }
 
   function selecionarResposta(questaoId, alternativaId) {
-    setRespostas(prev => ({
+    setRespostas((prev) => ({
       ...prev,
-      [questaoId]: alternativaId
+      [questaoId]: alternativaId,
     }));
   }
 
   function proximaQuestao() {
     if (questaoAtual < quiz.questoes.length - 1) {
-      setQuestaoAtual(questaoAtual + 1);
+      setQuestaoAtual((prev) => prev + 1);
     }
   }
 
   function questaoAnterior() {
     if (questaoAtual > 0) {
-      setQuestaoAtual(questaoAtual - 1);
+      setQuestaoAtual((prev) => prev - 1);
     }
   }
 
   async function finalizar() {
     if (Object.keys(respostas).length < quiz.questoes.length) {
-      if (!window.confirm("Você não respondeu todas as questões. Deseja finalizar mesmo assim?")) {
+      if (
+        !window.confirm(
+          "Você não respondeu todas as questões. Deseja finalizar mesmo assim?"
+        )
+      ) {
         return;
       }
     }
@@ -65,14 +95,18 @@ export default function QuizPlay() {
     try {
       setSubmitting(true);
       const tempoGasto = Math.floor((Date.now() - tempoInicio) / 1000);
-      
-      const respostasFormatadas = quiz.questoes.map(q => ({
+
+      const respostasFormatadas = quiz.questoes.map((q) => ({
         questao_id: q.id,
-        alternativa_id: respostas[q.id] || null
+        alternativa_id: respostas[q.id] || null,
       }));
 
-      const resultado = await submeterQuiz(id, respostasFormatadas, tempoGasto);
-      setResultado(resultado);
+      const resultadoApi = await submeterQuiz(
+        id,
+        respostasFormatadas,
+        tempoGasto
+      );
+      setResultado(resultadoApi);
       setFinalizado(true);
     } catch (error) {
       console.error("Erro ao submeter quiz:", error);
@@ -86,18 +120,8 @@ export default function QuizPlay() {
     return (
       <>
         <Sidebar />
-        <div style={{
-          marginLeft: '260px',
-          padding: '32px',
-          backgroundColor: '#f8fafc',
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <div style={{ textAlign: 'center', color: '#94a3b8' }}>
-            Carregando questionário...
-          </div>
+        <div className="quiz-play-root loading-root">
+          <div className="loading-text">Carregando questionário...</div>
         </div>
       </>
     );
@@ -111,32 +135,25 @@ export default function QuizPlay() {
     return (
       <>
         <Sidebar />
-        <div style={{
-          marginLeft: '260px',
-          padding: '32px',
-          backgroundColor: '#f8fafc',
-          minHeight: '100vh',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-        }}>
-          <div style={{
-            maxWidth: '800px',
-            margin: '0 auto',
-            backgroundColor: 'white',
-            borderRadius: '16px',
-            padding: '40px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-            textAlign: 'center'
-          }}>
-            <div style={{
-              width: '80px',
-              height: '80px',
-              borderRadius: '50%',
-              backgroundColor: resultado.percentual >= 70 ? '#dcfce7' : '#fee2e2',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 24px'
-            }}>
+        <div className="quiz-play-root">
+          <div className="quiz-top-bar">
+            <button
+              className="btn-outline-dark small"
+              onClick={() => navigate("/quiz")}
+            >
+              <ArrowLeft size={16} />
+              Voltar aos Questionários
+            </button>
+          </div>
+
+          <div className="quiz-result-card">
+            <div
+              className={
+                resultado.percentual >= 70
+                  ? "result-icon result-icon-success"
+                  : "result-icon result-icon-fail"
+              }
+            >
               {resultado.percentual >= 70 ? (
                 <CheckCircle size={40} color="#16a34a" />
               ) : (
@@ -144,96 +161,62 @@ export default function QuizPlay() {
               )}
             </div>
 
-            <h1 style={{
-              fontSize: '32px',
-              fontWeight: '700',
-              color: '#232946',
-              marginBottom: '12px'
-            }}>
-              {resultado.percentual >= 70 ? 'Parabéns!' : 'Continue Tentando!'}
+            <h1 className="result-title">
+              {resultado.percentual >= 70 ? "Parabéns!" : "Continue Tentando!"}
             </h1>
 
-            <p style={{
-              fontSize: '16px',
-              color: '#64748b',
-              marginBottom: '32px'
-            }}>
+            <p className="result-subtitle">
               Você completou o questionário "{quiz.titulo}"
             </p>
 
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '24px',
-              marginBottom: '32px'
-            }}>
+            <div className="result-grid">
               <div>
-                <div style={{ fontSize: '14px', color: '#64748b', marginBottom: '8px' }}>
-                  Pontuação
-                </div>
-                <div style={{ fontSize: '32px', fontWeight: '700', color: '#232946' }}>
+                <div className="result-label">Pontuação</div>
+                <div className="result-value">
                   {resultado.pontuacao}/{resultado.pontuacao_maxima}
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: '14px', color: '#64748b', marginBottom: '8px' }}>
-                  Percentual
-                </div>
-                <div style={{
-                  fontSize: '32px',
-                  fontWeight: '700',
-                  color: resultado.percentual >= 70 ? '#16a34a' : '#dc2626'
-                }}>
+                <div className="result-label">Percentual</div>
+                <div
+                  className={
+                    resultado.percentual >= 70
+                      ? "result-value result-value-success"
+                      : "result-value result-value-fail"
+                  }
+                >
                   {resultado.percentual}%
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: '14px', color: '#64748b', marginBottom: '8px' }}>
-                  Tempo
-                </div>
-                <div style={{ fontSize: '32px', fontWeight: '700', color: '#232946' }}>
-                  {Math.floor((resultado.tentativa?.tempo_gasto || 0) / 60)}:{String(Math.floor((resultado.tentativa?.tempo_gasto || 0) % 60)).padStart(2, '0')}
+                <div className="result-label">Tempo</div>
+                <div className="result-value">
+                  {Math.floor(
+                    (resultado.tentativa?.tempo_gasto || 0) / 60
+                  )}
+                  :
+                  {String(
+                    Math.floor(
+                      (resultado.tentativa?.tempo_gasto || 0) % 60
+                    )
+                  ).padStart(2, "0")}
                 </div>
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+            <div className="result-actions">
               <button
-                onClick={() => navigate('/quiz')}
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: '#232946',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#121629'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#232946'}
+                onClick={() => navigate("/quiz")}
+                className="btn-primary-dark"
               >
                 Voltar aos Questionários
               </button>
 
               <button
                 onClick={() => window.location.reload()}
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: 'white',
-                  color: '#232946',
-                  border: '2px solid #232946',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                className="btn-outline-dark"
               >
                 Tentar Novamente
               </button>
@@ -250,106 +233,66 @@ export default function QuizPlay() {
   return (
     <>
       <Sidebar />
-      <div style={{
-        marginLeft: '260px',
-        padding: '32px',
-        backgroundColor: '#f8fafc',
-        minHeight: '100vh',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-      }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+      <div className="quiz-play-root">
+        <div className="quiz-play-container">
+          {/* Top bar com voltar */}
+          <div className="quiz-top-bar">
+            <button
+              className="btn-outline-dark small"
+              onClick={() => navigate("/quiz")}
+            >
+              <ArrowLeft size={16} />
+              Voltar aos Questionários
+            </button>
+          </div>
+
           {/* Header */}
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '12px',
-            padding: '20px',
-            marginBottom: '24px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '600', color: '#232946' }}>
-                {quiz.titulo}
-              </h2>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b' }}>
+          <div className="quiz-header-card">
+            <div className="quiz-header-top">
+              <h2>{quiz.titulo}</h2>
+              <div className="quiz-timer">
                 <Clock size={18} />
-                <span style={{ fontSize: '14px', fontWeight: '600' }}>
-                  {Math.floor((Date.now() - tempoInicio) / 60000)}:{String(Math.floor(((Date.now() - tempoInicio) % 60000) / 1000)).padStart(2, '0')}
+                <span>
+                  {Math.floor((Date.now() - tempoInicio) / 60000)}:
+                  {String(
+                    Math.floor(
+                      ((Date.now() - tempoInicio) % 60000) / 1000
+                    )
+                  ).padStart(2, "0")}
                 </span>
               </div>
             </div>
 
-            {/* Barra de Progresso */}
-            <div style={{
-              height: '8px',
-              backgroundColor: '#e2e8f0',
-              borderRadius: '4px',
-              overflow: 'hidden',
-              marginBottom: '8px'
-            }}>
-              <div style={{
-                height: '100%',
-                width: `${progresso}%`,
-                backgroundColor: '#232946',
-                transition: 'width 0.3s'
-              }} />
+            <div className="quiz-progress-bar">
+              <div
+                className="quiz-progress-fill"
+                style={{ width: `${progresso}%` }}
+              />
             </div>
 
-            <div style={{ fontSize: '14px', color: '#64748b', textAlign: 'center' }}>
+            <div className="quiz-progress-text">
               Questão {questaoAtual + 1} de {quiz.questoes.length}
             </div>
           </div>
 
           {/* Questão */}
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '12px',
-            padding: '32px',
-            marginBottom: '24px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-          }}>
-            <div style={{
-              fontSize: '18px',
-              fontWeight: '600',
-              color: '#232946',
-              marginBottom: '24px',
-              lineHeight: '1.6'
-            }}>
-              {questao.enunciado}
-            </div>
+          <div className="quiz-question-card">
+            <div className="quiz-question-text">{questao.enunciado}</div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {questao.alternativas && questao.alternativas
-                .sort((a, b) => a.ordem - b.ordem)
-                .map((alternativa) => {
-                  const selecionada = respostas[questao.id] === alternativa.id;
+            <div className="quiz-alternatives">
+              {questao.alternativas &&
+                questao.alternativas.map((alternativa) => {
+                  const selecionada =
+                    respostas[questao.id] === alternativa.id;
                   return (
                     <button
                       key={alternativa.id}
-                      onClick={() => selecionarResposta(questao.id, alternativa.id)}
-                      style={{
-                        padding: '16px 20px',
-                        backgroundColor: selecionada ? '#e0f2fe' : 'white',
-                        border: selecionada ? '2px solid #0284c7' : '2px solid #e2e8f0',
-                        borderRadius: '8px',
-                        fontSize: '15px',
-                        color: '#232946',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        transition: 'all 0.2s',
-                        fontWeight: selecionada ? '600' : '400'
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!selecionada) {
-                          e.currentTarget.style.backgroundColor = '#f8fafc';
-                          e.currentTarget.style.borderColor = '#cbd5e1';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!selecionada) {
-                          e.currentTarget.style.backgroundColor = 'white';
-                          e.currentTarget.style.borderColor = '#e2e8f0';
-                        }
-                      }}
+                      onClick={() =>
+                        selecionarResposta(questao.id, alternativa.id)
+                      }
+                      className={
+                        selecionada ? "alt-button selected" : "alt-button"
+                      }
                     >
                       {alternativa.texto}
                     </button>
@@ -359,24 +302,13 @@ export default function QuizPlay() {
           </div>
 
           {/* Navegação */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="quiz-nav-row">
             <button
               onClick={questaoAnterior}
               disabled={questaoAtual === 0}
-              style={{
-                padding: '12px 24px',
-                backgroundColor: questaoAtual === 0 ? '#e2e8f0' : 'white',
-                color: questaoAtual === 0 ? '#94a3b8' : '#232946',
-                border: '2px solid #e2e8f0',
-                borderRadius: '8px',
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: questaoAtual === 0 ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
+              className={
+                questaoAtual === 0 ? "btn-nav disabled" : "btn-nav"
+              }
             >
               <ArrowLeft size={18} />
               Anterior
@@ -386,42 +318,14 @@ export default function QuizPlay() {
               <button
                 onClick={finalizar}
                 disabled={submitting}
-                style={{
-                  padding: '12px 32px',
-                  backgroundColor: '#16a34a',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  cursor: submitting ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => !submitting && (e.currentTarget.style.backgroundColor = '#15803d')}
-                onMouseLeave={(e) => !submitting && (e.currentTarget.style.backgroundColor = '#16a34a')}
+                className={
+                  submitting ? "btn-finish disabled" : "btn-finish"
+                }
               >
-                {submitting ? 'Finalizando...' : 'Finalizar'}
+                {submitting ? "Finalizando..." : "Finalizar"}
               </button>
             ) : (
-              <button
-                onClick={proximaQuestao}
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: '#232946',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#121629'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#232946'}
-              >
+              <button onClick={proximaQuestao} className="btn-next">
                 Próxima
                 <ArrowRight size={18} />
               </button>
@@ -429,39 +333,26 @@ export default function QuizPlay() {
           </div>
 
           {/* Mapa de Questões */}
-          <div style={{
-            marginTop: '24px',
-            backgroundColor: 'white',
-            borderRadius: '12px',
-            padding: '20px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-          }}>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#64748b', marginBottom: '12px' }}>
-              Navegação Rápida
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {quiz.questoes.map((q, idx) => (
-                <button
-                  key={q.id}
-                  onClick={() => setQuestaoAtual(idx)}
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '8px',
-                    border: idx === questaoAtual ? '2px solid #232946' : '2px solid #e2e8f0',
-                    backgroundColor: respostas[q.id] ? '#dcfce7' : (idx === questaoAtual ? '#f8fafc' : 'white'),
-                    color: '#232946',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                  onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                >
-                  {idx + 1}
-                </button>
-              ))}
+          <div className="quiz-map-card">
+            <div className="quiz-map-title">Navegação Rápida</div>
+            <div className="quiz-map-grid">
+              {quiz.questoes.map((q, idx) => {
+                const respondida = !!respostas[q.id];
+                const ativa = idx === questaoAtual;
+                return (
+                  <button
+                    key={q.id}
+                    onClick={() => setQuestaoAtual(idx)}
+                    className={[
+                      "quiz-map-item",
+                      respondida ? "answered" : "",
+                      ativa ? "active" : "",
+                    ].join(" ")}
+                  >
+                    {idx + 1}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

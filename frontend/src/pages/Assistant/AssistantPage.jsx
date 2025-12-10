@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import EducationalAssistant from '../../components/Assistant/EducationalAssistant'; // Ajuste o caminho conforme necessário
 import { listarMaterias } from '../../services/subjectService';
 import './AssistantPage.css';
+import {
+  MessageCircle,
+  Clock,
+  NotebookPen,
+  Hand 
+} from "lucide-react";
 
 const AssistantPage = () => {
   const [materia, setMateria] = useState('Geral');
@@ -146,14 +152,14 @@ const AssistantPage = () => {
             </div>
             <div className="stats-grid">
               <div className="stat-card">
-                <div className="stat-icon">💬</div>
+                <div className="stat-icon"><MessageCircle /></div>
                 <div className="stat-content">
                   <small>Conversas</small>
                   <strong>{estatisticas.totalConversas}</strong>
                 </div>
               </div>
               <div className="stat-card">
-                <div className="stat-icon">⏱️</div>
+                <div className="stat-icon"><Clock /></div>
                 <div className="stat-content">
                   <small>Minutos</small>
                   <strong>{tempoSessao}</strong>

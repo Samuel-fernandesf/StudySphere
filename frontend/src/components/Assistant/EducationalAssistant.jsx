@@ -4,6 +4,11 @@ import remarkGfm from 'remark-gfm';
 import { useModal } from '../../contexts/ModalContext'
 import { fazerPergunta, limparHistorico } from '../../services/assistantservice';
 import './EducationalAssistant.css';
+import {
+  NotebookPen,
+  Hand,
+  Trash2 
+} from "lucide-react";
 
 const EducationalAssistant = ({ materia = 'Geral', onNovaConversa, sugestao }) => {
   const [pergunta, setPergunta] = useState('');
@@ -94,14 +99,14 @@ const EducationalAssistant = ({ materia = 'Geral', onNovaConversa, sugestao }) =
   return (
     <div className="assistant-container">
       <div className="assistant-header">
-        <h2>📚 Assistente de {materia}</h2>
+        <h2><NotebookPen size={20}/>  Assistente de {materia}</h2>
         <button 
           className="btn-limpar"
           onClick={handleLimparHistorico}
           title="Limpar histórico"
           disabled={mensagens.length === 0}
         >
-          🗑️
+          <Trash2 />
         </button>
       </div>
 
@@ -110,7 +115,7 @@ const EducationalAssistant = ({ materia = 'Geral', onNovaConversa, sugestao }) =
       <div className="messages-container">
         {mensagens.length === 0 && (
           <div className="welcome-message">
-            <h3>👋 Olá!</h3>
+            <h3>Olá!</h3>
             <p>Pergunte-me qualquer coisa sobre <strong>{materia}</strong>.</p>
           </div>
         )}

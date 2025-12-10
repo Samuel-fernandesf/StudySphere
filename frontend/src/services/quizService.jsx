@@ -24,10 +24,6 @@ export async function atualizarQuiz(id, quizData) {
   return res.data;
 }
 
-export async function deletarQuiz(id) {
-  const res = await api.delete(`/quizzes/${id}`);
-  return res.data;
-}
 
 export async function submeterQuiz(id, respostas, tempoGasto) {
   const res = await api.post(`/quizzes/${id}/submit`, {
@@ -42,12 +38,44 @@ export async function listarTentativas() {
   return res.data;
 }
 
-export async function obterEstatisticas() {
-  const res = await api.get("/quizzes/estatisticas");
-  return res.data;
-}
 
 export async function obterRanking(quizId) {
   const res = await api.get(`/quizzes/${quizId}/ranking`);
   return res.data;
+}
+
+export async function gerarQuizAutomatico({ titulo, materia, dificuldade, num_questoes }) {
+  try {
+    const response = await api.post("/quizzes/auto-generate", {
+      titulo,
+      materia,
+      dificuldade,
+      num_questoes,
+    });
+    return response.data; // { questoes: [...] }
+  } catch (error) {
+    console.error("Erro ao gerar quiz automaticamente:", {
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+    throw error;
+  }
+}
+
+export async function obterEstatisticas() {
+  const response = await api.get("/quizzes/estatisticas");
+  return response.data;
+}
+
+export async function deletarQuiz(quizId) {
+  try {
+    await api.delete(`/quizzes/${quizId}`);
+    return true;
+  } catch (error) {
+    console.error("Erro ao deletar quiz:", {
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+    throw error;
+  }
 }
