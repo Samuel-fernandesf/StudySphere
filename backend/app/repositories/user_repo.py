@@ -1,8 +1,9 @@
-from models import Usuario
+from models import Usuario, UsuarioProvedor
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 from utils.db import db
 from typing import List
+import re
 
 class UserRepository:
 
@@ -117,5 +118,64 @@ class UserRepository:
 
         return user
 
+    def find_or_create_google_user(self, google_id: str, email: str, name: str, picture: str) -> Usuario:
+        conta_social = UsuarioProvedor.query.filter_by(provedor='google', provedor_user_id=google_id).first()
+
+        if conta_social:
+            return conta_social.usuario_core
+        
+        #Se não encontrou pela conta social
+        usuario_existente = self.get_by_email(email=email)
+
+        if usuario_existente:
+            #Usuário existe (tinha senha), apena vincula o Google a ele
+            nova_conta_social = UsuarioProvedor(
+                usuario_id=usuario_existente.id,
+                provedor='google',
+                provedor_user_id=google_id
+            )
+            db.session.add(nova_conta_social)
+            db.session.commit()
+            return usuario_existente
+        
+        #Caso seja um usuário novo
+
+        #Criação de um username a partir do name e id_google
+        base_name = name or "user"
+        base_name = base_name.lower().replace(' ', '.')
+        base_name = re.sub(r'[^a-z0-9.]', '', base_name) or "user"
+        base_name = base_name[:15]
+        suffix = google_id[-5:]
+
+        novo_username = f"{base_name}.{suffix}"
+
+        novo_usuario = Usuario(
+            email=email,
+            nome_completo=name,
+            username=novo_username, # Username gerado
+            senha=None, # Sem senha pois é social
+            nascimento=None # Não temos essa info
+        )
+        
+        db.session.add(novo_usuario)
+        db.session.flush()
+
+        nova_conta_social = UsuarioProvedor(
+            usuario_id=novo_usuario.id,
+            provedor='google',
+            provedor_user_id=google_id
+        )
+
+        novo_usuario.confirm_user = True
+        db.session.add(nova_conta_social)
+        db.session.commit()
+
+        return novo_usuario
+
+
+
+    def delete_user(self, user:Usuario):
+        pass
+            
 
        

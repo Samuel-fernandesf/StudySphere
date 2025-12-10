@@ -11,7 +11,7 @@ class Usuario(db.Model, UserMixin):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
-    senha = db.Column(db.String(255), nullable=False)
+    senha = db.Column(db.String(255), nullable=True)
     nome_completo = db.Column(db.String(100), nullable=False)
     username = db.Column(db.String(100), unique=True, nullable=False)
     nascimento = db.Column(db.Date, nullable=True)
@@ -21,6 +21,7 @@ class Usuario(db.Model, UserMixin):
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
 
     #Relacionamentos
+    contas_sociais = db.relationship('UsuarioProvedor', back_populates='usuario_core', cascade='all, delete-orphan')
     revoked_tokens = db.relationship('RevokedToken', back_populates='user', lazy='dynamic', cascade='all, delete-orphan')
     chat_participa = db.relationship('ChatUsuario', back_populates='usuario_relacionado', lazy='dynamic', cascade='all, delete-orphan')
     mensagem_enviadas = db.relationship('Mensagem', back_populates='usuario_remetente', lazy='dynamic', cascade='all, delete-orphan')
@@ -84,6 +85,10 @@ class Usuario(db.Model, UserMixin):
     
     @cripto_pwd.setter
     def cripto_pwd(self, senha_texto):
+        if not senha_texto:
+            self.senha = None
+            return
+        
         self.senha = bcrypt.generate_password_hash(senha_texto).decode('utf-8')
 
     def conversor_pwd(self, senha_descripto):
@@ -97,3 +102,14 @@ class Usuario(db.Model, UserMixin):
         self.nascimento = nascimento
         self.curso = curso
         self.biografia = biografia
+
+
+class UsuarioProvedor(db.Model):
+    __tablename__ = 'usuario_provedor'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    provedor = db.Column(db.String(50), nullable=False, default='google') # google
+    provedor_user_id = db.Column(db.String(255), nullable=False) # O ID do Google (sub)
+    
+    usuario_core = db.relationship('Usuario', back_populates='contas_sociais')

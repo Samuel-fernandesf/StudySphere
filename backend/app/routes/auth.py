@@ -1,10 +1,13 @@
-from flask import request, jsonify, Blueprint
+from flask import request, jsonify, Blueprint, current_app
 from sqlalchemy.exc import IntegrityError
 from repositories import userRepository, tokenRepository
 from models import Usuario
 from utils.db import db
 from utils.mail import send_confirm_email, send_reset_email
 from utils.socket_handlers.auth import disconnect_user
+import requests
+from google.oauth2 import id_token
+from google.auth.transport import requests as grequests
 from flask_jwt_extended import (jwt_required, 
                                 create_access_token, 
                                 create_refresh_token,
@@ -141,6 +144,111 @@ def login():
     else:
         return jsonify({'message': 'Credenciais inválidas.'}), 401
 
+@auth.route('google-login', methods=['POST'])
+def google_login():
+    data = request.get_json()
+    auth_code = data.get('code')
+
+    if not auth_code:
+        return jsonify({"msg": "Código de autorização ausente"}), 400
+    
+    #Troca o authCode por Google Access Token
+    token_url = current_app.config['TOKEN_URI']
+    payload = {
+        'code': auth_code,
+        'client_id': current_app.config['GOOGLE_CLIENT_ID'],
+        "client_secret": current_app.config['GOOGLE_CLIENT_SECRET'],
+        'redirect_uri': 'postmessage',
+        'grant_type': 'authorization_code'
+    }
+
+    try:
+        token_response = requests.post(token_url, data=payload, timeout=10)
+
+    except requests.RequestException as e:
+        current_app.logger.exception("Erro na requisição ao Google token endpoint")
+        return jsonify({"msg": "Erro interno ao comunicar com Google"}), 502
+    
+    if token_response.status_code != 200:
+        current_app.logger.warning("Token exchange falhou: %s", token_response.text)
+        return jsonify({"msg": "Falha na troca de código com Google", "details": token_response.json()}), 401
+    
+    token_data = token_response.json()
+    id_tok = token_data.get("id_token")
+    google_access_token = token_data.get("access_token")
+
+    if id_tok:
+        try:
+            id_info = id_token.verify_oauth2_token(id_tok, grequests.Request(), current_app.config['GOOGLE_CLIENT_ID'])
+        except Exception as e:
+            current_app.logger.exception("id_token inválido")
+            return jsonify({"msg": "id_token inválido"}), 401
+
+        if not id_info.get("email_verified"):
+            return jsonify({"msg": "E-mail não verificado pelo Google"}), 403
+
+        google_id = id_info["sub"]
+        email = id_info.get("email")
+        name = id_info.get("name")
+        picture = id_info.get("picture")
+
+    else:
+        # Caso nao funcione por id_token chama api por UserInfo
+        if not google_access_token:
+            return jsonify({"msg": "Tokens do Google não recebidos"}), 401
+        try:
+            userinfo_resp = requests.get(current_app.config['USERINFO_URI'],
+                headers={"Authorization": f"Bearer {google_access_token}"},
+                timeout=10
+            )
+
+            if userinfo_resp.status_code != 200:
+                current_app.logger.warning("userinfo falhou: %s", userinfo_resp.text)
+                return jsonify({"msg": "Falha ao obter dados do usuário Google"}), 502
+            
+            userinfo = userinfo_resp.json()
+            google_id = userinfo["sub"]
+            email = userinfo.get("email")
+            name = userinfo.get("name")
+            picture = userinfo.get("picture")
+    
+            if not userinfo.get("email_verified"):
+                return jsonify({"msg": "E-mail não verificado pelo Google"}), 403
+            
+        except requests.RequestException:
+            current_app.logger.exception("Erro ao chamar userinfo")
+            return jsonify({"msg": "Erro ao obter dados do usuário Google"}), 502
+        
+        #Criar ou encontrar Usuario
+    try:
+        user = userRepository.find_or_create_google_user(google_id=google_id, email=email, name=name, picture=picture)
+
+        if not user:
+            return jsonify({"msg": "Erro ao processar usuário no banco de dados"}), 500
+        
+        #Geração dos tokens JWT
+        access_token = create_access_token(identity=str(user.id))
+        refresh_token = create_refresh_token(identity=str(user.id))
+
+        response = jsonify({
+            "msg": "Login realizado com sucesso",
+            "access_token": access_token,
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "nome": user.nome_completo,
+                "foto": picture if picture else None
+            }
+        })
+
+        set_refresh_cookies(response, refresh_token)
+        return response, 200
+    
+    except Exception as e:
+        current_app.logger.exception("Erro crítico no login Google")
+        return jsonify({"msg": "Erro interno no servidor"}), 500
+        
 @auth.route('/forgot-password', methods=['POST'])
 def forgot_password():
     dados = request.get_json()
