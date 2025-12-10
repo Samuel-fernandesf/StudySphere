@@ -2,8 +2,12 @@ import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { listarMaterias } from "../../services/subjectService";
 import { criarSessaoEstudo } from "../../services/progressService";
+import { useModal } from "../../contexts/ModalContext"; // Importação do contexto
 
 export default function StudySessionModal({ onClose }) {
+  // Hook do modal global
+  const { showAlert } = useModal();
+
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -26,6 +30,8 @@ export default function StudySessionModal({ onClose }) {
       }
     } catch (error) {
       console.error("Erro ao carregar matérias:", error);
+      // Opcional: avisar erro ao carregar matérias
+      // showAlert("Não foi possível carregar as matérias.", "error");
     }
   }
 
@@ -41,7 +47,7 @@ export default function StudySessionModal({ onClose }) {
     e.preventDefault();
     
     if (!formData.subject_id || !formData.duration_minutes) {
-      alert("Por favor, preencha todos os campos obrigatórios");
+      await showAlert("Por favor, preencha todos os campos obrigatórios", "warning");
       return;
     }
 
@@ -53,11 +59,14 @@ export default function StudySessionModal({ onClose }) {
         date: formData.date,
         notes: formData.notes || null
       });
-      alert("Sessão de estudo registrada com sucesso!");
+      
+      // Sucesso
+      await showAlert("Sessão de estudo registrada com sucesso!", "success");
       onClose();
+      
     } catch (error) {
       console.error("Erro ao registrar sessão:", error);
-      alert("Erro ao registrar sessão de estudo");
+      await showAlert("Erro ao registrar sessão de estudo", "error");
     } finally {
       setLoading(false);
     }
