@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import LogoutButton from '../Auth/LogoutButton';
+import logo from '../../assets/sphere_logo.png';
 import './Sidebar.css';
 // Importa todos os ícones necessários (do App e do Sidebar)
 import {
@@ -39,7 +40,9 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                 }`}
             >
                 <div className="sidebar__header">
-                    <div className="sidebar__logoPlaceholder"></div>
+                    <div className="sidebar_logo">
+                        <img className='sidebar__logoPlaceholder' src={logo} alt="" />
+                    </div>
                     <span className="sidebar__title">StudySphere</span>
                 </div>
 

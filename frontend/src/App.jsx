@@ -6,12 +6,12 @@ import { ModalProvider } from "./contexts/ModalContext";
 
 export default function App() {
   return (
-    <AuthProvider>
-      <ModalProvider>
-        <BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
+        <ModalProvider>
           <AppRoutes />
-        </BrowserRouter>
-      </ModalProvider>
-    </AuthProvider>
+        </ModalProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }

@@ -84,6 +84,18 @@ export async function login(email, senha){
   }
 }
 
+export async function loginWithGoogle(authCode){
+  const res = await api.post('/auth/google-login', { code: authCode });
+  const data = res.data || {};
+  const user = data.user || {};
+  return {
+    access_token: data.access_token || data.accessToken || null,
+    user_id: user.id || data.user_id || null,
+    user_name: user.username || data.user_name || user.name || null,
+    raw: data
+  };
+}
+
 export async function logout(){
   try{
     const res = await api.post('/auth/logout');

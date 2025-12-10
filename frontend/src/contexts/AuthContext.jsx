@@ -1,13 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { logout, getMe } from "../services/authService";
+import { logout, getMe, loginWithGoogle } from "../services/authService";
+import { useNavigate } from 'react-router-dom';
 // Guarda a informação de quem está logado e as funções entrar e sair
 
 // Cria o objeto Contexto
 const AuthContext = createContext();
-
+  
 // O provedor que irá gerenciar o estado
 export function AuthProvider({ children }) {
-
+  const navigate = useNavigate();
   // Inicializa o estado lendo o LocalStorage
   const [usuario, setUsuario] = useState(() => localStorage.getItem("user_id"));
   const [token, setToken] = useState(() => localStorage.getItem("access_token"));
@@ -27,7 +28,7 @@ export function AuthProvider({ children }) {
     }
   }
 
-  function entrar(id, token, user_name) {
+  async function entrar(id, token, user_name) {
     // Salva a persistencia da sessão no navegador
     localStorage.setItem("user_id", id);
     localStorage.setItem("access_token", token);
@@ -38,8 +39,32 @@ export function AuthProvider({ children }) {
     setToken(token);
     
     // Busca dados completos do usuário após login
-    fetchUserDetails();
+    await fetchUserDetails();
   }
+
+async function googleLogin(authCode) {
+  try {
+    const data = await loginWithGoogle(authCode);
+
+    const userId = data.user_id || data.user?.id || null;
+    const access = data.access_token || data.raw?.access_token || null;
+    const userName = data.user_name || data.user?.username || data.user?.name || null;
+
+    if (!access) {
+        throw new Error("Access token não retornado pelo backend.");
+      }
+
+    entrar(userId, access, userName);
+
+    navigate("/dashboard");
+    return data; 
+    
+  } catch (err) {
+    console.error("Erro no login Google:", err);
+    throw err; 
+  }
+}
+
 
   async function sair() {
     setLoading(true);
@@ -97,7 +122,7 @@ export function AuthProvider({ children }) {
   return (
     // O value é o que todos os componentes terão acesso
     //O children se refere ao que esse contexto engloba no caso o App (Ver app.jsx)
-    <AuthContext.Provider value={{ usuario, token, userDetails, loading, entrar, sair, fetchUserDetails }}>
+    <AuthContext.Provider value={{ usuario, token, userDetails, loading, entrar, googleLogin, sair, fetchUserDetails }}>
       {children} 
     </AuthContext.Provider>
   );

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PasswordInput from './PasswordInput';
+import GoogleLoginButton from './GoogleLoginButton';
 
 function LoginForm({ handleLogin, isLoading, successMessage = '', clearSuccess = () => {}, onResendEmail, resendStatus, resendMessage }) {
     const navigate = useNavigate();
@@ -88,6 +89,9 @@ function LoginForm({ handleLogin, isLoading, successMessage = '', clearSuccess =
             )}
 
             <div className="form-group">
+
+                <GoogleLoginButton/>
+
                 <label>Email:</label>
                 <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="seu@email.com" required/>
             </div>

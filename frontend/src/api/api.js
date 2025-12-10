@@ -10,7 +10,7 @@ const api = axios.create({
   },
 });
 
-const AUTH_ROUTES = ['/auth/login', '/auth/register', '/auth/check-email', '/auth/check-username'];
+const AUTH_ROUTES = ['/auth/login', '/auth/register', '/auth/check-email', '/auth/check-username', '/auth/google-login'];
 
 // Interceptor de request para adicionar token
 api.interceptors.request.use((config) => {
