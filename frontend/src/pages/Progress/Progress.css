@@ -424,3 +424,90 @@
     font-size: 13px;
   }
 }
+
+
+/* Container principal do gráfico */
+.bar-chart-container {
+  position: relative;
+  height: 220px; /* Altura fixa é OBRIGATÓRIA para o gráfico funcionar */
+  margin-top: 20px;
+  padding-left: 30px; /* Espaço para os números do eixo Y */
+}
+
+/* Fundo com as linhas e números do eixo Y */
+.chart-y-axis-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 180px; /* Altura da área das barras (desconta o espaço da label dos dias) */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.y-line {
+  border-top: 1px dashed #e2e8f0;
+  width: 100%;
+  position: relative;
+}
+
+.y-line span {
+  position: absolute;
+  left: 0px; 
+  top: -8px;
+  font-size: 11px;
+  color: #94a3b8;
+  width: 25px;
+  text-align: right;
+}
+
+/* Área das barras (Frente) */
+.bar-chart {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end; /* Alinha tudo ao fundo */
+  height: 100%;
+  z-index: 1;
+  padding-right: 10px;
+}
+
+/* Coluna individual (Barra + Label do Dia) */
+.bar-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  flex: 1;
+}
+
+/* Área onde a barra colorida cresce */
+.bar-area {
+  width: 100%;
+  height: 180px; /* MESMA altura do .chart-y-axis-bg */
+  display: flex;
+  align-items: flex-end; /* Faz a barra colorida ficar no chão */
+  justify-content: center;
+}
+
+/* A barra colorida em si */
+.bar {
+  width: 60%; /* Largura da barra */
+  min-width: 8px;
+  max-width: 40px;
+  background-color: #3b82f6; /* Azul */
+  border-radius: 4px 4px 0 0;
+  transition: height 0.5s ease-out;
+  min-height: 2px; /* Para sempre mostrar um risquinho se for 0 */
+}
+
+.bar-label {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #64748b;
+  height: 20px; /* Altura fixa para alinhar */
+}

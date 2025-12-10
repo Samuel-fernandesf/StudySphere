@@ -4,8 +4,10 @@ import "./dashboard.css";
 import { useAuthContext } from "../../contexts/AuthContext";
 import { listarMaterias } from "../../services/subjectService";
 import { listarEventos } from "../../services/eventService";
+import { listarTarefas } from "../../services/taskService";
+import { obterMetaSemanal } from "../../services/progressService";
 import * as Icons from "lucide-react";
-import { format, parseISO, isAfter, isBefore, addDays } from "date-fns";
+import { format, parseISO, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 /* --- Componentes visuais pequenos --- */
@@ -45,19 +47,29 @@ const SubjectItem = ({ subject }) => {
   );
 };
 
-const TaskItem = ({ event }) => {
-  const startDate = parseISO(event.start_date);
-  const formattedDate = format(startDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+// Componente genérico para listar Tarefa ou Evento
+const ListItem = ({ item, isTask }) => {
+  // Tenta parsear a data, fallback para data atual se falhar
+  let dateObj = new Date();
+  try {
+    if (item.date) dateObj = parseISO(item.date);
+  } catch (e) {
+    console.error("Data inválida", e);
+  }
+
+  const formattedDate = format(dateObj, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
   
   return (
     <div className="task-item">
       <div 
         className="task-indicator" 
-        style={{ backgroundColor: event.color || '#3b82f6' }}
+        style={{ backgroundColor: item.color || '#3b82f6' }}
       />
       <div className="task-content">
-        <div className="task-title">{event.title}</div>
-        <div className="task-date">{formattedDate}</div>
+        <div className="task-title">{item.title}</div>
+        <div className="task-date">
+            {isTask ? "Prazo: " : ""}{formattedDate}
+        </div>
       </div>
     </div>
   );
@@ -65,20 +77,26 @@ const TaskItem = ({ event }) => {
 
 /* --- Componente principal do Dashboard --- */
 export default function Dashboard() {
-  // Busca dados do usuário do contexto de autenticação
   const { userDetails } = useAuthContext();
   
-  // Estados para dados
+  // Estados para dados principais
   const [subjects, setSubjects] = useState([]);
   const [events, setEvents] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  
+  // Estados para KPIs
+  const [completedToday, setCompletedToday] = useState(0);
+  const [weeklyGoal, setWeeklyGoal] = useState(null);
+  
   const [loading, setLoading] = useState(true);
 
-  // Extrai o primeiro nome do nome completo
   const primeiroNome = userDetails?.nome_completo 
     ? userDetails.nome_completo.split(" ")[0] 
     : userDetails?.username || "";
 
   // Carregar dados ao montar o componente
+  // Como o registro de estudo é em outra página, ao voltar para cá (mount),
+  // os dados serão recarregados e a meta atualizada.
   useEffect(() => {
     loadDashboardData();
   }, []);
@@ -87,18 +105,38 @@ export default function Dashboard() {
     try {
       setLoading(true);
       
-      // Carregar matérias
+      // 1. Carregar matérias
       const subjectsData = await listarMaterias();
       setSubjects(subjectsData);
       
-      // Carregar eventos (próximos 30 dias)
-      const today = new Date();
-      const futureDate = addDays(today, 30);
-      const eventsData = await listarEventos(
-        today.toISOString(),
-        futureDate.toISOString()
+      // 2. Carregar eventos (sem filtro de data para trazer todos, conforme pedido)
+      const eventsData = await listarEventos(); 
+      // Ordenar por data (mais recente primeiro ou mais próximo)
+      const sortedEvents = eventsData.sort((a, b) => 
+        new Date(a.start_date) - new Date(b.start_date)
       );
-      setEvents(eventsData);
+      setEvents(sortedEvents);
+
+      // 3. Carregar tarefas pendentes para exibir na lista
+      const tasksData = await listarTarefas(null, false); // false = não concluídas
+      setTasks(tasksData);
+
+      // 4. Calcular KPI: Tarefas concluídas hoje
+      // Buscamos as concluídas (true) e filtramos no front pela data de hoje
+      const completedTasksData = await listarTarefas(null, true);
+      const today = new Date();
+      
+      const countToday = completedTasksData.filter(t => {
+        if (!t.completed_at) return false;
+        return isSameDay(parseISO(t.completed_at), today);
+      }).length;
+      
+      setCompletedToday(countToday);
+
+      // 5. Carregar Meta Semanal
+      const goalData = await obterMetaSemanal();
+      setWeeklyGoal(goalData);
+
     } catch (error) {
       console.error("Erro ao carregar dados do dashboard:", error);
     } finally {
@@ -106,20 +144,21 @@ export default function Dashboard() {
     }
   }
 
-  // Filtrar eventos futuros e ordenar por data
-  const upcomingEvents = events
-    .filter(event => isAfter(parseISO(event.start_date), new Date()))
-    .sort((a, b) => parseISO(a.start_date) - parseISO(b.start_date))
-    .slice(0, 5); // Mostrar apenas os 5 próximos
+  // Helpers para formatar dados para a visualização
+  const getSubjectColor = (subjectId) => {
+    const subj = subjects.find(s => String(s.id) === String(subjectId));
+    return subj ? subj.color : "#94a3b8"; // cinza default se não achar
+  };
 
-  // Calcular KPIs
+  // KPIs
   const totalSubjects = subjects.length;
   const totalEvents = events.length;
-  const completedToday = 0; // Placeholder - implementar quando houver sistema de conclusão
-  const weeklyProgress = "0%"; // Placeholder - implementar quando houver sistema de progresso
+  const progressPercent = weeklyGoal ? Math.round(weeklyGoal.progress_percentage) : 0;
+  const progressDesc = weeklyGoal 
+    ? `${weeklyGoal.current_hours}h de ${weeklyGoal.goal_hours}h` 
+    : "Carregando...";
 
-  // Ação do botão "Nova Tarefa"
-  function handleNovaTarefa() {
+  function handleNovoEvento() {
     window.location.href = "/calendar";
   }
 
@@ -134,25 +173,29 @@ export default function Dashboard() {
         </div>
 
         <div className="header-actions">
-          <button className="btn" onClick={handleNovaTarefa}>+ Novo Evento</button>
+          <button className="btn" onClick={handleNovoEvento}>+ Novo Evento</button>
         </div>
       </header>
 
-      
-      {/* Coluna direita (conteúdo principal) */}
       <main className="dashboard-right">
         {/* KPIs */}
         <section className="kpi-row" aria-label="Indicadores">
           <KpiCard titulo="Matérias" valor={totalSubjects} />
           <KpiCard titulo="Eventos" valor={totalEvents} />
           <KpiCard titulo="Concluídas Hoje" valor={completedToday} />
-          <KpiCard titulo="Meta Semanal" valor={weeklyProgress} descricao="Progresso semanal" />
+          <KpiCard 
+            titulo="Meta Semanal" 
+            valor={`${progressPercent}%`} 
+            descricao='de 20h'
+          />
         </section>
 
         {loading ? (
           <div className="dashboard-loading">Carregando dados...</div>
         ) : (
           <section className="grid-main" aria-label="Conteúdo principal">
+            
+            {/* 1. Suas Matérias */}
             <SectionCard titulo="Suas Matérias">
               {subjects.length === 0 ? (
                 <div className="empty-message">
@@ -172,7 +215,36 @@ export default function Dashboard() {
               )}
             </SectionCard>
 
-            <SectionCard titulo="Todos os Eventos">
+            {/* 2. Suas Tarefas (com cor da matéria) */}
+            <SectionCard titulo="Suas Tarefas">
+              {tasks.length === 0 ? (
+                <div className="empty-message">
+                  Nenhuma tarefa pendente. <a href="/tasks">Criar tarefa</a>
+                </div>
+              ) : (
+                <div className="tasks-list">
+                  {tasks.slice(0, 5).map(task => (
+                    <ListItem 
+                      key={task.id} 
+                      isTask={true}
+                      item={{
+                        title: task.title,
+                        date: task.due_date || task.created_at, // Usa prazo ou criação
+                        color: task.subject?.color || getSubjectColor(task.subject_id)
+                      }}
+                    />
+                  ))}
+                  {tasks.length > 5 && (
+                    <div className="view-more">
+                      <a href="/tasks">Ver todas ({tasks.length})</a>
+                    </div>
+                  )}
+                </div>
+              )}
+            </SectionCard>
+
+            {/* 3. Seus Eventos */}
+            <SectionCard titulo="Seus Eventos">
               {events.length === 0 ? (
                 <div className="empty-message">
                   Nenhum evento criado. <a href="/calendar">Criar evento</a>
@@ -180,7 +252,15 @@ export default function Dashboard() {
               ) : (
                 <div className="tasks-list">
                   {events.slice(0, 5).map(event => (
-                    <TaskItem key={event.id} event={event} />
+                    <ListItem 
+                      key={event.id} 
+                      isTask={false}
+                      item={{
+                        title: event.title,
+                        date: event.start_date,
+                        color: event.color
+                      }}
+                    />
                   ))}
                   {events.length > 5 && (
                     <div className="view-more">
@@ -191,19 +271,6 @@ export default function Dashboard() {
               )}
             </SectionCard>
 
-            <SectionCard titulo="Próximas Tarefas">
-              {upcomingEvents.length === 0 ? (
-                <div className="empty-message">
-                  Nenhuma tarefa próxima agendada.
-                </div>
-              ) : (
-                <div className="tasks-list">
-                  {upcomingEvents.map(event => (
-                    <TaskItem key={event.id} event={event} />
-                  ))}
-                </div>
-              )}
-            </SectionCard>
           </section>
         )}
       </main>

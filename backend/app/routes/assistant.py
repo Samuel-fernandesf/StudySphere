@@ -62,7 +62,7 @@ def validate_educational_content(text, subject=''):
     # Aceita se contém palavras-chave educacionais OU se tem um subject definido
     has_educational_keyword = any(keyword in text_lower for keyword in EDUCATIONAL_KEYWORDS)
     has_question_marks = '?' in text
-    is_reasonable_length = 5 <= len(text.split()) <= 500
+    is_reasonable_length = 1 <= len(text.split()) <= 500
     
     if subject:  # Se há uma matéria definida, aceita mais facilmente
         if not is_reasonable_length:
@@ -104,7 +104,6 @@ Lembre-se: Seu único propósito é auxiliar no aprendizado educacional.'''
 @assistant_bp.route('/ask', methods=['POST'])
 @jwt_required()
 def ask_question():
-    """Endpoint para fazer perguntas ao assistente educacional"""
     
     current_user_id = get_jwt_identity()
     data = request.get_json()
@@ -128,7 +127,6 @@ def ask_question():
         'Content-Type': 'application/json'
     }
     
-    # Inicializa thread de conversa se não existir
     if current_user_id not in conversation_threads:
         conversation_threads[current_user_id] = [create_enhanced_system_message(subject)]
     
@@ -192,99 +190,9 @@ def ask_question():
     except Exception as e:
         return jsonify({'error': 'Erro ao processar sua pergunta.'}), 500
 
-
-@assistant_bp.route('/research', methods=['POST'])
-@jwt_required()
-def research_topic():
-    """Endpoint para pesquisa acadêmica aprofundada"""
-    
-    data = request.get_json()
-    topic = data.get('topic', '').strip()
-    
-    if not topic:
-        return jsonify({'error': 'Tópico é obrigatório'}), 400
-    
-    # Validação de conteúdo educacional
-    is_valid, error_message = validate_educational_content(topic)
-    if not is_valid:
-        return jsonify({'error': error_message}), 400
-    
-    # Sanitização
-    topic = re.sub(r'[<>{}[\]\\]', '', topic)
-    
-    headers = {
-        'Authorization': f'Bearer {PERPLEXITY_API_KEY}',
-        'Content-Type': 'application/json'
-    }
-    
-    payload = {
-        'model': 'sonar-pro',
-        'messages': [{
-            'role': 'system',
-            'content': '''Você é um pesquisador acadêmico ESTRITAMENTE focado em conteúdo educacional.
-RECUSE qualquer tópico não acadêmico ou não educacional.
-Se o tópico não for educacional, responda apenas: "Este tópico não é apropriado para pesquisa acadêmica educacional."'''
-        }, {
-            'role': 'user',
-            'content': f'''<<<TÓPICO_PESQUISA>>>
-Realize uma pesquisa acadêmica aprofundada sobre: {topic}
-
-Estruture em:
-1. **Definição e Contexto**: Defina claramente o conceito
-2. **Fundamentos Teóricos**: Princípios e teorias fundamentais
-3. **Aplicações Práticas**: Exemplos reais de uso
-4. **Estudos de Caso**: Casos específicos bem documentados
-5. **Recursos de Aprendizado**: Materiais recomendados para estudar
-
-Mantenha foco acadêmico e educacional.
-<<<FIM_TÓPICO>>>'''
-        }],
-        'temperature': 0.3,
-        'max_tokens': 3000,
-        'top_p': 0.9
-    }
-    
-    try:
-        response = requests.post(
-            'https://api.perplexity.ai/chat/completions',
-            headers=headers,
-            json=payload,
-            timeout=45
-        )
-        
-        if response.status_code != 200:
-            return jsonify({
-                'error': 'Erro ao realizar pesquisa',
-                'details': 'Tente novamente em alguns instantes'
-            }), response.status_code
-        
-        result = response.json()
-        research_content = result['choices'][0]['message']['content']
-        
-        # Validação final da resposta
-        if "não é apropriado para pesquisa" in research_content.lower():
-            return jsonify({
-                'error': 'Tópico não adequado para pesquisa educacional'
-            }), 400
-        
-        return jsonify({
-            'research': research_content,
-            'citations': result.get('citations', []),
-            'sources': result.get('sources', [])
-        }), 200
-        
-    except requests.exceptions.Timeout:
-        return jsonify({'error': 'Tempo limite excedido. Tente novamente.'}), 504
-    except requests.exceptions.RequestException as e:
-        return jsonify({'error': 'Erro de conexão. Verifique sua internet.'}), 500
-    except Exception as e:
-        return jsonify({'error': 'Erro ao pesquisar tópico.'}), 500
-
-
 @assistant_bp.route('/clear-history', methods=['DELETE'])
 @jwt_required()
 def clear_history():
-    """Limpa o histórico de conversa do usuário"""
     
     current_user_id = get_jwt_identity()
     
@@ -297,7 +205,6 @@ def clear_history():
 @assistant_bp.route('/validate-question', methods=['POST'])
 @jwt_required()
 def validate_question():
-    """Endpoint para validar pergunta antes de enviar (opcional, para UX)"""
     
     data = request.get_json()
     question = data.get('question', '').strip()

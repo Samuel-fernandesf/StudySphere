@@ -201,7 +201,7 @@ export default function QuizCreate() {
       setLoading(true);
       const newQuiz = await createQuiz(quizData);
       await showAlert(
-        `Quiz "${newQuiz.titulo}" criado com sucesso.`,
+        `Quiz "${quizData.titulo}" criado com sucesso.`,
         "success",
         "Quiz criado"
       );

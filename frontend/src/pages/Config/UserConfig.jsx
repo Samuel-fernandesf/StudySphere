@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "../../components/layout/Sidebar";
 import { useAuthContext } from "../../contexts/AuthContext";
 import api from "../../api/api";
 import "./UserConfig.css";
@@ -508,8 +507,7 @@ export default function UserConfig() {
     };
 
     return (
-        <>
-            <Sidebar />
+
             <div className="config-root">
                 <header className="config-header">
                     <h1>Configurações</h1>
@@ -540,6 +538,5 @@ export default function UserConfig() {
                     </div>
                 )}
             </div>
-        </>
     );
 }

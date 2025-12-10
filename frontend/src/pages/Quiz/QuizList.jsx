@@ -101,8 +101,7 @@ export default function QuizList() {
   }
 
   return (
-    <>
-      <Sidebar />
+
       <div className="quiz-list-root">
         {/* Header */}
         <div className="quiz-header">
@@ -317,6 +316,5 @@ export default function QuizList() {
           </div>
         )}
       </div>
-    </>
   );
 }
