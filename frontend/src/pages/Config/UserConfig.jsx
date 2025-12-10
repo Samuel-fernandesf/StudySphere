@@ -452,19 +452,8 @@ export default function UserConfig() {
                                     <option value="private">Privado</option>
                                 </select>
                             </div>
-
-                            <div className="config-form-group">
-                                <label>Exportar Dados</label>
-                                <button className="btn-secondary" style={{ width: "100%" }} onClick={handleExportData}>
-                                    Solicitar Exportação de Dados
-                                </button>
-                                <small style={{ color: "var(--muted)", fontSize: "0.85rem" }}>
-                                    Você receberá um arquivo com todos os seus dados por email
-                                </small>
-                            </div>
-
                             {/* Estatísticas da conta */}
-                            <div style={{ marginTop: 24 }}>
+                            {/* <div style={{ marginTop: 24 }}>
                                 <h4 style={{ marginBottom: 12, fontSize: "1rem" }}>Estatísticas da Conta</h4>
                                 <div className="stats-grid">
                                     <div className="stat-card">
@@ -480,7 +469,7 @@ export default function UserConfig() {
                                         <div className="stat-label">Tarefas Completas</div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> */}
                         </div>
 
                         <div className="config-section">
@@ -529,18 +518,18 @@ export default function UserConfig() {
                     >
                         Perfil
                     </button>
-                    <button 
+                    {/* <button 
                         className={`config-tab ${activeTab === "notificacoes" ? "active" : ""}`}
                         onClick={() => setActiveTab("notificacoes")}
                     >
                         Notificações
-                    </button>
-                    <button 
+                    </button> */}
+                    {/* <button 
                         className={`config-tab ${activeTab === "aparencia" ? "active" : ""}`}
                         onClick={() => setActiveTab("aparencia")}
                     >
                         Aparência
-                    </button>
+                    </button> */}
                     <button 
                         className={`config-tab ${activeTab === "privacidade" ? "active" : ""}`}
                         onClick={() => setActiveTab("privacidade")}
