@@ -3,16 +3,16 @@ from utils.db import db
 from datetime import datetime
 
 def get_tasks_by_user(user_id, subject_id=None, completed=None):
-    """Retorna tarefas do usuário, com filtros opcionais"""
     query = Task.query.filter_by(user_id=user_id)
-    
+
     if subject_id is not None:
         query = query.filter_by(subject_id=subject_id)
-    
+
     if completed is not None:
         query = query.filter_by(completed=completed)
-    
-    return query.order_by(Task.due_date.asc().nullslast(), Task.created_at.desc()).all()
+
+    # teste sem nullslast
+    return query.order_by(Task.due_date.asc(), Task.created_at.desc()).all()
 
 def get_task_by_id(task_id):
     """Retorna uma tarefa específica pelo ID"""

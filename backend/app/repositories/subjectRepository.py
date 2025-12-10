@@ -1,4 +1,6 @@
 from models.subject import Subject
+from models.study_session import StudySession
+from models.task import Task
 from utils.db import db
 
 def create_subject(user_id, name, color='#3b82f6', icon='BookOpen', description=None):
@@ -36,11 +38,16 @@ def update_subject(subject_id, **kwargs):
     return subject
 
 def delete_subject(subject_id):
-    """Deleta uma matéria"""
     subject = Subject.query.get(subject_id)
     if not subject:
         return False
-    
+
+    # Apagar sessões de estudo ligadas
+    StudySession.query.filter_by(subject_id=subject_id).delete()
+
+    # Apagar tarefas ligadas
+    Task.query.filter_by(subject_id=subject_id).delete()
+
     db.session.delete(subject)
     db.session.commit()
     return True

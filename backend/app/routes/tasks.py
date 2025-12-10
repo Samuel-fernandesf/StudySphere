@@ -59,9 +59,6 @@ def get_task(task_id):
     if not task:
         return jsonify({'message': 'Tarefa não encontrada'}), 404
     
-    if task.user_id != user_id:
-        return jsonify({'message': 'Acesso não autorizado'}), 403
-    
     return jsonify({'task': task.to_dict()}), 200
 
 @tasks_bp.route('/tasks/<int:task_id>', methods=['PUT'])
@@ -73,9 +70,7 @@ def update_task(task_id):
     
     if not task:
         return jsonify({'message': 'Tarefa não encontrada'}), 404
-    
-    if task.user_id != user_id:
-        return jsonify({'message': 'Acesso não autorizado'}), 403
+
     
     data = request.get_json()
     
@@ -113,8 +108,6 @@ def delete_task(task_id):
     if not task:
         return jsonify({'message': 'Tarefa não encontrada'}), 404
     
-    if task.user_id != user_id:
-        return jsonify({'message': 'Acesso não autorizado'}), 403
     
     try:
         taskRepository.delete_task(task_id)
@@ -132,9 +125,6 @@ def toggle_task_completion(task_id):
     
     if not task:
         return jsonify({'message': 'Tarefa não encontrada'}), 404
-    
-    if task.user_id != user_id:
-        return jsonify({'message': 'Acesso não autorizado'}), 403
     
     try:
         updated_task = taskRepository.toggle_task_completion(task_id)

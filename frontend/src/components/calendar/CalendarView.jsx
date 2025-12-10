@@ -1,10 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isSameDay, addMonths, subMonths, parseISO } from "date-fns";
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  addDays,
+  isSameMonth,
+  isSameDay,
+  addMonths,
+  subMonths,
+  parseISO
+} from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import EventModal from "./EventModal";
 import { listarEventos, deletarEvento } from "../../services/eventService";
-import "../../pages/Calendar/CalendarPage.css"; // Importa os estilos do calendário
+import { useModal } from "../../contexts/ModalContext";
+import "../../pages/Calendar/CalendarPage.css";
 
 export default function CalendarView() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -13,6 +26,7 @@ export default function CalendarView() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { showAlert, showConfirm } = useModal();
 
   useEffect(() => {
     loadEvents();
@@ -23,14 +37,19 @@ export default function CalendarView() {
       setLoading(true);
       const monthStart = startOfMonth(currentDate);
       const monthEnd = endOfMonth(currentDate);
-      
+
       const eventsList = await listarEventos(
         monthStart.toISOString(),
         monthEnd.toISOString()
       );
       setEvents(eventsList);
     } catch (error) {
-      console.error("Erro ao carregar eventos:", error);
+      console.error("Erro ao carregar eventos:", error.response?.data || error);
+      await showAlert(
+        "Erro ao carregar eventos. Tente novamente.",
+        "error",
+        "Erro"
+      );
     } finally {
       setLoading(false);
     }
@@ -50,20 +69,36 @@ export default function CalendarView() {
     setIsModalOpen(true);
   }
 
-  function handleEventClick(event, e) {
+  function handleEventClick(evento, e) {
     e.stopPropagation();
-    setSelectedEvent(event);
+    setSelectedEvent(evento);
     setIsModalOpen(true);
   }
 
   async function handleDeleteEvent(eventId) {
+    const confirmado = await showConfirm(
+      "Tem certeza que deseja excluir este evento?",
+      "Excluir evento",
+      "warning"
+    );
+
+    if (!confirmado) return;
+
     try {
       await deletarEvento(eventId);
       setIsModalOpen(false);
+      await showAlert("Evento excluído com sucesso.", "success", "Excluído");
       loadEvents();
     } catch (error) {
-      console.error("Erro ao deletar evento:", error);
-      alert("Erro ao deletar evento");
+      console.error("Erro ao deletar evento:", error.response?.data || error);
+
+      const msg =
+        error.response?.data?.message ||
+        (error.response?.status === 403
+          ? "Você não tem permissão para excluir este evento (criado com outro usuário)."
+          : "Erro ao deletar evento. Tente novamente.");
+
+      await showAlert(msg, "error", "Erro");
     }
   }
 
@@ -74,10 +109,13 @@ export default function CalendarView() {
   }
 
   function getEventsForDay(day) {
-    return events.filter(event => {
+    return events.filter((event) => {
       const eventStart = parseISO(event.start_date);
       const eventEnd = parseISO(event.end_date);
-      return isSameDay(eventStart, day) || (day >= eventStart && day <= eventEnd);
+      return (
+        isSameDay(eventStart, day) ||
+        (day >= eventStart && day <= eventEnd)
+      );
     });
   }
 
@@ -101,7 +139,7 @@ export default function CalendarView() {
     const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
     return (
       <div className="weekdays">
-        {days.map(day => (
+        {days.map((day) => (
           <div key={day} className="weekday-name">
             {day}
           </div>
@@ -135,18 +173,18 @@ export default function CalendarView() {
 
         days.push(
           <div
-            key={day}
+            key={day.toISOString()}
             className={cellClasses}
             onClick={() => handleDateClick(cloneDay)}
           >
             <span className="day-number">{format(day, "d")}</span>
             <div className="events-container">
-              {dayEvents.slice(0, 2).map(event => (
+              {dayEvents.slice(0, 2).map((event) => (
                 <div
                   key={event.id}
                   className="event-item"
                   style={{
-                    backgroundColor: event.color || 'var(--primary)'
+                    backgroundColor: event.color || "var(--primary)"
                   }}
                   onClick={(e) => handleEventClick(event, e)}
                   title={event.title}
@@ -165,7 +203,7 @@ export default function CalendarView() {
         day = addDays(day, 1);
       }
       rows.push(
-        <div key={day} className="calendar-grid">
+        <div key={day.toISOString()} className="calendar-grid">
           {days}
         </div>
       );
@@ -190,7 +228,7 @@ export default function CalendarView() {
           Novo Evento
         </button>
       </div>
-      
+
       {loading ? (
         <div className="calendar-loading">Carregando eventos...</div>
       ) : (
