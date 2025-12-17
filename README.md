@@ -1,144 +1,124 @@
-# StudySphere: Organize, Colabore e Aprenda
+# <img src="https://imgur.com/KRrnm8k.png" width="24" height="24" />  StudySphere
 
-_Sua plataforma completa para otimizar os estudos, aumentar a produtividade e facilitar a colaboração entre estudantes._
+_Elevando a organização acadêmica a um novo patamar._
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python](https://img.shields.io/badge/Python-3.12%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![React](https://img.shields.io/badge/React-18.2%2B-blue?logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![Flask](https://img.shields.io/badge/Flask-3.1%2B-black?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-orange?logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![Socket.io](https://img.shields.io/badge/Socket.io-4.7%2B-010101?logo=socket.io&logoColor=white)](https://socket.io/)
 
-<div align="center">
+---
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)
-![Frontend](https://img.shields.io/badge/frontend-React-blue?logo=react)
-![Backend](https://img.shields.io/badge/backend-Flask-black?logo=flask)
-![Database](https://img.shields.io/badge/database-MySQL-orange?logo=mysql)
+## Visão Geral
 
-</div>
-
-## Sobre o Projeto
-
-O StudySphere é uma plataforma digital inovadora, desenvolvida para auxiliar estudantes na organização de seus estudos, promover a colaboração com colegas e monitorar o desempenho acadêmico. Em um cenário onde a sobrecarga de informações e as distrações digitais são constantes, o StudySphere surge como uma solução para centralizar materiais, gerenciar o tempo de forma eficaz e combater a procrastinação, que afeta o rendimento de 80% dos estudantes.
-
-O projeto foi idealizado por estudantes do Curso Técnico em Informática do **Instituto Federal de São Paulo (IFSP)**, campus Araraquara, como uma ferramenta para transformar a experiência de aprendizado em algo mais dinâmico, colaborativo e motivador.
+O **StudySphere** é uma central de inteligência acadêmica projetada para transformar a rotina exaustiva de estudantes em uma experiência fluida, organizada e colaborativa. Desenvolvido como Projeto Integrador por alunos do **Instituto Federal de São Paulo (IFSP)** Campus Araraquara, a plataforma centraliza materiais, otimiza o tempo e combate a procrastinação através de gamificação e inteligência artificial.
 
 ## Funcionalidades Principais
 
-O StudySphere oferece um conjunto de ferramentas integradas para facilitar a vida do estudante:
+### Organização Inteligente
+-   **Hierarquia de Pastas**: Sistema de arquivos robusto com suporte a até 10 níveis de aninhamento.
+-   **Central de Materiais**: Upload de múltiplos formatos (PDF, DOCX, Imagens) com visualização integrada.
+-   **Matérias Personalizadas**: Organize seus conteúdos com cores e ícones distintos.
 
-*   ** Organização por Pastas:** Crie, renomeie e gerencie pastas personalizadas para cada disciplina, mantendo todos os seus materiais (documentos, links, anotações) em um só lugar.
-*   ** Upload e Gerenciamento de Arquivos:** Faça upload de arquivos de até 10 MB (PDF, DOCX, PPTX, imagens) com preview inline para os formatos suportados.
-*   ** Calendário Interativo:** Agende seus compromissos, provas e entregas com um sistema de *quick-add* e receba lembretes para não perder nenhum prazo.
-*   ** Anotações Rápidas:** Crie notas e vincule-as a matérias ou eventos específicos, facilitando a contextualização e a revisão do conteúdo.
-*   ** Quizzes e Desempenho:** Desenvolva quizzes de múltipla escolha, compartilhe com colegas e acompanhe seu desempenho através de relatórios com acertos, tempo médio e ranking.
-*   ** Chat em Tempo Real:** Comunique-se com outros estudantes em salas de chat, com suporte a threads e compartilhamento de arquivos.
-*   ** Gamificação:** Acompanhe seu progresso com um sistema de pontos, *badges* e metas semanais, tornando o estudo mais engajante.
-*   ** Acessibilidade:** Interface projetada com foco em acessibilidade (WCAG 2.1 AA), garantindo uma experiência inclusiva para todos.
+### Assistente & IA
+-   **Study Assistant**: Integração com Perplexity AI para sanar dúvidas instantâneas sobre seus conteúdos.
+-   **Gerador de Quizzes**: Transforme seus materiais em exercícios práticos automaticamente.
 
-## Tecnologias Utilizadas
+### Produtividade & Metas
+-   **Calendário Dinâmico**: Gestão de provas e entregas com lembretes inteligentes.
+-   **Pomodoro & Foco**: Ferramentas integradas para gestão de sessões de estudo.
+-   **Gamificação**: Sistema de XP, níveis e conquistas (badges) para manter a motivação.
 
-O projeto foi construído utilizando tecnologias modernas e robustas, visando performance, escalabilidade e manutenibilidade.
+### Colaboração em Tempo Real
+-   **Chat Global & por Matéria**: Comunicação instantânea via WebSockets (Socket.io).
+-   **Compartilhamento de Arquivos**: Envie materiais diretamente no fluxo de conversa.
+-   **Threads**: Discussões organizadas por tópicos específicos.
 
-| Categoria | Tecnologia | Descrição |
-| :--- | :--- | :--- |
-| **Frontend** | React (com Vite) | Biblioteca JavaScript para construção de interfaces de usuário reativas e dinâmicas. |
-| **Backend** | Flask (Python) | Micro-framework Python para o desenvolvimento da API RESTful. |
-| **Banco de Dados** | MySQL | Sistema de gerenciamento de banco de dados relacional para armazenamento dos dados. |
-| **ORM** | SQLAlchemy | Mapeador objeto-relacional para interação com o banco de dados em Python. |
-| **Autenticação** | JWT (JSON Web Tokens) | Padrão para criação de tokens de acesso que permitem a autenticação segura de usuários. |
-| **Segurança** | Bcrypt | Algoritmos para criptografia de senhas e dados sensíveis. |
+## Stack Tecnológica
 
-## Começando
+### Frontend
+-   **Core:** React.js (Vite)
+-   **Estilização:** CSS / Lucide React (Ícones)
+-   **Comunicação:** Axios & Socket.io-client
+-   **Autenticação:** Google OAuth 2.0 & JWT-based Secure Cookies
 
-Para executar o projeto localmente, siga os passos abaixo.
+### Backend
+-   **Core:** Python (Flask)
+-   **Banco de Dados:** MySQL com SQLAlchemy (ORM)
+-   **Real-time:** Flask-SocketIO
+-   **Migrações:** Alembic (Flask-Migrate)
+-   **Processamento de Mídia:** MoviePy & ImageIO (para previews e metadados)
+
+## ⚙️ Configuração do Ambiente
 
 ### Pré-requisitos
+-   Python 3.12+
+-   Node.js 18+
+-   MySQL 8.0+
 
-*   [Python 3.12+](https://www.python.org/)
-*   [MySQL 8.0+](https://www.mysql.com/)
-*   [Node.js 18+](https://nodejs.org/)
-*   [Git](https://git-scm.com/)
+### Passo a Passo
 
-### Instalação
-
-1.  **Clone o repositório:**
-
-    ```shell
+1.  **Repositório**
+    ```bash
     git clone https://github.com/Samuel-fernandesf/StudySphere.git
     cd StudySphere
     ```
 
-2.  **Configure o Backend:**
-
-    ```shell
+2.  **Servidor (Backend)**
+    ```bash
     cd backend
-    python3 -m venv venv
-
-    # Ative o ambiente virtual
-    # Linux/macOS
-    source venv/bin/activate
-    # Windows
-    .\venv\Scripts\Activate.ps1
-
+    python -m venv venv
+    # Linux: source venv/bin/activate | Windows: .\venv\Scripts\activate
     pip install -r requirements.txt
     ```
 
-3.  **Configure as Variáveis de Ambiente:**
-
-    Renomeie o arquivo `.env.example` para `.env` e preencha com suas credenciais do MySQL:
-
+3.  **Variáveis de Ambiente (.env)**
+    Crie um arquivo `.env` na raiz do backend:
     ```ini
-    FLASK_SQLALCHEMY_DATABASE_URI=mysql+pymysql://{usuário}:{senha}@localhost:3306/studysphere
-    FLASK_SECRET_KEY=sua_chave_secreta_aqui
-    FLASK_JWT_SECRET_KEY=outra_chave_secreta_aqui
-    PERPLEXITY_API_KEY=chave_do_assistente
+    FLASK_APP=app/app.py
+    FLASK_DEBUG=1
+    FLASK_SQLALCHEMY_DATABASE_URI=mysql+pymysql://USUARIO:SENHA@localhost:3306/studysphere
+    FLASK_SECRET_KEY=sua_chave_secreta
+    JWT_SECRET_KEY=sua_chave_jwt
+    PERPLEXITY_API_KEY=sua_chave_ia
+    GOOGLE_CLIENT_ID=seu_id_google
     ```
 
-4.  **Configure o Banco de Dados:**
-
-    No seu cliente MySQL, crie o banco de dados:
-
-    ```sql
-    CREATE DATABASE studysphere;
-    ```
-
-    Em seguida, aplique as migrações do banco de dados:
-
-    ```shell
-    # Dentro da pasta backend/app com o venv ativado
+4.  **Banco de Dados**
+    ```bash
+    # No diretório backend/app
     flask db upgrade
     ```
 
-5.  **Configure o Frontend:**
-
-    ```shell
+5.  **Interface (Frontend)**
+    ```bash
     cd ../frontend
     npm install
-    ```
-
-### Executando a Aplicação
-
-1.  **Inicie o Backend:**
-
-    ```shell
-    # Na pasta backend/app, com o ambiente virtual ativado
-    python index.py
-    ```
-
-    O servidor backend estará rodando em `http://127.0.0.1:5000`.
-
-2.  **Inicie o Frontend:**
-
-    ```shell
-    # Na pasta frontend
     npm run dev
     ```
 
-    A aplicação estará acessível em `http://127.0.0.1:3000`.
+##  Contribuidores
 
-## Licença
+<table align="center">
+  <tr>
+    <td align="center">
+      <a href="https://github.com/ImLuizz">
+        <img src="https://github.com/ImLuizz.png" width="100px;" alt="Luiz Gabriel"/><br />
+        <sub><b>Luiz Gabriel</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/Samuel-fernandesf">
+        <img src="https://github.com/Samuel-fernandesf.png" width="100px;" alt="Samuel Fernandes"/><br />
+        <sub><b>Samuel Fernandes</b></sub>
+      </a>
+    </td>
+  </tr>
+</table>
 
-Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
-
-## Autores
-
-*   **Luiz Gabriel Leli Pereira** - [ImLuizz](https://github.com/ImLuizz)
-*   **Samuel Fernandes Filho** - [Samuel-fernandesf](https://github.com/Samuel-fernandesf)
-
+---
+<div align="center">
+  Desenvolvido  por estudantes do <b>IFSP Araraquara</b>.
+</div>
