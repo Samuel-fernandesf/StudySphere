@@ -38,6 +38,7 @@ def update_subject(subject_id, **kwargs):
     return subject
 
 def delete_subject(subject_id):
+    """Deleta uma matéria e todo seu conteúdo (pastas, arquivos, tarefas, sessões)"""
     subject = Subject.query.get(subject_id)
     if not subject:
         return False
@@ -47,6 +48,11 @@ def delete_subject(subject_id):
 
     # Apagar tarefas ligadas
     Task.query.filter_by(subject_id=subject_id).delete()
+    
+    # Apagar pastas e arquivos (cascata)
+    from repositories import folderRepository, fileRepository
+    folderRepository.delete_folders_by_subject(subject_id)
+    fileRepository.delete_files_by_subject(subject_id)
 
     db.session.delete(subject)
     db.session.commit()

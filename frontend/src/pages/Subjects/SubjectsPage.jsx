@@ -61,7 +61,7 @@ export default function SubjectsPage() {
 
   async function handleDeleteSubject(subjectId) {
     const confirmado = await showConfirm(
-      "Tem certeza que deseja excluir esta matéria? Todas as tarefas e dados associados poderão ser perdidos.",
+      "Tem certeza que deseja excluir esta matéria? Todas as pastas, arquivos, tarefas e dados associados serão permanentemente excluídos.",
       "Excluir matéria",
       "warning"
     );

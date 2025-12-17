@@ -4,6 +4,7 @@ from .subjects import subjects_bp
 from .events import events_bp
 from .tasks import tasks_bp
 from .files import files_bp
+from .folders import folders_bp
 from .progress import progress_bp
 from .chat import chat
 from .quiz import quiz_bp

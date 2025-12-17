@@ -26,13 +26,15 @@ def get_files():
     """Retorna todos os arquivos do usuário autenticado"""
     user_id = get_jwt_identity()
     
-    # Parâmetro para filtrar por matéria
+    # Parâmetros para filtrar por matéria e pasta
     subject_id = request.args.get('subject_id', type=int)
+    folder_id = request.args.get('folder_id', type=int)
     
-    files = fileRepository.get_files_by_user(user_id, subject_id)
+    files = fileRepository.get_files_by_user(user_id, subject_id, folder_id)
     return jsonify({
         'files': [file.to_dict() for file in files],
-        'subject_id': subject_id  # Para frontend saber o contexto
+        'subject_id': subject_id,
+        'folder_id': folder_id
     }), 200
 
 
@@ -57,8 +59,9 @@ def upload_file():
         return jsonify({'message': 'Tipo de arquivo não permitido'}), 400
     
     try:
-        # Obter subject_id se fornecido
+        # Obter subject_id e folder_id se fornecidos
         subject_id = request.form.get('subject_id', type=int)
+        folder_id = request.form.get('folder_id', type=int)
         
         # Gerar nome único para o arquivo
         file_extension = os.path.splitext(file.filename)[1]
@@ -83,7 +86,8 @@ def upload_file():
             file_path=file_path,
             file_size=file_size,
             mime_type=file.content_type,
-            subject_id=subject_id
+            subject_id=subject_id,
+            folder_id=folder_id
         )
         
         return jsonify({
@@ -178,3 +182,68 @@ def get_storage_info():
     except Exception as e:
         print(f"Erro ao obter informações de armazenamento: {e}")
         return jsonify({'message': 'Erro ao obter informações de armazenamento'}), 500
+
+
+@files_bp.route('/files/<int:file_id>/move', methods=['PUT'])
+@jwt_required()
+def move_file(file_id):
+    """Move um arquivo para outra pasta/matéria"""
+    user_id = get_jwt_identity()
+    file_record = fileRepository.get_file_by_id(file_id)
+    
+    if not file_record:
+        return jsonify({'message': 'Arquivo não encontrado'}), 404
+    
+    if file_record.user_id != user_id:
+        return jsonify({'message': 'Acesso negado'}), 403
+    
+    data = request.get_json()
+    
+    try:
+        updated_file = fileRepository.move_file(
+            file_id=file_id,
+            subject_id=data.get('subject_id'),
+            folder_id=data.get('folder_id')
+        )
+        return jsonify({
+            'message': 'Arquivo movido com sucesso!',
+            'file': updated_file.to_dict()
+        }), 200
+    except Exception as e:
+        print(f"Erro ao mover arquivo: {e}")
+        return jsonify({'message': 'Erro ao mover arquivo'}), 500
+
+
+@files_bp.route('/files/<int:file_id>/copy', methods=['POST'])
+@jwt_required()
+def copy_file(file_id):
+    """Copia um arquivo para outra pasta/matéria"""
+    user_id = get_jwt_identity()
+    file_record = fileRepository.get_file_by_id(file_id)
+    
+    if not file_record:
+        return jsonify({'message': 'Arquivo não encontrado'}), 404
+    
+    if file_record.user_id != user_id:
+        return jsonify({'message': 'Acesso negado'}), 403
+    
+    data = request.get_json()
+    
+    try:
+        new_file = fileRepository.copy_file(
+            file_id=file_id,
+            user_id=user_id,
+            subject_id=data.get('subject_id'),
+            folder_id=data.get('folder_id')
+        )
+        
+        if not new_file:
+            return jsonify({'message': 'Erro ao copiar arquivo físico'}), 500
+        
+        return jsonify({
+            'message': 'Arquivo copiado com sucesso!',
+            'file': new_file.to_dict()
+        }), 201
+    except Exception as e:
+        print(f"Erro ao copiar arquivo: {e}")
+        return jsonify({'message': 'Erro ao copiar arquivo'}), 500

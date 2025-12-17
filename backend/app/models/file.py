@@ -7,6 +7,7 @@ class File(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=True)
+    folder_id = db.Column(db.Integer, db.ForeignKey('folder.id'), nullable=True)
     filename = db.Column(db.String(255), nullable=False)
     original_filename = db.Column(db.String(255), nullable=False)
     file_path = db.Column(db.String(500), nullable=False)
@@ -16,10 +17,12 @@ class File(db.Model):
 
     user = db.relationship('Usuario', backref=db.backref('files', lazy='dynamic'))
     subject = db.relationship('Subject', backref=db.backref('files', lazy='dynamic'))
+    folder = db.relationship('Folder', backref=db.backref('files', lazy='dynamic'))
 
-    def __init__(self, user_id, filename, original_filename, file_path, file_size, mime_type=None, subject_id=None):
+    def __init__(self, user_id, filename, original_filename, file_path, file_size, mime_type=None, subject_id=None, folder_id=None):
         self.user_id = user_id
         self.subject_id = subject_id
+        self.folder_id = folder_id
         self.filename = filename
         self.original_filename = original_filename
         self.file_path = file_path
@@ -31,6 +34,7 @@ class File(db.Model):
             'id': self.id,
             'user_id': self.user_id,
             'subject_id': self.subject_id,
+            'folder_id': self.folder_id,
             'filename': self.filename,
             'original_filename': self.original_filename,
             'name': self.original_filename,  # alias para compatibilidade

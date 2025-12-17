@@ -4,6 +4,7 @@ from . import eventRepository
 from . import subjectRepository
 from . import taskRepository
 from . import fileRepository
+from . import folderRepository
 from . import progressRepository
 from .chat_repo import ChatRepository, MessageRepository, ChatUsuarioRepository
 from .quiz_repo import (
