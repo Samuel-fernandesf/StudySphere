@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 // Cria o objeto Contexto
 const AuthContext = createContext();
-  
+
 // O provedor que irá gerenciar o estado
 export function AuthProvider({ children }) {
   const navigate = useNavigate();
@@ -33,47 +33,47 @@ export function AuthProvider({ children }) {
     localStorage.setItem("user_id", id);
     localStorage.setItem("access_token", token);
     localStorage.setItem('user_name', user_name)
-    
+
     // Atualiza o estado global do react
     setUsuario(id);
     setToken(token);
-    
+
     // Busca dados completos do usuário após login
     await fetchUserDetails();
   }
 
-async function googleLogin(authCode) {
-  try {
-    const data = await loginWithGoogle(authCode);
+  async function googleLogin(authCode) {
+    try {
+      const data = await loginWithGoogle(authCode);
 
-    const userId = data.user_id || data.user?.id || null;
-    const access = data.access_token || data.raw?.access_token || null;
-    const userName = data.user_name || data.user?.username || data.user?.name || null;
+      const userId = data.user_id || data.user?.id || null;
+      const access = data.access_token || data.raw?.access_token || null;
+      const userName = data.user_name || data.user?.username || data.user?.name || null;
 
-    if (!access) {
+      if (!access) {
         throw new Error("Access token não retornado pelo backend.");
       }
 
-    entrar(userId, access, userName);
+      entrar(userId, access, userName);
 
-    navigate("/dashboard");
-    return data; 
-    
-  } catch (err) {
-    console.error("Erro no login Google:", err);
-    throw err; 
+      navigate("/dashboard");
+      return data;
+
+    } catch (err) {
+      console.error("Erro no login Google:", err);
+      throw err;
+    }
   }
-}
 
 
   async function sair() {
     setLoading(true);
 
-    try{
+    try {
       await logout();
-    }catch (error) {
-        console.error("Erro durante o logout:", error);
-    }finally {
+    } catch (error) {
+      console.error("Erro durante o logout:", error);
+    } finally {
       localStorage.removeItem("user_id");
       localStorage.removeItem("access_token");
       setUsuario(null);
@@ -99,19 +99,19 @@ async function googleLogin(authCode) {
       }
 
       try {
-          const data = await getMe();
-          setUsuario(data.user_id);
-          setUserDetails(data.user_details);
-          // Se chegou aqui, o token foi renovado ou ainda é válido
+        const data = await getMe();
+        setUsuario(data.user_id);
+        setUserDetails(data.user_details);
+        // Se chegou aqui, o token foi renovado ou ainda é válido
       } catch (error) {
-          // Se falhou tudo, limpa o estado
-          setUsuario(null);
-          setToken(null);
-          setUserDetails(null);
-          localStorage.removeItem("user_id");
-          localStorage.removeItem("access_token");
+        // Se falhou tudo, limpa o estado
+        setUsuario(null);
+        setToken(null);
+        setUserDetails(null);
+        localStorage.removeItem("user_id");
+        localStorage.removeItem("access_token");
       } finally {
-          setLoading(false);
+        setLoading(false);
       }
       return;
     }
@@ -123,7 +123,7 @@ async function googleLogin(authCode) {
     // O value é o que todos os componentes terão acesso
     //O children se refere ao que esse contexto engloba no caso o App (Ver app.jsx)
     <AuthContext.Provider value={{ usuario, token, userDetails, loading, entrar, googleLogin, sair, fetchUserDetails }}>
-      {children} 
+      {children}
     </AuthContext.Provider>
   );
 }

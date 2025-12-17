@@ -179,10 +179,16 @@ def google_login():
 
     if id_tok:
         try:
-            id_info = id_token.verify_oauth2_token(id_tok, grequests.Request(), current_app.config['GOOGLE_CLIENT_ID'])
+            # Adicionando tolerância de 60 segundos para diferenças de clock
+            id_info = id_token.verify_oauth2_token(
+                id_tok, 
+                grequests.Request(), 
+                current_app.config['GOOGLE_CLIENT_ID'],
+                clock_skew_in_seconds=60
+            )
         except Exception as e:
             current_app.logger.exception("id_token inválido")
-            return jsonify({"msg": "id_token inválido"}), 401
+            return jsonify({"msg": "id_token inválido", "error": str(e)}), 401
 
         if not id_info.get("email_verified"):
             return jsonify({"msg": "E-mail não verificado pelo Google"}), 403

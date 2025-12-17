@@ -6,8 +6,12 @@ from utils.extensions import jwt, socket_io
 from dotenv import load_dotenv
 from datetime import timedelta
 
+import os
+from pathlib import Path
+
 def create_app():
-    load_dotenv()
+    dotenv_path = Path(__file__).resolve().parent.parent.parent / '.env'
+    load_dotenv(dotenv_path=dotenv_path)
 
     app = Flask(__name__)
 

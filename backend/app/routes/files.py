@@ -24,18 +24,27 @@ def allowed_file(filename):
 @jwt_required()
 def get_files():
     """Retorna todos os arquivos do usuário autenticado"""
-    user_id = get_jwt_identity()
-    
-    # Parâmetros para filtrar por matéria e pasta
-    subject_id = request.args.get('subject_id', type=int)
-    folder_id = request.args.get('folder_id', type=int)
-    
-    files = fileRepository.get_files_by_user(user_id, subject_id, folder_id)
-    return jsonify({
-        'files': [file.to_dict() for file in files],
-        'subject_id': subject_id,
-        'folder_id': folder_id
-    }), 200
+    try:
+        user_id = get_jwt_identity()
+        # Garantir que user_id é inteiro
+        if isinstance(user_id, str):
+            user_id = int(user_id)
+        
+        # Parâmetros para filtrar por matéria e pasta
+        subject_id = request.args.get('subject_id', type=int)
+        folder_id = request.args.get('folder_id', type=int)
+        
+        files = fileRepository.get_files_by_user(user_id, subject_id, folder_id)
+        return jsonify({
+            'files': [file.to_dict() for file in files],
+            'subject_id': subject_id,
+            'folder_id': folder_id
+        }), 200
+    except Exception as e:
+        import traceback
+        print(f"Erro ao listar arquivos: {e}")
+        traceback.print_exc()
+        return jsonify({'message': f'Erro ao listar arquivos: {str(e)}'}), 500
 
 
 @files_bp.route('/files/upload', methods=['POST'])
@@ -151,18 +160,27 @@ def download_file(file_id):
 @jwt_required()
 def delete_file(file_id):
     """Deleta um arquivo"""
-    user_id = get_jwt_identity()
-    file_record = fileRepository.get_file_by_id(file_id)
-    
-    if not file_record:
-        return jsonify({'message': 'Arquivo não encontrado'}), 404
-    
     try:
+        user_id = get_jwt_identity()
+        if isinstance(user_id, str):
+            user_id = int(user_id)
+            
+        file_record = fileRepository.get_file_by_id(file_id)
+        
+        if not file_record:
+            return jsonify({'message': 'Arquivo não encontrado'}), 404
+            
+        # Verificar permissão (embora não estivesse explícito no código original, é boa prática)
+        if file_record.user_id != user_id:
+             return jsonify({'message': 'Acesso negado'}), 403
+        
         fileRepository.delete_file(file_id)
         return jsonify({'message': 'Arquivo deletado com sucesso!'}), 200
     except Exception as e:
+        import traceback
         print(f"Erro ao deletar arquivo: {e}")
-        return jsonify({'message': 'Erro ao deletar arquivo'}), 500
+        traceback.print_exc()
+        return jsonify({'message': f'Erro ao deletar arquivo: {str(e)}'}), 500
 
 @files_bp.route('/files/storage', methods=['GET'])
 @jwt_required()
@@ -188,18 +206,21 @@ def get_storage_info():
 @jwt_required()
 def move_file(file_id):
     """Move um arquivo para outra pasta/matéria"""
-    user_id = get_jwt_identity()
-    file_record = fileRepository.get_file_by_id(file_id)
-    
-    if not file_record:
-        return jsonify({'message': 'Arquivo não encontrado'}), 404
-    
-    if file_record.user_id != user_id:
-        return jsonify({'message': 'Acesso negado'}), 403
-    
-    data = request.get_json()
-    
     try:
+        user_id = get_jwt_identity()
+        if isinstance(user_id, str):
+            user_id = int(user_id)
+            
+        file_record = fileRepository.get_file_by_id(file_id)
+        
+        if not file_record:
+            return jsonify({'message': 'Arquivo não encontrado'}), 404
+        
+        if file_record.user_id != user_id:
+            return jsonify({'message': 'Acesso negado'}), 403
+        
+        data = request.get_json()
+        
         updated_file = fileRepository.move_file(
             file_id=file_id,
             subject_id=data.get('subject_id'),
@@ -210,26 +231,31 @@ def move_file(file_id):
             'file': updated_file.to_dict()
         }), 200
     except Exception as e:
+        import traceback
         print(f"Erro ao mover arquivo: {e}")
-        return jsonify({'message': 'Erro ao mover arquivo'}), 500
+        traceback.print_exc()
+        return jsonify({'message': f'Erro ao mover arquivo: {str(e)}'}), 500
 
 
 @files_bp.route('/files/<int:file_id>/copy', methods=['POST'])
 @jwt_required()
 def copy_file(file_id):
     """Copia um arquivo para outra pasta/matéria"""
-    user_id = get_jwt_identity()
-    file_record = fileRepository.get_file_by_id(file_id)
-    
-    if not file_record:
-        return jsonify({'message': 'Arquivo não encontrado'}), 404
-    
-    if file_record.user_id != user_id:
-        return jsonify({'message': 'Acesso negado'}), 403
-    
-    data = request.get_json()
-    
     try:
+        user_id = get_jwt_identity()
+        if isinstance(user_id, str):
+            user_id = int(user_id)
+            
+        file_record = fileRepository.get_file_by_id(file_id)
+        
+        if not file_record:
+            return jsonify({'message': 'Arquivo não encontrado'}), 404
+        
+        if file_record.user_id != user_id:
+            return jsonify({'message': 'Acesso negado'}), 403
+        
+        data = request.get_json()
+        
         new_file = fileRepository.copy_file(
             file_id=file_id,
             user_id=user_id,
@@ -245,5 +271,7 @@ def copy_file(file_id):
             'file': new_file.to_dict()
         }), 201
     except Exception as e:
+        import traceback
         print(f"Erro ao copiar arquivo: {e}")
-        return jsonify({'message': 'Erro ao copiar arquivo'}), 500
+        traceback.print_exc()
+        return jsonify({'message': f'Erro ao copiar arquivo: {str(e)}'}), 500

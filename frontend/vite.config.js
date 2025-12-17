@@ -3,11 +3,16 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  server: { 
-    port: 3000, 
+  envDir: '../',
+  server: {
+    port: 3000,
     host: '0.0.0.0',
-    proxy: { 
-      "/api": "http://127.0.0.1:5000" 
-    } 
+    proxy: {
+      "/api": "http://127.0.0.1:5000"
+    },
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
+      "Cross-Origin-Embedder-Policy": "credentialless"
+    }
   }
 });
