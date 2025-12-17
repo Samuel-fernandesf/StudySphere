@@ -1,4 +1,4 @@
-# <img src="https://imgur.com/KRrnm8k.png" width="24" height="24" />  StudySphere
+# <img src="https://imgur.com/KRrnm8k.png" width="24" height="24" />  StudySphere: Organize, Colabore e Aprenda
 
 _Elevando a organização acadêmica a um novo patamar._
 
