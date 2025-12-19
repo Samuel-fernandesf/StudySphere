@@ -170,7 +170,6 @@ def delete_file(file_id):
         if not file_record:
             return jsonify({'message': 'Arquivo não encontrado'}), 404
             
-        # Verificar permissão (embora não estivesse explícito no código original, é boa prática)
         if file_record.user_id != user_id:
              return jsonify({'message': 'Acesso negado'}), 403
         

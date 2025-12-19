@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import PasswordInput from './PasswordInput';
 import { checkEmail, checkUsername } from "../../services/authService";
+import GoogleLoginButton from './GoogleLoginButton';
 
-function RegisterForm({ handleRegister, isLoading }){
+function RegisterForm({ handleRegister, isLoading }) {
 
     const [currentStep, setCurrentStep] = useState(1);
     const [validationError, setValidationError] = useState('');
@@ -15,7 +16,7 @@ function RegisterForm({ handleRegister, isLoading }){
         'data_nascimento': ''
     });
 
-    const handleChange = (e) =>{
+    const handleChange = (e) => {
         setFormData({
             ...formData, // Serve para manter os dados antigos salvos
             [e.target.name]: e.target.value //  Altera somente os campos que mudaram
@@ -67,11 +68,11 @@ function RegisterForm({ handleRegister, isLoading }){
         const today = new Date();
         const data_nasc = new Date(data_nascimento); //Converte a string do input para Date
 
-        if (data_nasc > today){
+        if (data_nasc > today) {
             setValidationError('A data de nascimento não pode ser no futuro.');
             return false;
         }
-        if (data_nasc.getFullYear() < 1900){
+        if (data_nasc.getFullYear() < 1900) {
             setValidationError('Data de nascimento inválida. Use uma data após 1900.');
             return false;
         }
@@ -83,7 +84,7 @@ function RegisterForm({ handleRegister, isLoading }){
             idade--;
         }
 
-        if (idade < 12){
+        if (idade < 12) {
             setValidationError('Você deve ter pelo menos 12 anos para se cadastrar.');
             return false;
         }
@@ -97,7 +98,7 @@ function RegisterForm({ handleRegister, isLoading }){
         setValidationError('');
     };
 
-    const nextStep = async(step) => {
+    const nextStep = async (step) => {
         if (step === 1) {
             if (!validateStep1()) {
                 return;
@@ -121,7 +122,7 @@ function RegisterForm({ handleRegister, isLoading }){
         setCurrentStep(currentStep + 1);
     };
 
-    const handleSubmit = async(e) =>{
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         const user_data = {
@@ -129,26 +130,27 @@ function RegisterForm({ handleRegister, isLoading }){
             'senha': formData.senha,
             'nome_completo': formData.nome_completo,
             'username': formData.username,
-            'nascimento': formData.data_nascimento 
+            'nascimento': formData.data_nascimento
         };
         try {
             await handleRegister(user_data);
-            } catch (err) {
-                const msg =
-                    err?.message
-                    || err?.response?.data?.message
-                    || err?.response?.data?.mensagem
-                    || err?.response?.data?.erro
-                    || "Erro desconhecido.";
+        } catch (err) {
+            const msg =
+                err?.message
+                || err?.response?.data?.message
+                || err?.response?.data?.mensagem
+                || err?.response?.data?.erro
+                || "Erro desconhecido.";
 
-                setValidationError(msg);
-                console.log(err);
-            }
+            setValidationError(msg);
+            console.log(err);
+        }
     };
 
-    return(
+    return (
         <div>
-             {validationError && (
+            <GoogleLoginButton />
+            {validationError && (
                 <div className='error-message'>
                     {validationError}
                 </div>
@@ -158,12 +160,12 @@ function RegisterForm({ handleRegister, isLoading }){
                     <div className="form-group">
                         <div>
                             <label>Email:</label>
-                            <input type="email" name='email' value={formData.email} onChange={handleChange} placeholder="seu@email.com" required/>
+                            <input type="email" name='email' value={formData.email} onChange={handleChange} placeholder="seu@email.com" required />
                         </div>
 
-                        <PasswordInput label='Senha:' name='senha' value={formData.senha} onChange={handleChange}placeholder="********" required/>
-                        
-                        <PasswordInput label='Confirme a Senha::' name='confirm_senha' value={formData.confirm_senha} onChange={handleChange}placeholder="********" required/>
+                        <PasswordInput label='Senha:' name='senha' value={formData.senha} onChange={handleChange} placeholder="********" required />
+
+                        <PasswordInput label='Confirme a Senha::' name='confirm_senha' value={formData.confirm_senha} onChange={handleChange} placeholder="********" required />
 
                         <button type="button" className="btn submit-btn" onClick={() => nextStep(1)} disabled={isLoading}>{isLoading ? '...' : 'Próximo'}</button>
                     </div>
@@ -175,15 +177,15 @@ function RegisterForm({ handleRegister, isLoading }){
                     <div className='form-group'>
                         <div>
                             <label>Nome Completo:</label>
-                            <input type="text" name='nome_completo' value={formData.nome_completo} onChange={handleChange} required/>
+                            <input type="text" name='nome_completo' value={formData.nome_completo} onChange={handleChange} required />
                         </div>
                         <div>
                             <label>Nome de Usuário:</label>
-                            <input type="text" name='username' value={formData.username} onChange={handleChange} required/>
+                            <input type="text" name='username' value={formData.username} onChange={handleChange} required />
                         </div>
                         <div>
                             <label>Data de Nascimento:</label>
-                            <input type="date" name='data_nascimento' value={formData.data_nascimento} onChange={handleChange} required/>
+                            <input type="date" name='data_nascimento' value={formData.data_nascimento} onChange={handleChange} required />
                         </div>
 
                         <div className="button-group">
@@ -207,7 +209,7 @@ function RegisterForm({ handleRegister, isLoading }){
 
                     <div className="button-group">
                         <button type="button" className="btn secondary" onClick={prevStep}>Voltar</button>
-                        
+
                         <button type="button" className="btn primary" onClick={handleSubmit} disabled={isLoading}>{isLoading ? '...' : 'Criar Conta'}</button>
                     </div>
                 </div>

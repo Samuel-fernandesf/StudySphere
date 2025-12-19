@@ -9,8 +9,6 @@ load_dotenv()
 
 assistant_bp = Blueprint('assistant', __name__)
 PERPLEXITY_API_KEY = os.getenv('PERPLEXITY_API_KEY')
-
-# Armazena históricos em memória (considere usar banco de dados em produção)
 conversation_threads = {}
 
 # Lista de tópicos proibidos/não educacionais

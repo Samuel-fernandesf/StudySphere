@@ -1,4 +1,3 @@
-# repositories/tokenRepository.py
 from models import RevokedToken
 from utils.db import db
 

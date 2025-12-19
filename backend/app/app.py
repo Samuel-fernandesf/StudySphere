@@ -5,11 +5,13 @@ from utils.db import db
 from utils.extensions import jwt, socket_io
 from dotenv import load_dotenv
 from datetime import timedelta
-
+from utils import jwt_handlers, socket_handlers
+from routes import auth, home, events_bp, subjects_bp, tasks_bp, files_bp, folders_bp, progress_bp, chat, quiz_bp, users, assistant_bp
 import os
 from pathlib import Path
 
 def create_app():
+    #Garante que vai pegar o arquivo .env na raiz do projeto
     dotenv_path = Path(__file__).resolve().parent.parent.parent / '.env'
     load_dotenv(dotenv_path=dotenv_path)
 
@@ -31,9 +33,7 @@ def create_app():
     migrate = Migrate(app, db)
     socket_io.init_app(app)
 
-    from utils import jwt_handlers, socket_handlers
-    from routes import auth, home, events_bp, subjects_bp, tasks_bp, files_bp, folders_bp, progress_bp, chat, quiz_bp, users, assistant_bp
-
+    #Registrando blueprints das rotas da api
     app.register_blueprint(auth, url_prefix='/api/auth')
     app.register_blueprint(users, url_prefix='/api/users')
     app.register_blueprint(home, url_prefix='/api/dashboard')

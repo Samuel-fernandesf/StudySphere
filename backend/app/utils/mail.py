@@ -4,7 +4,7 @@ from flask import current_app
 from datetime import datetime
 import pytz
 
-LOGO_URL = "https://i.ibb.co/MxqYGhQc/STUDYSPHERE.png"  # substitua pelo link direto da sua imagem no Imgur
+LOGO_URL = "https://imgur.com/a/NPCvaq.png"
 
 def send_confirm_email(user):
     token = user.get_confirmation_token()
@@ -46,8 +46,6 @@ Equipe StudySphere
           Confirmar E-mail
         </a>
       </p>
-      <p>Se o botão não funcionar, copie e cole o seguinte link no seu navegador:</p>
-      <p>{confirm_link}</p>
     </div>
 
     <!-- Rodapé -->
@@ -121,8 +119,6 @@ Equipe StudySphere
           Redefinir Senha
         </a>
       </p>
-      <p>Se o botão não funcionar, copie e cole o seguinte link no seu navegador:</p>
-      <p>{reset_link}</p>
     </div>
 
     <!-- Rodapé -->

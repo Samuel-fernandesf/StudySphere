@@ -179,7 +179,7 @@ def google_login():
 
     if id_tok:
         try:
-            # Adicionando tolerância de 60 segundos para diferenças de clock
+            # Adicionando tolerância de 60 segundos para diferenças de clock 
             id_info = id_token.verify_oauth2_token(
                 id_tok, 
                 grequests.Request(), 
