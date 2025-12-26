@@ -1,21 +1,16 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { logout, getMe, loginWithGoogle } from "../services/authService";
 import { useNavigate } from 'react-router-dom';
-// Guarda a informação de quem está logado e as funções entrar e sair
 
-// Cria o objeto Contexto
 const AuthContext = createContext();
 
-// O provedor que irá gerenciar o estado
 export function AuthProvider({ children }) {
   const navigate = useNavigate();
-  // Inicializa o estado lendo o LocalStorage
   const [usuario, setUsuario] = useState(() => localStorage.getItem("user_id"));
   const [token, setToken] = useState(() => localStorage.getItem("access_token"));
-  const [userDetails, setUserDetails] = useState(null); // Novos dados completos do usuário
+  const [userDetails, setUserDetails] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Função para buscar dados completos do usuário
   async function fetchUserDetails() {
     try {
       const data = await getMe();
@@ -29,16 +24,13 @@ export function AuthProvider({ children }) {
   }
 
   async function entrar(id, token, user_name) {
-    // Salva a persistencia da sessão no navegador
     localStorage.setItem("user_id", id);
     localStorage.setItem("access_token", token);
     localStorage.setItem('user_name', user_name)
 
-    // Atualiza o estado global do react
     setUsuario(id);
     setToken(token);
 
-    // Busca dados completos do usuário após login
     await fetchUserDetails();
   }
 
@@ -55,7 +47,6 @@ export function AuthProvider({ children }) {
       }
 
       entrar(userId, access, userName);
-
       navigate("/dashboard");
       return data;
 
@@ -65,10 +56,8 @@ export function AuthProvider({ children }) {
     }
   }
 
-
   async function sair() {
     setLoading(true);
-
     try {
       await logout();
     } catch (error) {
@@ -94,7 +83,6 @@ export function AuthProvider({ children }) {
         setToken(null);
         setUserDetails(null);
         setLoading(false);
-        // Não faz a chamada de /me. O interceptor NÃO será acionado.
         return;
       }
 
@@ -102,9 +90,7 @@ export function AuthProvider({ children }) {
         const data = await getMe();
         setUsuario(data.user_id);
         setUserDetails(data.user_details);
-        // Se chegou aqui, o token foi renovado ou ainda é válido
       } catch (error) {
-        // Se falhou tudo, limpa o estado
         setUsuario(null);
         setToken(null);
         setUserDetails(null);
@@ -113,15 +99,12 @@ export function AuthProvider({ children }) {
       } finally {
         setLoading(false);
       }
-      return;
     }
 
     verificarSessao();
   }, []);
 
   return (
-    // O value é o que todos os componentes terão acesso
-    //O children se refere ao que esse contexto engloba no caso o App (Ver app.jsx)
     <AuthContext.Provider value={{ usuario, token, userDetails, loading, entrar, googleLogin, sair, fetchUserDetails }}>
       {children}
     </AuthContext.Provider>

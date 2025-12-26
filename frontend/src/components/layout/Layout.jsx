@@ -5,7 +5,7 @@ import './Layout.css';
 
 export default function Layout({ children }) {
   const location = useLocation();
-  
+
   // Verifica se está em rota de autenticação
   const isAuthRoute =
     location.pathname === '/' ||

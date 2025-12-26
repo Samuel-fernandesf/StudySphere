@@ -3,7 +3,8 @@
 .sidebar {
   width: var(--sidebar-width);
   height: 100vh;
-  position: fixed; /* ← MANTER AQUI */
+  position: fixed;
+  /* ← MANTER AQUI */
   top: 0;
   left: 0;
   background-color: var(--sidebar-bg);
@@ -45,13 +46,14 @@
   flex-shrink: 0;
 }
 
-.sidebar_logo{
+.sidebar_logo {
   background-color: #fff;
   border-radius: 50%;
   width: 2.5rem;
   height: 2.5rem;
 
 }
+
 .sidebar__logoPlaceholder {
   width: 2.5rem;
   height: 2.5rem;
@@ -69,7 +71,8 @@
 /* Conteúdo */
 .sidebar__content {
   flex: 1;
-  margin-right: -8px; /* ← Compensa o scrollbar */
+  margin-right: -8px;
+  /* ← Compensa o scrollbar */
   padding-right: 8px;
 }
 

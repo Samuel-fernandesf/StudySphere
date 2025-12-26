@@ -40,10 +40,7 @@ def update_profile():
     
     try:
         userRepository.update_profile(user, dados)
-
-        #Serialização do Objeto para JSON (dicionário)
         user_data = user_schema.dump(user)
-        
         return jsonify({'message': 'Perfil atualizado com sucesso!', 'user':user_data}), 200
     
     except ValueError as e:
@@ -57,4 +54,4 @@ def update_profile():
 @home.route('/')
 @jwt_required()
 def index():
-    return {'message': 'Entrou nessa seção.'}, 200
+    return {'message': 'Dashboard acessado.'}, 200

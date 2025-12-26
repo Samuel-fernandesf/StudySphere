@@ -8,3 +8,4 @@ from .folder import Folder
 from .study_session import StudySession
 from .chat import Chat, Mensagem, ChatUsuario, TipoChat, TipoMensagem
 from .quiz import Quiz, Questao, Alternativa, TentativaQuiz, RespostaUsuario, TagQuiz, DificuldadeQuiz
+from .user_preferences import UserPreferences

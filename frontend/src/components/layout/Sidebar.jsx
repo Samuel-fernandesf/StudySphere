@@ -21,7 +21,7 @@ import {
 // Componente Sidebar
 export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }) {
     const location = useLocation();
-    
+
     // Função para verificar se o link está ativo
     const isActive = (path) => {
         return location.pathname === path;
@@ -33,11 +33,10 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                 className={`sidebarOverlay ${isOpen ? 'sidebarOverlayOpen' : ''}`}
                 onClick={onClose}
             ></div>
-            
+
             <nav
-                className={`sidebar ${isOpen ? 'sidebarOpen' : ''} ${
-                    isCollapsed ? 'sidebarCollapsed' : ''
-                }`}
+                className={`sidebar ${isOpen ? 'sidebarOpen' : ''} ${isCollapsed ? 'sidebarCollapsed' : ''
+                    }`}
             >
                 <div className="sidebar__header">
                     <img className='sidebar__logoPlaceholder' src={logo} alt="" />
@@ -47,8 +46,8 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                 <div className="sidebar__content">
                     <ul className="sidebar__nav">
                         <li>
-                            <Link 
-                                to="/dashboard" 
+                            <Link
+                                to="/dashboard"
                                 className={`navLink ${isActive('/dashboard') ? 'navLinkActive' : ''}`}
                             >
                                 <LayoutDashboard size={20} />
@@ -56,8 +55,8 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                             </Link>
                         </li>
                         <li>
-                            <Link 
-                                to="/subjects" 
+                            <Link
+                                to="/subjects"
                                 className={`navLink ${isActive('/subjects') ? 'navLinkActive' : ''}`}
                             >
                                 <BookOpen size={20} />
@@ -65,8 +64,8 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                             </Link>
                         </li>
                         <li>
-                            <Link 
-                                to="/calendar" 
+                            <Link
+                                to="/calendar"
                                 className={`navLink ${isActive('/calendar') ? 'navLinkActive' : ''}`}
                             >
                                 <Calendar size={20} />
@@ -74,8 +73,8 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                             </Link>
                         </li>
                         <li>
-                            <Link 
-                                to="/progress" 
+                            <Link
+                                to="/progress"
                                 className={`navLink ${isActive('/progress') ? 'navLinkActive' : ''}`}
                             >
                                 <TrendingUp size={20} />
@@ -83,8 +82,8 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                             </Link>
                         </li>
                         <li>
-                            <Link 
-                                to="/chats" 
+                            <Link
+                                to="/chats"
                                 className={`navLink ${isActive('/chats') ? 'navLinkActive' : ''}`}
                             >
                                 <MessageSquare size={20} />
@@ -92,8 +91,8 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                             </Link>
                         </li>
                         <li>
-                            <Link 
-                                to="/quiz" 
+                            <Link
+                                to="/quiz"
                                 className={`navLink ${isActive('/quiz') ? 'navLinkActive' : ''}`}
                             >
                                 <FileQuestion size={20} />
@@ -101,8 +100,8 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                             </Link>
                         </li>
                         <li>
-                            <Link 
-                                to="/assistant" 
+                            <Link
+                                to="/assistant"
                                 className={`navLink ${isActive('/assistant') ? 'navLinkActive' : ''}`}
                             >
                                 <Sparkles size={20} />
@@ -122,8 +121,8 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                             </a>
                         </li>
                         <li>
-                            <Link 
-                                to="/config" 
+                            <Link
+                                to="/config"
                                 className={`navLink ${isActive('/config') ? 'navLinkActive' : ''}`}
                             >
                                 <Settings size={20} />
@@ -131,7 +130,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                             </Link>
                         </li>
                         <li>
-                            <LogoutButton/>
+                            <LogoutButton />
                         </li>
                     </ul>
                     <div className="sidebar__version">

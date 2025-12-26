@@ -1,4 +1,4 @@
-from flask import current_app #Usado para pegar os dados de onde a aplicação flask foi instanciada, no caso app.py
+from flask import current_app
 from flask_login import UserMixin
 from itsdangerous import URLSafeTimedSerializer
 from utils.extensions import bcrypt
@@ -20,13 +20,13 @@ class Usuario(db.Model, UserMixin):
     confirm_user = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
 
-    #Relacionamentos
     contas_sociais = db.relationship('UsuarioProvedor', back_populates='usuario_core', cascade='all, delete-orphan')
     revoked_tokens = db.relationship('RevokedToken', back_populates='user', lazy='dynamic', cascade='all, delete-orphan')
     chat_participa = db.relationship('ChatUsuario', back_populates='usuario_relacionado', lazy='dynamic', cascade='all, delete-orphan')
     mensagem_enviadas = db.relationship('Mensagem', back_populates='usuario_remetente', lazy='dynamic', cascade='all, delete-orphan')
     
     def get_confirmation_token(self):
+        """Gera um token para confirmação de email"""
         s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     
         hora_utc = datetime.now(timezone.utc)
@@ -34,8 +34,9 @@ class Usuario(db.Model, UserMixin):
 
         return s.dumps({'user_id': self.id, 'timestamp': timestamp})
     
-    @staticmethod # Não precisa de self, pois não depende de nenhuma instância
-    def verify_confirmation_token(token, expires_sec=86400):#Expira em 24 horas
+    @staticmethod
+    def verify_confirmation_token(token, expires_sec=86400):
+        """Valida o token de confirmação de email e retorna o usuário"""
         s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
 
         try:
@@ -61,8 +62,9 @@ class Usuario(db.Model, UserMixin):
 
         return s.dumps({'user_id': self.id, 'timestamp': timestamp})
     
-    @staticmethod # não precisa de um objeto (instância). Útil para funções relacionadas à classe, mas que não usam 'self'. Pertence à classe, mas não depende de nenhuma instância específica dela, como se fosse uma função de fora do objeto basicamente.
+    @staticmethod
     def verify_reset_token(token, expires_sec=1800):
+        """Valida o token de redefinição de senha e retorna o usuário"""
         s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
         try:
             dados = s.loads(token, max_age=expires_sec)

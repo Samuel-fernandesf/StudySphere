@@ -20,6 +20,25 @@
   --sidebar-text-muted: #cbd5e1;
 }
 
+/* Tema escuro */
+[data-theme="dark"] {
+  --bg: #0f172a;
+  --primary: #60a5fa;
+  --primary-contrast: #0f172a;
+  --secondary: #1e293b;
+  --muted: #94a3b8;
+  --text: #f1f5f9;
+  --card-bg: #1e293b;
+  --card-border: #334155;
+  --surface-shadow: rgba(0, 0, 0, 0.3);
+
+  /* Sidebar no tema escuro */
+  --sidebar-bg: #0f172a;
+  --sidebar-bg-active: #1e293b;
+  --sidebar-text: #f1f5f9;
+  --sidebar-text-muted: #94a3b8;
+}
+
 /* RESET / BASE */
 *,
 *::before,
@@ -54,7 +73,7 @@ body {
 }
 
 .app-layout {
-  display: flex; 
+  display: flex;
   flex-direction: column;
   width: 100%;
   min-height: 100vh;
@@ -69,14 +88,14 @@ body {
 
 /* MAIN CONTENT */
 .main-content {
-  flex: 1; 
+  flex: 1;
   width: 100%;
   min-height: auto;
   display: flex;
   flex-direction: column;
   background-color: var(--bg);
   padding: 20px;
-  overflow-y: auto; 
+  overflow-y: auto;
 }
 
 .card {

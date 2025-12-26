@@ -8,10 +8,9 @@ import logo from '../../assets/logo.png';
 import './AuthScreen.css';
 
 function AuthScreen() {
-  // Pega a função de salvar sessão
-  const {entrar} = useAuthContext();
+  const { entrar } = useAuthContext();
   const location = useLocation();
-  const [view, setView] = useState('login'); 
+  const [view, setView] = useState('login');
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [resendStatus, setResendStatus] = useState('idle');
@@ -19,34 +18,34 @@ function AuthScreen() {
 
   useEffect(() => {
     const msg = localStorage.getItem('reset_password_success');
-    
+
     if (msg) {
-        setSuccessMessage(msg);
-        localStorage.removeItem('reset_password_success'); 
-        setTimeout(() => setSuccessMessage(''), 6000);
+      setSuccessMessage(msg);
+      localStorage.removeItem('reset_password_success');
+      setTimeout(() => setSuccessMessage(''), 6000);
     }
 
     if (location.state?.successMessage) {
-        setSuccessMessage(location.state.successMessage);
-        window.history.replaceState({}, document.title);
-        setTimeout(() => setSuccessMessage(''), 6000);
+      setSuccessMessage(location.state.successMessage);
+      window.history.replaceState({}, document.title);
+      setTimeout(() => setSuccessMessage(''), 6000);
     }
-  }, [location]); 
+  }, [location]);
 
-  const handleLogin = async ({email, senha}) =>{
+  const handleLogin = async ({ email, senha }) => {
     setLoading(true);
 
-    try{
+    try {
       const data = await login(email, senha);
       if (!data.access_token || !data.user_id) {
-       throw new Error("Resposta de login incompleta do servidor");
+        throw new Error("Resposta de login incompleta do servidor");
       };
       entrar(data.user_id, data.access_token);
       return data;
-    }catch (error){
+    } catch (error) {
       console.log('Erro no HandleLogin', error)
       throw error
-    }finally{
+    } finally {
       setLoading(false);
     }
   }
@@ -55,14 +54,14 @@ function AuthScreen() {
     setResendStatus('sending');
     setResendMsg('');
 
-    try{
-      const result = await resendEmail(email); //Chamando a função do AuthService
+    try {
+      const result = await resendEmail(email);
       setResendMsg(result.message || 'Novo link enviado com sucesso!');
       setResendStatus('success');
 
-      setTimeout(() => {setResendStatus('idle'); setResendMsg('')}, 6000);
-      
-    }catch(err){
+      setTimeout(() => { setResendStatus('idle'); setResendMsg('') }, 6000);
+
+    } catch (err) {
       setResendMsg(err.message || 'Erro ao enviar o link.');
       setResendStatus('error');
     }
@@ -71,7 +70,7 @@ function AuthScreen() {
   const handleRegister = async (registerData) => {
     setLoading(true);
 
-    try{
+    try {
       const data = await register(registerData);
       setView('login');
 
@@ -80,10 +79,10 @@ function AuthScreen() {
       setTimeout(() => setSuccessMessage(''), 6000);
 
       return data;
-    }catch (error){
+    } catch (error) {
       console.error("Erro no Cadastro:", error);
       throw error;
-    }finally{
+    } finally {
       setLoading(false);
     };
   };
@@ -94,7 +93,7 @@ function AuthScreen() {
         <div className="logo-area">
           <img className='img-circle' src={logo} alt="" />
         </div>
-        
+
         <h1>StudySphere</h1>
         <p>Organize seus estudos, colabore com colegas e gamifique seu aprendizado</p>
       </div>
@@ -103,47 +102,46 @@ function AuthScreen() {
           <h2>Bem-vindo ao StudySphere</h2>
           <p className="subtitle">
             {view === 'login' ? 'Entre na sua conta ou crie uma nova para começar'
-            :
-            'Cadastre-se em 3 passos'}
+              :
+              'Cadastre-se em 3 passos'}
           </p>
 
-          <div className='button-group toggle-button-group' data-view={view}> 
-              <button 
-                  className={`btn ${view === 'login' ? 'active' : ''}`} // Mudei para 'active'
-                  onClick={() => setView('login')} 
-              >
-                  Fazer Login
-              </button>
-              <button 
-                  className={`btn ${view === 'cadastro' ? 'active' : ''}`} // Mudei para 'active'
-                  onClick={() => setView('cadastro')}
-              >
-                  Registrar-se
-              </button>
+          <div className='button-group toggle-button-group' data-view={view}>
+            <button
+              className={`btn ${view === 'login' ? 'active' : ''}`} // Mudei para 'active'
+              onClick={() => setView('login')}
+            >
+              Fazer Login
+            </button>
+            <button
+              className={`btn ${view === 'cadastro' ? 'active' : ''}`} // Mudei para 'active'
+              onClick={() => setView('cadastro')}
+            >
+              Registrar-se
+            </button>
           </div>
 
-          {/* Renderização Condicional da Tela */}
-            {view === 'login' && (
-                <LoginForm 
-                  handleLogin={handleLogin} 
-                  isLoading={loading} 
-                  successMessage={successMessage}
-                  clearSuccess={() => setSuccessMessage('')} 
-                  onForgotPasswordClick={() => setView('forgot-password')}
-                  onResendEmail={handleResend}
-                  resendStatus={resendStatus}
-                  resendMessage={resendMsg} />
-            )}
+          {view === 'login' && (
+            <LoginForm
+              handleLogin={handleLogin}
+              isLoading={loading}
+              successMessage={successMessage}
+              clearSuccess={() => setSuccessMessage('')}
+              onForgotPasswordClick={() => setView('forgot-password')}
+              onResendEmail={handleResend}
+              resendStatus={resendStatus}
+              resendMessage={resendMsg} />
+          )}
 
-            {view === 'cadastro' && (
-                <RegisterForm 
-                  handleRegister={handleRegister} 
-                  isLoading={loading} />
-            )}
+          {view === 'cadastro' && (
+            <RegisterForm
+              handleRegister={handleRegister}
+              isLoading={loading} />
+          )}
         </div>
       </div>
     </div>
-    );
+  );
 }
 
 export default AuthScreen;

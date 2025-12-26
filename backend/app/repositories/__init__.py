@@ -11,6 +11,7 @@ from .quiz_repo import (
     QuizRepository, QuestaoRepository, AlternativaRepository,
     TentativaQuizRepository, RespostaUsuarioRepository, TagQuizRepository
 )
+from .preference_repo import PreferenceRepository
 
 userRepository = UserRepository()
 tokenRepository = TokenRepository()
@@ -23,3 +24,4 @@ alternativaRepository = AlternativaRepository()
 tentativaRepository = TentativaQuizRepository()
 respostaRepository = RespostaUsuarioRepository()
 tagRepository = TagQuizRepository()
+preferenceRepository = PreferenceRepository()

@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "../../contexts/AuthContext";
+import { useTheme } from "../../contexts/ThemeContext";
 import api from "../../api/api";
 import "./UserConfig.css";
 
 export default function UserConfig() {
     const { userDetails, fetchUserDetails, sair } = useAuthContext();
+    const { theme, changeTheme } = useTheme();
 
     const [activeTab, setActiveTab] = useState("perfil");
     const [toast, setToast] = useState(null);
     const [deleting, setDeleting] = useState(false);
+    const [loadingPrefs, setLoadingPrefs] = useState(false);
 
-    // Estados para o formulário de perfil
     const [profileData, setProfileData] = useState({
         nome_completo: "",
         username: "",
@@ -21,21 +23,19 @@ export default function UserConfig() {
         curso: ""
     });
 
-    // Estados para preferências
     const [preferences, setPreferences] = useState({
-        pushNotifications: true,
-        emailNotifications: true,
-        studyReminders: true,
-        weeklyReports: false,
+        push_notifications: true,
+        email_notifications: true,
+        study_reminders: true,
+        weekly_reports: false,
         achievements: true,
         theme: "light",
         language: "pt",
-        soundEffects: true,
-        dailyGoal: 2,
-        profileVisibility: "public"
+        sound_effects: true,
+        daily_goal: 2,
+        profile_visibility: "public"
     });
 
-    // Avatar
     const [avatarPreview, setAvatarPreview] = useState(null);
 
     useEffect(() => {
@@ -50,6 +50,24 @@ export default function UserConfig() {
             });
         }
     }, [userDetails]);
+
+    useEffect(() => {
+        const loadPreferences = async () => {
+            try {
+                setLoadingPrefs(true);
+                const response = await api.get('/preferences');
+                if (response.data.preferences) {
+                    setPreferences(response.data.preferences);
+                    changeTheme(response.data.preferences.theme);
+                }
+            } catch (error) {
+                console.error("Erro ao carregar preferências:", error);
+            } finally {
+                setLoadingPrefs(false);
+            }
+        };
+        loadPreferences();
+    }, []);
 
     const showToast = (message, type = "success") => {
         setToast({ message, type });
@@ -75,6 +93,10 @@ export default function UserConfig() {
             ...preferences,
             [key]: value
         });
+        // Aplica tema imediatamente ao mudar
+        if (key === 'theme') {
+            changeTheme(value);
+        }
     };
 
     const handleAvatarChange = (e) => {
@@ -92,7 +114,7 @@ export default function UserConfig() {
         try {
             const response = await api.put('/dashboard/update-profile', profileData);
             showToast("Perfil atualizado com sucesso!");
-            await fetchUserDetails(); // Atualiza dados no contexto
+            await fetchUserDetails();
         } catch (error) {
             showToast("Erro ao salvar perfil", "error");
             console.error(error);
@@ -101,8 +123,7 @@ export default function UserConfig() {
 
     const handleSavePreferences = async () => {
         try {
-            // TODO: Implementar chamada à API para salvar preferências
-            // await api.put('/dashboard/preferences', preferences);
+            await api.put('/preferences', preferences);
             showToast("Preferências salvas com sucesso!");
         } catch (error) {
             showToast("Erro ao salvar preferências", "error");
@@ -167,15 +188,15 @@ export default function UserConfig() {
                                 <div className="avatar-actions">
                                     <label className="btn-secondary" style={{ cursor: "pointer" }}>
                                         Alterar Foto
-                                        <input 
-                                            type="file" 
-                                            accept="image/*" 
+                                        <input
+                                            type="file"
+                                            accept="image/*"
                                             onChange={handleAvatarChange}
                                             style={{ display: "none" }}
                                         />
                                     </label>
                                     {avatarPreview && (
-                                        <button 
+                                        <button
                                             className="btn-secondary"
                                             onClick={() => setAvatarPreview(null)}
                                         >
@@ -187,7 +208,7 @@ export default function UserConfig() {
 
                             <div className="config-form-group">
                                 <label>Nome Completo</label>
-                                <input 
+                                <input
                                     type="text"
                                     name="nome_completo"
                                     value={profileData.nome_completo}
@@ -197,7 +218,7 @@ export default function UserConfig() {
 
                             <div className="config-form-group">
                                 <label>Nome de Usuário</label>
-                                <input 
+                                <input
                                     type="text"
                                     name="username"
                                     value={profileData.username}
@@ -207,7 +228,7 @@ export default function UserConfig() {
 
                             <div className="config-form-group">
                                 <label>Email</label>
-                                <input 
+                                <input
                                     type="email"
                                     name="email"
                                     value={profileData.email}
@@ -222,7 +243,7 @@ export default function UserConfig() {
 
                             <div className="config-form-group">
                                 <label>Data de Nascimento</label>
-                                <input 
+                                <input
                                     type="date"
                                     name="nascimento"
                                     value={profileData.nascimento}
@@ -232,7 +253,7 @@ export default function UserConfig() {
 
                             <div className="config-form-group">
                                 <label>Curso</label>
-                                <input 
+                                <input
                                     type="text"
                                     name="curso"
                                     value={profileData.curso}
@@ -243,7 +264,7 @@ export default function UserConfig() {
 
                             <div className="config-form-group">
                                 <label>Biografia</label>
-                                <textarea 
+                                <textarea
                                     name="biografia"
                                     value={profileData.biografia}
                                     onChange={handleProfileChange}
@@ -300,10 +321,10 @@ export default function UserConfig() {
                                     <span>Receba alertas no navegador</span>
                                 </div>
                                 <label className="switch">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={preferences.pushNotifications}
-                                        onChange={() => handlePreferenceToggle("pushNotifications")}
+                                    <input
+                                        type="checkbox"
+                                        checked={preferences.push_notifications}
+                                        onChange={() => handlePreferenceToggle("push_notifications")}
                                     />
                                     <span className="switch-slider"></span>
                                 </label>
@@ -315,10 +336,10 @@ export default function UserConfig() {
                                     <span>Receba atualizações importantes por email</span>
                                 </div>
                                 <label className="switch">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={preferences.emailNotifications}
-                                        onChange={() => handlePreferenceToggle("emailNotifications")}
+                                    <input
+                                        type="checkbox"
+                                        checked={preferences.email_notifications}
+                                        onChange={() => handlePreferenceToggle("email_notifications")}
                                     />
                                     <span className="switch-slider"></span>
                                 </label>
@@ -330,10 +351,10 @@ export default function UserConfig() {
                                     <span>Receba lembretes para manter sua rotina de estudos</span>
                                 </div>
                                 <label className="switch">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={preferences.studyReminders}
-                                        onChange={() => handlePreferenceToggle("studyReminders")}
+                                    <input
+                                        type="checkbox"
+                                        checked={preferences.study_reminders}
+                                        onChange={() => handlePreferenceToggle("study_reminders")}
                                     />
                                     <span className="switch-slider"></span>
                                 </label>
@@ -345,10 +366,10 @@ export default function UserConfig() {
                                     <span>Receba resumos do seu progresso toda semana</span>
                                 </div>
                                 <label className="switch">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={preferences.weeklyReports}
-                                        onChange={() => handlePreferenceToggle("weeklyReports")}
+                                    <input
+                                        type="checkbox"
+                                        checked={preferences.weekly_reports}
+                                        onChange={() => handlePreferenceToggle("weekly_reports")}
                                     />
                                     <span className="switch-slider"></span>
                                 </label>
@@ -360,8 +381,8 @@ export default function UserConfig() {
                                     <span>Seja notificado quando conquistar novas badges</span>
                                 </div>
                                 <label className="switch">
-                                    <input 
-                                        type="checkbox" 
+                                    <input
+                                        type="checkbox"
                                         checked={preferences.achievements}
                                         onChange={() => handlePreferenceToggle("achievements")}
                                     />
@@ -389,7 +410,7 @@ export default function UserConfig() {
 
                             <div className="config-form-group">
                                 <label>Tema</label>
-                                <select 
+                                <select
                                     value={preferences.theme}
                                     onChange={(e) => handlePreferenceChange("theme", e.target.value)}
                                 >
@@ -401,7 +422,7 @@ export default function UserConfig() {
 
                             <div className="config-form-group">
                                 <label>Idioma</label>
-                                <select 
+                                <select
                                     value={preferences.language}
                                     onChange={(e) => handlePreferenceChange("language", e.target.value)}
                                 >
@@ -417,10 +438,10 @@ export default function UserConfig() {
                                     <span>Reproduzir sons ao completar tarefas e conquistas</span>
                                 </div>
                                 <label className="switch">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={preferences.soundEffects}
-                                        onChange={() => handlePreferenceToggle("soundEffects")}
+                                    <input
+                                        type="checkbox"
+                                        checked={preferences.sound_effects}
+                                        onChange={() => handlePreferenceToggle("sound_effects")}
                                     />
                                     <span className="switch-slider"></span>
                                 </label>
@@ -429,16 +450,16 @@ export default function UserConfig() {
                             <div className="slider-group">
                                 <div className="slider-label">
                                     <span>Meta de Estudo Diária</span>
-                                    <span className="slider-value">{preferences.dailyGoal}h</span>
+                                    <span className="slider-value">{preferences.daily_goal}h</span>
                                 </div>
-                                <input 
+                                <input
                                     type="range"
                                     className="slider"
                                     min="1"
                                     max="8"
                                     step="0.5"
-                                    value={preferences.dailyGoal}
-                                    onChange={(e) => handlePreferenceChange("dailyGoal", parseFloat(e.target.value))}
+                                    value={preferences.daily_goal}
+                                    onChange={(e) => handlePreferenceChange("daily_goal", parseFloat(e.target.value))}
                                 />
                             </div>
 
@@ -462,14 +483,20 @@ export default function UserConfig() {
 
                             <div className="config-form-group">
                                 <label>Visibilidade do Perfil</label>
-                                <select 
-                                    value={preferences.profileVisibility}
-                                    onChange={(e) => handlePreferenceChange("profileVisibility", e.target.value)}
+                                <select
+                                    value={preferences.profile_visibility}
+                                    onChange={(e) => handlePreferenceChange("profile_visibility", e.target.value)}
                                 >
                                     <option value="public">Público</option>
                                     <option value="friends">Apenas Amigos</option>
                                     <option value="private">Privado</option>
                                 </select>
+                            </div>
+
+                            <div className="config-actions">
+                                <button className="btn-primary" onClick={handleSavePreferences}>
+                                    Salvar Preferências
+                                </button>
                             </div>
                         </div>
 
@@ -489,8 +516,8 @@ export default function UserConfig() {
                             </p>
 
                             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                                <button 
-                                    className="btn-danger" 
+                                <button
+                                    className="btn-danger"
                                     onClick={handleDeleteAccount}
                                     disabled={deleting}
                                 >
@@ -508,35 +535,47 @@ export default function UserConfig() {
 
     return (
 
-            <div className="config-root">
-                <header className="config-header">
-                    <h1>Configurações</h1>
-                    <p>Gerencie suas preferências e informações da conta</p>
-                </header>
+        <div className="config-root">
+            <header className="config-header">
+                <h1>Configurações</h1>
+                <p>Gerencie suas preferências e informações da conta</p>
+            </header>
 
-                <div className="config-tabs">
-                    <button 
-                        className={`config-tab ${activeTab === "perfil" ? "active" : ""}`}
-                        onClick={() => setActiveTab("perfil")}
-                    >
-                        Perfil
-                    </button>
-                    <button 
-                        className={`config-tab ${activeTab === "privacidade" ? "active" : ""}`}
-                        onClick={() => setActiveTab("privacidade")}
-                    >
-                        Privacidade
-                    </button>
-                </div>
-
-                {renderTabContent()}
-
-                {toast && (
-                    <div className={`toast ${toast.type}`}>
-                        <span>{toast.type === "success" ? "✓" : "✗"}</span>
-                        <span>{toast.message}</span>
-                    </div>
-                )}
+            <div className="config-tabs">
+                <button
+                    className={`config-tab ${activeTab === "perfil" ? "active" : ""}`}
+                    onClick={() => setActiveTab("perfil")}
+                >
+                    Perfil
+                </button>
+                <button
+                    className={`config-tab ${activeTab === "notificacoes" ? "active" : ""}`}
+                    onClick={() => setActiveTab("notificacoes")}
+                >
+                    Notificações
+                </button>
+                <button
+                    className={`config-tab ${activeTab === "aparencia" ? "active" : ""}`}
+                    onClick={() => setActiveTab("aparencia")}
+                >
+                    Aparência
+                </button>
+                <button
+                    className={`config-tab ${activeTab === "privacidade" ? "active" : ""}`}
+                    onClick={() => setActiveTab("privacidade")}
+                >
+                    Privacidade
+                </button>
             </div>
+
+            {renderTabContent()}
+
+            {toast && (
+                <div className={`toast ${toast.type}`}>
+                    <span>{toast.type === "success" ? "✓" : "✗"}</span>
+                    <span>{toast.message}</span>
+                </div>
+            )}
+        </div>
     );
 }

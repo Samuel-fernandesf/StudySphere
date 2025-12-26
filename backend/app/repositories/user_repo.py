@@ -6,8 +6,7 @@ from typing import List
 import re
 
 class UserRepository:
-
-    #Métodos de Busca
+    """Repositório para operações de dados do usuário"""
     def get_all_users(self) -> List[Usuario]:
         return Usuario.query.all()       
     
@@ -19,9 +18,6 @@ class UserRepository:
     
     def get_by_username(self, username: str) -> Usuario | None:
         return Usuario.query.filter_by(username=username).first()
-    
-    
-    #Métodos de Cadastro e Edição
     def update_and_commit(self, usuario:Usuario):
         db.session.commit()
 
@@ -67,10 +63,8 @@ class UserRepository:
                 raise ValueError('A data de nascimento é obrigatória e deve ser fornecida.')
             try:
                 if "-" in new_nascimento:
-                    #Converte string para o objeto datetime.date
                     date_object = datetime.strptime(new_nascimento, "%Y-%m-%d").date()
                 else:
-                    # Caso venha em outro formato (fallback)
                     date_object = datetime.strptime(
                         new_nascimento,
                         "%a, %d %b %Y %H:%M:%S %Z"
@@ -99,10 +93,8 @@ class UserRepository:
         if data_nascimento and isinstance(data_nascimento, str):
             try:
                 if "-" in data_nascimento:
-                    #Converte string para o objeto datetime.date
                     date_object = datetime.strptime(data_nascimento, "%Y-%m-%d").date()
                 else:
-                    # Caso venha em outro formato (fallback)
                     date_object = datetime.strptime(
                         data_nascimento,
                         "%a, %d %b %Y %H:%M:%S %Z"
@@ -124,11 +116,7 @@ class UserRepository:
         if conta_social:
             return conta_social.usuario_core
         
-        #Se não encontrou pela conta social
-        usuario_existente = self.get_by_email(email=email)
-
         if usuario_existente:
-            #Usuário existe (tinha senha), apena vincula o Google a ele
             nova_conta_social = UsuarioProvedor(
                 usuario_id=usuario_existente.id,
                 provedor='google',
@@ -138,9 +126,6 @@ class UserRepository:
             db.session.commit()
             return usuario_existente
         
-        #Caso seja um usuário novo
-
-        #Criação de um username a partir do name e id_google
         base_name = name or "user"
         base_name = base_name.lower().replace(' ', '.')
         base_name = re.sub(r'[^a-z0-9.]', '', base_name) or "user"
