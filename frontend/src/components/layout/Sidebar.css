@@ -4,7 +4,6 @@
   width: var(--sidebar-width);
   height: 100vh;
   position: fixed;
-  /* ← MANTER AQUI */
   top: 0;
   left: 0;
   background-color: var(--sidebar-bg);
@@ -29,12 +28,12 @@
 }
 
 .sidebar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--sidebar-bg);
   border-radius: 3px;
 }
 
 .sidebar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--sidebar-bg);
 }
 
 /* Header */
@@ -72,7 +71,6 @@
 .sidebar__content {
   flex: 1;
   margin-right: -8px;
-  /* ← Compensa o scrollbar */
   padding-right: 8px;
 }
 

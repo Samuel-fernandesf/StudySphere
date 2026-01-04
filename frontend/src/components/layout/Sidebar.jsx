@@ -3,7 +3,6 @@ import { useLocation, Link } from 'react-router-dom';
 import LogoutButton from '../Auth/LogoutButton';
 import logo from '../../assets/sphere_logo.png';
 import './Sidebar.css';
-// Importa todos os ícones necessários (do App e do Sidebar)
 import {
     Menu,
     LayoutDashboard,

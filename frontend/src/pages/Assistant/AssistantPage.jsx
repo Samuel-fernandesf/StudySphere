@@ -1,35 +1,60 @@
-import React, { useState, useEffect } from 'react';
-import EducationalAssistant from '../../components/Assistant/EducationalAssistant'; // Ajuste o caminho conforme necessário
+import React, { useState, useEffect, useCallback } from 'react';
+import EducationalAssistant from '../../components/Assistant/EducationalAssistant';
+import ConversationSidebar from '../../components/Assistant/ConversationSidebar';
 import { listarMaterias } from '../../services/subjectService';
+import {
+  listarConversas,
+  carregarConversa,
+  deletarConversa,
+  criarConversa
+} from '../../services/assistantservice';
+import { useModal } from '../../contexts/ModalContext';
 import './AssistantPage.css';
 import {
   MessageCircle,
   Clock,
-  NotebookPen,
-  Hand 
 } from "lucide-react";
 
 const AssistantPage = () => {
   const [materia, setMateria] = useState('Geral');
   const [materias, setMaterias] = useState([]);
   const [carregandoMaterias, setCarregandoMaterias] = useState(true);
-  
-  // Estado para passar o texto da ação rápida para o chat
-  const [sugestaoChat, setSugestaoChat] = useState(''); 
 
-  // Estado para tempo de sessão (fixo para não ficar mudando)
+  // Conversation state
+  const [conversations, setConversations] = useState([]);
+  const [activeConversationId, setActiveConversationId] = useState(null);
+  const [conversationMessages, setConversationMessages] = useState([]);
+  const [loadingConversations, setLoadingConversations] = useState(true);
+
+  // Estado para passar o texto da ação rápida para o chat
+  const [sugestaoChat, setSugestaoChat] = useState('');
+
+  // Estado para tempo de sessão
   const [tempoSessao, setTempoSessao] = useState(0);
 
   const [estatisticas, setEstatisticas] = useState({
     totalConversas: 0,
-    topicosAprendidos: [],
-    acoesSugeridas: [
-      { emoji: '📖', titulo: 'Explicar conceito', prompt: 'Poderia explicar o conceito de ' },
-      { emoji: '✏️', titulo: 'Resolver exercício', prompt: 'Crie um exercício prático sobre ' },
-      { emoji: '📝', titulo: 'Resumir conteúdo', prompt: 'Faça um resumo detalhado sobre ' },
-      { emoji: '📊', titulo: 'Plano de estudos', prompt: 'Crie um plano de estudos para ' }
-    ]
+    topicosAprendidos: []
   });
+
+  const { showAlert, showConfirm } = useModal();
+
+  // Load conversations
+  const fetchConversations = useCallback(async () => {
+    try {
+      setLoadingConversations(true);
+      const convs = await listarConversas();
+      setConversations(convs);
+      setEstatisticas(prev => ({
+        ...prev,
+        totalConversas: convs.length
+      }));
+    } catch (error) {
+      console.error('Erro ao carregar conversas:', error);
+    } finally {
+      setLoadingConversations(false);
+    }
+  }, []);
 
   useEffect(() => {
     const carregarDados = async () => {
@@ -42,46 +67,72 @@ const AssistantPage = () => {
         setCarregandoMaterias(false);
       }
     };
-    
-    carregarDados();
-    carregarEstatisticas();
-    
-    // Define um tempo aleatório apenas UMA vez ao montar o componente
-    setTempoSessao(Math.floor(Math.random() * 60) + 5);
-  }, []);
 
-  const carregarEstatisticas = () => {
-    const dados = localStorage.getItem('assistantStats');
-    if (dados) {
-      const parsed = JSON.parse(dados);
-      // Mantém as ações sugeridas originais, pois elas não mudam
-      setEstatisticas(prev => ({
-        ...prev,
-        ...parsed,
-        acoesSugeridas: prev.acoesSugeridas 
-      }));
+    carregarDados();
+    fetchConversations();
+
+    setTempoSessao(Math.floor(Math.random() * 60) + 5);
+  }, [fetchConversations]);
+
+  // Handle conversation selection
+  const handleSelectConversation = async (conversationId) => {
+    try {
+      const convData = await carregarConversa(conversationId);
+      setActiveConversationId(conversationId);
+      setConversationMessages(convData.messages || []);
+      if (convData.subject) {
+        setMateria(convData.subject);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar conversa:', error);
+      showAlert('Erro ao carregar conversa', 'error');
+    }
+  };
+
+  // Handle new conversation
+  const handleNewConversation = async () => {
+    setActiveConversationId(null);
+    setConversationMessages([]);
+    setSugestaoChat('');
+  };
+
+  // Handle conversation created (from chat component)
+  const handleConversationCreated = (newConversationId) => {
+    setActiveConversationId(newConversationId);
+    fetchConversations();
+  };
+
+  // Handle delete conversation
+  const handleDeleteConversation = async (conversationId) => {
+    const confirmado = await showConfirm(
+      'Tem certeza que deseja deletar esta conversa? Esta ação não pode ser desfeita.',
+      'Deletar Conversa',
+      'warning'
+    );
+
+    if (!confirmado) return;
+
+    try {
+      await deletarConversa(conversationId);
+
+      if (activeConversationId === conversationId) {
+        setActiveConversationId(null);
+        setConversationMessages([]);
+      }
+
+      fetchConversations();
+      showAlert('Conversa deletada com sucesso!', 'success');
+    } catch (error) {
+      console.error('Erro ao deletar conversa:', error);
+      showAlert('Erro ao deletar conversa', 'error');
     }
   };
 
   const atualizarEstatisticas = (novaConversa) => {
-    const novosStats = {
-      ...estatisticas,
-      totalConversas: estatisticas.totalConversas + 1,
-      topicosAprendidos: [...new Set([...estatisticas.topicosAprendidos, materia])]
-    };
-    
-    // Removemos acoesSugeridas antes de salvar para não duplicar/sujar o localStorage
-    const statsToSave = { ...novosStats };
-    delete statsToSave.acoesSugeridas;
-
-    setEstatisticas(novosStats);
-    localStorage.setItem('assistantStats', JSON.stringify(statsToSave));
-  };
-
-  // ✅ Forma correta de passar dados: Atualizando o estado que é passado como prop
-  const handleAcaoRapida = (promptBase) => {
-    const textoFinal = `${promptBase}${materia !== 'Geral' ? materia : ''}`;
-    setSugestaoChat(textoFinal);
+    setEstatisticas(prev => ({
+      ...prev,
+      topicosAprendidos: [...new Set([...prev.topicosAprendidos, materia])]
+    }));
   };
 
   return (
@@ -93,7 +144,7 @@ const AssistantPage = () => {
           <p>Seu mentor educacional inteligente</p>
         </div>
         <div className="header-actions">
-           <span className="online-badge">🟢 Online</span>
+          <span className="online-badge">🟢 Online</span>
         </div>
       </div>
 
@@ -114,15 +165,30 @@ const AssistantPage = () => {
         </select>
       </div>
 
-      {/* Layout Principal */}
-      <div className="assistant-layout">
-        
-        {/* Coluna Esquerda - Chat */}
+      {/* Layout Principal - 3 colunas */}
+      <div className="assistant-layout three-columns">
+
+        {/* Coluna Esquerda - Histórico de Conversas */}
+        <div className="assistant-history">
+          <ConversationSidebar
+            conversations={conversations}
+            activeConversationId={activeConversationId}
+            onSelectConversation={handleSelectConversation}
+            onNewConversation={handleNewConversation}
+            onDeleteConversation={handleDeleteConversation}
+            loading={loadingConversations}
+          />
+        </div>
+
+        {/* Coluna Central - Chat */}
         <div className="assistant-main">
-          <EducationalAssistant 
+          <EducationalAssistant
             materia={materia}
             onNovaConversa={atualizarEstatisticas}
-            sugestao={sugestaoChat} 
+            sugestao={sugestaoChat}
+            conversationId={activeConversationId}
+            initialMessages={conversationMessages}
+            onConversationCreated={handleConversationCreated}
           />
         </div>
 

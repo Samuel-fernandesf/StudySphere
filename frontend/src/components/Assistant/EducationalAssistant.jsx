@@ -2,55 +2,47 @@ import React, { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useModal } from "../../contexts/ModalContext";
-import { fazerPergunta, limparHistorico } from "../../services/assistantservice";
+import { fazerPergunta } from "../../services/assistantservice";
 import "./EducationalAssistant.css";
 import { NotebookPen, Trash2 } from "lucide-react";
 
-const STORAGE_KEY_PREFIX = "assistant_chat_";
-
-const EducationalAssistant = ({ materia = "Geral", onNovaConversa, sugestao }) => {
+const EducationalAssistant = ({
+  materia = "Geral",
+  onNovaConversa,
+  sugestao,
+  conversationId,
+  initialMessages = [],
+  onConversationCreated
+}) => {
   const [pergunta, setPergunta] = useState("");
   const [mensagens, setMensagens] = useState([]);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState(null);
+  const [currentConversationId, setCurrentConversationId] = useState(conversationId);
   const messagesEndRef = useRef(null);
 
   const { showAlert, showConfirm } = useModal();
 
-  const storageKey = `${STORAGE_KEY_PREFIX}${materia}`;
-
-  // Carrega histórico ao montar / trocar matéria
+  // Load initial messages when conversation changes
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(storageKey);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        const msgs = parsed.map((m) => ({
-          ...m,
-          timestamp: m.timestamp ? new Date(m.timestamp) : new Date(),
-        }));
-        setMensagens(msgs);
-      } else {
-        setMensagens([]);
-      }
-    } catch (e) {
-      console.error("Erro ao carregar histórico do assistente:", e);
+    setCurrentConversationId(conversationId);
+
+    if (initialMessages && initialMessages.length > 0) {
+      const formattedMessages = initialMessages.map((msg, idx) => ({
+        id: msg.id || idx,
+        tipo: msg.role === 'user' ? 'usuario' : 'assistente',
+        conteudo: msg.content,
+        citacoes: msg.citations?.map((url, cidx) => ({
+          name: `Fonte ${cidx + 1}`,
+          url
+        })) || [],
+        timestamp: new Date(msg.created_at || Date.now())
+      }));
+      setMensagens(formattedMessages);
+    } else {
       setMensagens([]);
     }
-  }, [storageKey]);
-
-  // Salva histórico sempre que mensagens mudam
-  useEffect(() => {
-    try {
-      const serializable = mensagens.map((m) => ({
-        ...m,
-        timestamp: m.timestamp?.toISOString?.() || new Date().toISOString(),
-      }));
-      localStorage.setItem(storageKey, JSON.stringify(serializable));
-    } catch (e) {
-      console.error("Erro ao salvar histórico do assistente:", e);
-    }
-  }, [mensagens, storageKey]);
+  }, [conversationId, initialMessages]);
 
   // Scroll automático
   useEffect(() => {
@@ -83,10 +75,16 @@ const EducationalAssistant = ({ materia = "Geral", onNovaConversa, sugestao }) =
     setMensagens((prev) => [...prev, novaPergunta]);
 
     try {
-      const resultado = await fazerPergunta(pergunta, materia);
-      // resultado: { answer, citations: ["url1", "url2", ...], sources: [] }
+      const resultado = await fazerPergunta(pergunta, materia, currentConversationId);
 
-      // mapeia citações: resultado.citations é um array de strings (URLs)
+      // Update conversation ID if new conversation was created
+      if (resultado.conversation_id && !currentConversationId) {
+        setCurrentConversationId(resultado.conversation_id);
+        if (onConversationCreated) {
+          onConversationCreated(resultado.conversation_id);
+        }
+      }
+
       const citacoes = (resultado.citations || []).map((url, idx) => ({
         name: `Fonte ${idx + 1}`,
         url,
@@ -118,23 +116,16 @@ const EducationalAssistant = ({ materia = "Geral", onNovaConversa, sugestao }) =
 
   const handleLimparHistorico = async () => {
     const confirmado = await showConfirm(
-      "Tem certeza que deseja apagar todo o histórico dessa conversa? Isso não pode ser desfeito.",
-      "Limpar Histórico",
+      "Tem certeza que deseja limpar as mensagens desta conversa?",
+      "Limpar Mensagens",
       "warning"
     );
 
     if (!confirmado) return;
 
-    try {
-      await limparHistorico();
-    } catch (error) {
-      console.error("Erro ao limpar histórico no backend:", error);
-    }
-
     setMensagens([]);
     setErro(null);
-    localStorage.removeItem(storageKey);
-    await showAlert("Histórico limpo com sucesso!", "success", "Pronto");
+    await showAlert("Mensagens limpas com sucesso!", "success", "Pronto");
   };
 
   return (
