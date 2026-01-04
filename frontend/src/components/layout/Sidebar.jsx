@@ -14,7 +14,8 @@ import {
     Settings,
     ChevronsLeft,
     ChevronsRight,
-    Sparkles
+    Sparkles,
+    Timer
 } from 'lucide-react';
 
 // Componente Sidebar
@@ -105,6 +106,15 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                             >
                                 <Sparkles size={20} />
                                 <span>Assistente</span>
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
+                                to="/pomodoro"
+                                className={`navLink ${isActive('/pomodoro') ? 'navLinkActive' : ''}`}
+                            >
+                                <Timer size={20} />
+                                <span>Pomodoro</span>
                             </Link>
                         </li>
                     </ul>

@@ -1,0 +1,599 @@
+.pomodoro-page {
+    padding: 24px;
+    min-height: 100vh;
+}
+
+/* Header */
+.pomodoro-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 30px;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.pomodoro-header h1 {
+    margin: 0;
+    color: #1a1a2e;
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.pomodoro-header p {
+    margin: 8px 0 0 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.sound-toggle,
+.settings-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 10px;
+    background: white;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.sound-toggle:hover,
+.settings-toggle:hover {
+    background: #f0f0f0;
+    transform: scale(1.05);
+}
+
+.sound-toggle.active {
+    color: #2c3e50;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Content Layout */
+.pomodoro-content {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Timer Section */
+.timer-section {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mode Selector */
+.mode-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 40px;
+    padding: 6px;
+    background: #f5f5f5;
+    border-radius: 12px;
+}
+
+.mode-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #666;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.mode-btn:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.mode-btn.active {
+    background: white;
+    color: #1a1a2e;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Timer Container */
+.timer-container {
+    position: relative;
+    width: 320px;
+    height: 320px;
+    margin-bottom: 40px;
+}
+
+.timer-svg {
+    width: 100%;
+    height: 100%;
+    transform: scaleX(-1);
+}
+
+.progress-circle {
+    transition: stroke-dashoffset 1s linear;
+}
+
+.timer-display {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.timer-mode-label {
+    font-size: 14px;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 600;
+}
+
+.timer-time {
+    font-size: 72px;
+    font-weight: 700;
+    color: #1a1a2e;
+    font-family: 'Inter', -apple-system, sans-serif;
+    line-height: 1;
+}
+
+.timer-session {
+    font-size: 14px;
+    color: #666;
+}
+
+/* Controls */
+.timer-controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.control-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.reset-btn {
+    width: 50px;
+    height: 50px;
+    background: #f0f0f0;
+    color: #666;
+}
+
+.reset-btn:hover {
+    background: #e0e0e0;
+    transform: scale(1.05);
+}
+
+.play-btn {
+    width: 80px;
+    height: 80px;
+    background: #2c3e50;
+    color: white;
+    box-shadow: 0 4px 20px rgba(44, 62, 80, 0.3);
+}
+
+.play-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 25px rgba(44, 62, 80, 0.4);
+}
+
+.play-btn.running {
+    background: #e74c3c;
+    box-shadow: 0 4px 20px rgba(231, 76, 60, 0.3);
+}
+
+.play-btn.running:hover {
+    box-shadow: 0 6px 25px rgba(231, 76, 60, 0.4);
+}
+
+.control-spacer {
+    width: 50px;
+}
+
+/* Stats Sidebar */
+.stats-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.stats-card,
+.tips-card,
+.settings-card,
+.progress-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.stats-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+.stats-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.stat-value {
+    display: block;
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #666;
+}
+
+.reset-stats-btn {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: transparent;
+    color: #666;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.reset-stats-btn:hover {
+    background: #f5f5f5;
+    border-color: #ccc;
+}
+
+/* Tips Card */
+.tips-card {
+    background: linear-gradient(135deg, #fef9e7 0%, #fef3c7 100%);
+    border: 1px solid #f6e05e;
+}
+
+.tips-card h3 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: #92400e;
+}
+
+.tips-card p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #78350f;
+}
+
+/* Settings Card */
+.settings-card h3 {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    color: #1a1a2e;
+}
+
+.duration-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.duration-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.duration-item label {
+    font-size: 13px;
+    color: #666;
+}
+
+.duration-item input {
+    width: 60px;
+    padding: 8px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.duration-item input:focus {
+    outline: none;
+    border-color: #2c3e50;
+}
+
+/* Progress Card */
+.progress-card h3 {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    color: #1a1a2e;
+}
+
+.daily-goal {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.goal-bar {
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.goal-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #27ae60, #2ecc71);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.goal-text {
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+}
+
+/* Subject Selector */
+.subject-selector {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 16px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    max-width: 600px;
+    flex-wrap: wrap;
+}
+
+.subject-selector label {
+    font-weight: 600;
+    color: #1a1a2e;
+    white-space: nowrap;
+}
+
+.subject-select {
+    flex: 1;
+    padding: 10px 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    background: white;
+    color: #1a1a2e;
+    transition: all 0.3s ease;
+    min-width: 200px;
+}
+
+.subject-select:hover:not(:disabled) {
+    border-color: #2c3e50;
+}
+
+.subject-select:focus {
+    outline: none;
+    border-color: #2c3e50;
+}
+
+.subject-select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.selected-subject-badge {
+    padding: 6px 12px;
+    background: #2c3e50;
+    color: white;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Current Subject Card */
+.current-subject-card {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    border: 1px solid #81c784;
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.current-subject-card h3 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: #2e7d32;
+}
+
+.current-subject-card .subject-name {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1b5e20;
+    margin-bottom: 8px;
+}
+
+.current-subject-card .subject-info {
+    margin: 0;
+    font-size: 12px;
+    color: #388e3c;
+    line-height: 1.5;
+}
+
+/* Save Settings Button */
+.save-settings-btn {
+    width: 100%;
+    margin-top: 16px;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: #2c3e50;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.save-settings-btn:hover {
+    background: #1a252f;
+    transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .pomodoro-content {
+        grid-template-columns: 1fr 280px;
+    }
+}
+
+@media (max-width: 768px) {
+    .pomodoro-page {
+        padding: 16px;
+    }
+
+    .pomodoro-content {
+        grid-template-columns: 1fr;
+    }
+
+    .timer-section {
+        padding: 24px;
+    }
+
+    .timer-container {
+        width: 280px;
+        height: 280px;
+    }
+
+    .timer-time {
+        font-size: 56px;
+    }
+
+    .mode-selector {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .mode-btn {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+
+    .pomodoro-header {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .pomodoro-header h1 {
+        font-size: 24px;
+    }
+
+    .stats-sidebar {
+        order: -1;
+    }
+}
+
+@media (max-width: 480px) {
+    .timer-container {
+        width: 240px;
+        height: 240px;
+    }
+
+    .timer-time {
+        font-size: 48px;
+    }
+
+    .play-btn {
+        width: 70px;
+        height: 70px;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
