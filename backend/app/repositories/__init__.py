@@ -7,6 +7,7 @@ from . import fileRepository
 from . import folderRepository
 from . import progressRepository
 from . import assistant_repo
+from . import community_repo
 from .chat_repo import ChatRepository, MessageRepository, ChatUsuarioRepository
 from .quiz_repo import (
     QuizRepository, QuestaoRepository, AlternativaRepository,

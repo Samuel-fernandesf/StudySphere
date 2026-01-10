@@ -20,7 +20,7 @@ const AssistantPage = () => {
   const [materias, setMaterias] = useState([]);
   const [carregandoMaterias, setCarregandoMaterias] = useState(true);
 
-  // Conversation state
+  // Estado das conversas
   const [conversations, setConversations] = useState([]);
   const [activeConversationId, setActiveConversationId] = useState(null);
   const [conversationMessages, setConversationMessages] = useState([]);
@@ -39,7 +39,7 @@ const AssistantPage = () => {
 
   const { showAlert, showConfirm } = useModal();
 
-  // Load conversations
+  // Carregar conversas
   const fetchConversations = useCallback(async () => {
     try {
       setLoadingConversations(true);
@@ -74,7 +74,7 @@ const AssistantPage = () => {
     setTempoSessao(Math.floor(Math.random() * 60) + 5);
   }, [fetchConversations]);
 
-  // Handle conversation selection
+  // Manipular seleção de conversa
   const handleSelectConversation = async (conversationId) => {
     try {
       const convData = await carregarConversa(conversationId);
@@ -89,20 +89,20 @@ const AssistantPage = () => {
     }
   };
 
-  // Handle new conversation
+  // Manipular nova conversa
   const handleNewConversation = async () => {
     setActiveConversationId(null);
     setConversationMessages([]);
     setSugestaoChat('');
   };
 
-  // Handle conversation created (from chat component)
+  // Manipular conversa criada (do componente de chat)
   const handleConversationCreated = (newConversationId) => {
     setActiveConversationId(newConversationId);
     fetchConversations();
   };
 
-  // Handle delete conversation
+  // Manipular exclusão de conversa
   const handleDeleteConversation = async (conversationId) => {
     const confirmado = await showConfirm(
       'Tem certeza que deseja deletar esta conversa? Esta ação não pode ser desfeita.',

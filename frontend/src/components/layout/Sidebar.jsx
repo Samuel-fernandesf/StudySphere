@@ -15,7 +15,8 @@ import {
     ChevronsLeft,
     ChevronsRight,
     Sparkles,
-    Timer
+    Timer,
+    Users
 } from 'lucide-react';
 
 // Componente Sidebar
@@ -83,20 +84,11 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                         </li>
                         <li>
                             <Link
-                                to="/chats"
-                                className={`navLink ${isActive('/chats') ? 'navLinkActive' : ''}`}
+                                to="/social"
+                                className={`navLink ${isActive('/social') ? 'navLinkActive' : ''}`}
                             >
-                                <MessageSquare size={20} />
-                                <span>Chats</span>
-                            </Link>
-                        </li>
-                        <li>
-                            <Link
-                                to="/quiz"
-                                className={`navLink ${isActive('/quiz') ? 'navLinkActive' : ''}`}
-                            >
-                                <FileQuestion size={20} />
-                                <span>Questionários</span>
+                                <Users size={20} />
+                                <span>Social</span>
                             </Link>
                         </li>
                         <li>

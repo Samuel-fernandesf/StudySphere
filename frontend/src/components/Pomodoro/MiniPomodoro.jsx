@@ -17,12 +17,12 @@ const MiniPomodoro = () => {
         TIMER_MODES
     } = usePomodoro();
 
-    // Don't show on pomodoro page
+    // Não mostrar na página do pomodoro
     if (location.pathname === '/pomodoro') {
         return null;
     }
 
-    // Only show if timer is actively running
+    // Mostrar apenas se o temporizador estiver ativo
     if (!isRunning) {
         return null;
     }

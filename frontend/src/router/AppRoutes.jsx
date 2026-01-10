@@ -24,6 +24,7 @@ import UserConfig from "../pages/Config/UserConfig";
 import SubjectsPage from "../pages/Subjects/SubjectsPage";
 import AssistantPage from "../pages/Assistant/AssistantPage";
 import PomodoroPage from "../pages/Pomodoro/PomodoroPage";
+import SocialHub from "../pages/Social/SocialHub";
 
 export default function AppRoutes() {
   const { usuario } = useAuthContext();
@@ -70,6 +71,7 @@ export default function AppRoutes() {
                 <Route path="/config" element={<UserConfig />} />
                 <Route path="/assistant" element={<AssistantPage />} />
                 <Route path="/pomodoro" element={<PomodoroPage />} />
+                <Route path="/social" element={<SocialHub />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Layout>

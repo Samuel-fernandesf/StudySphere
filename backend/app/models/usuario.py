@@ -19,6 +19,7 @@ class Usuario(db.Model, UserMixin):
     biografia = db.Column(db.Text, nullable=True)
     confirm_user = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+    pontos = db.Column(db.Integer, nullable=False, default=0)  # Pontos para ranking
 
     contas_sociais = db.relationship('UsuarioProvedor', back_populates='usuario_core', cascade='all, delete-orphan')
     revoked_tokens = db.relationship('RevokedToken', back_populates='user', lazy='dynamic', cascade='all, delete-orphan')

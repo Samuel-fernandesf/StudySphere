@@ -26,7 +26,7 @@ export function PomodoroProvider({ children }) {
     const intervalRef = useRef(null);
     const sessionStartTimeRef = useRef(null);
 
-    // Load settings from localStorage
+    // Carrega configurações do localStorage
     useEffect(() => {
         const savedStats = localStorage.getItem('pomodoroStats');
         if (savedStats) {
@@ -58,7 +58,7 @@ export function PomodoroProvider({ children }) {
         }
     }, []);
 
-    // Save stats to localStorage
+    // Salva estatísticas no localStorage
     useEffect(() => {
         localStorage.setItem('pomodoroStats', JSON.stringify({
             sessionsCompleted,
@@ -66,7 +66,7 @@ export function PomodoroProvider({ children }) {
         }));
     }, [sessionsCompleted, totalFocusTime]);
 
-    // Save running state to localStorage
+    // Salva estado de execução no localStorage
     useEffect(() => {
         if (isRunning) {
             const endTime = Date.now() + (timeLeft * 1000);
@@ -115,12 +115,12 @@ export function PomodoroProvider({ children }) {
             const newSessions = sessionsCompleted + 1;
             setSessionsCompleted(newSessions);
 
-            // Calculate actual session duration
+            // Calcula a duração real da sessão
             const actualDuration = sessionStartTimeRef.current
                 ? Math.floor((Date.now() - sessionStartTimeRef.current) / 60000)
                 : customDurations.WORK;
 
-            // Set pending session to be saved
+            // Define sessão pendente para ser salva
             if (selectedSubject) {
                 setPendingSession({
                     subjectId: selectedSubject.id,
@@ -129,7 +129,7 @@ export function PomodoroProvider({ children }) {
                 });
             }
 
-            // Every 4 sessions, take a long break
+            // A cada 4 sessões, faz uma pausa longa
             if (newSessions % 4 === 0) {
                 setMode('LONG_BREAK');
                 setTimeLeft(customDurations.LONG_BREAK * 60);
@@ -145,7 +145,7 @@ export function PomodoroProvider({ children }) {
         sessionStartTimeRef.current = null;
     }, [mode, sessionsCompleted, customDurations, selectedSubject, playSound]);
 
-    // Timer logic
+    // Lógica do temporizador
     useEffect(() => {
         if (isRunning && timeLeft > 0) {
             intervalRef.current = setInterval(() => {
@@ -228,7 +228,7 @@ export function PomodoroProvider({ children }) {
     };
 
     const value = {
-        // State
+        // Estado
         mode,
         timeLeft,
         isRunning,
@@ -240,7 +240,7 @@ export function PomodoroProvider({ children }) {
         pendingSession,
         TIMER_MODES,
 
-        // Actions
+        // Ações
         startTimer,
         pauseTimer,
         toggleTimer,
@@ -252,7 +252,7 @@ export function PomodoroProvider({ children }) {
         clearPendingSession,
         resetStats,
 
-        // Helpers
+        // Auxiliares
         formatTime,
         getProgress
     };

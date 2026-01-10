@@ -11,3 +11,5 @@ from .quiz import quiz_bp
 from .users import users
 from .assistant import assistant_bp
 from .preferences import preferences_bp
+from .community import community_bp
+

@@ -23,7 +23,7 @@ const EducationalAssistant = ({
 
   const { showAlert, showConfirm } = useModal();
 
-  // Load initial messages when conversation changes
+  // Carrega mensagens iniciais quando a conversa muda
   useEffect(() => {
     setCurrentConversationId(conversationId);
 
@@ -77,7 +77,7 @@ const EducationalAssistant = ({
     try {
       const resultado = await fazerPergunta(pergunta, materia, currentConversationId);
 
-      // Update conversation ID if new conversation was created
+      // Atualiza o ID da conversa se uma nova conversa foi criada
       if (resultado.conversation_id && !currentConversationId) {
         setCurrentConversationId(resultado.conversation_id);
         if (onConversationCreated) {

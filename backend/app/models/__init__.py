@@ -10,4 +10,5 @@ from .chat import Chat, Mensagem, ChatUsuario, TipoChat, TipoMensagem
 from .quiz import Quiz, Questao, Alternativa, TentativaQuiz, RespostaUsuario, TagQuiz, DificuldadeQuiz
 from .user_preferences import UserPreferences
 from .assistant_conversation import AssistantConversation, AssistantMessage
+from .community import Post, PostLike, PostComment
 

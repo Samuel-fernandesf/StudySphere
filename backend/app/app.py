@@ -6,7 +6,7 @@ from utils.extensions import jwt, socket_io
 from dotenv import load_dotenv
 from datetime import timedelta
 from utils import jwt_handlers, socket_handlers
-from routes import auth, home, events_bp, subjects_bp, tasks_bp, files_bp, folders_bp, progress_bp, chat, quiz_bp, users, assistant_bp, preferences_bp
+from routes import auth, home, events_bp, subjects_bp, tasks_bp, files_bp, folders_bp, progress_bp, chat, quiz_bp, users, assistant_bp, preferences_bp, community_bp
 import os
 from pathlib import Path
 
@@ -43,5 +43,6 @@ def create_app():
     app.register_blueprint(quiz_bp, url_prefix='/api/quizzes')
     app.register_blueprint(assistant_bp, url_prefix='/api/assistant')
     app.register_blueprint(preferences_bp, url_prefix='/api')
+    app.register_blueprint(community_bp, url_prefix='/api/community')
 
     return app

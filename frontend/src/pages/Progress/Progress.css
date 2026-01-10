@@ -55,7 +55,6 @@
   font-size: 16px;
 }
 
-/* KPIs */
 .progress-kpis {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -105,7 +104,6 @@
   color: #1e293b;
 }
 
-/* Meta Semanal */
 .weekly-goal-section {
   background: white;
   border-radius: 12px;
@@ -183,7 +181,6 @@
   transition: width 0.3s ease;
 }
 
-/* Gráficos */
 .charts-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
@@ -236,7 +233,6 @@
   background-color: #e2e8f0;
 }
 
-/* Gráfico de Barras */
 .bar-chart {
   display: flex;
   align-items: flex-end;
@@ -294,7 +290,6 @@
   color: #94a3b8;
 }
 
-/* Gráfico de Donut - CORRIGIDO */
 .donut-chart {
   width: 100%;
   max-width: 320px;
@@ -315,7 +310,6 @@
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
 }
 
-/* Legenda das Matérias */
 .subject-legend {
   display: flex;
   flex-direction: column;
@@ -371,7 +365,6 @@
   white-space: nowrap;
 }
 
-/* Responsivo */
 @media (max-width: 768px) {
   .progress-page {
     padding: 16px;
@@ -425,22 +418,19 @@
   }
 }
 
-
-/* Container principal do gráfico */
 .bar-chart-container {
   position: relative;
-  height: 220px; /* Altura fixa é OBRIGATÓRIA para o gráfico funcionar */
+  height: 220px;
   margin-top: 20px;
-  padding-left: 30px; /* Espaço para os números do eixo Y */
+  padding-left: 30px;
 }
 
-/* Fundo com as linhas e números do eixo Y */
 .chart-y-axis-bg {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 180px; /* Altura da área das barras (desconta o espaço da label dos dias) */
+  height: 180px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -456,7 +446,7 @@
 
 .y-line span {
   position: absolute;
-  left: 0px; 
+  left: 0px;
   top: -8px;
   font-size: 11px;
   color: #94a3b8;
@@ -464,18 +454,16 @@
   text-align: right;
 }
 
-/* Área das barras (Frente) */
 .bar-chart {
   position: relative;
   display: flex;
   justify-content: space-between;
-  align-items: flex-end; /* Alinha tudo ao fundo */
+  align-items: flex-end;
   height: 100%;
   z-index: 1;
   padding-right: 10px;
 }
 
-/* Coluna individual (Barra + Label do Dia) */
 .bar-column {
   display: flex;
   flex-direction: column;
@@ -485,29 +473,27 @@
   flex: 1;
 }
 
-/* Área onde a barra colorida cresce */
 .bar-area {
   width: 100%;
-  height: 180px; /* MESMA altura do .chart-y-axis-bg */
+  height: 180px;
   display: flex;
-  align-items: flex-end; /* Faz a barra colorida ficar no chão */
+  align-items: flex-end;
   justify-content: center;
 }
 
-/* A barra colorida em si */
 .bar {
-  width: 60%; /* Largura da barra */
+  width: 60%;
   min-width: 8px;
   max-width: 40px;
-  background-color: #3b82f6; /* Azul */
+  background-color: #3b82f6;
   border-radius: 4px 4px 0 0;
   transition: height 0.5s ease-out;
-  min-height: 2px; /* Para sempre mostrar um risquinho se for 0 */
+  min-height: 2px;
 }
 
 .bar-label {
   margin-top: 8px;
   font-size: 12px;
   color: #64748b;
-  height: 20px; /* Altura fixa para alinhar */
+  height: 20px;
 }
