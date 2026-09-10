@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify, current_app
 import json
-import requests
 import re
 import random
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -36,8 +35,12 @@ tentativa_schema = TentativaQuizSchema()
 tentativas_schema = TentativaQuizSchema(many=True)
 
 
+from google import genai
+from google.genai import types
+
 load_dotenv()
-PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 
 
@@ -370,8 +373,8 @@ def get_quiz_ranking(quiz_id):
 def auto_generate_quiz():
     """POST /api/quizzes/auto-generate - Gera questões automaticamente com IA (não salva no banco)"""
     try:
-        if not PERPLEXITY_API_KEY:
-            return jsonify({'message': 'API key da Perplexity não configurada'}), 500
+        if not GEMINI_API_KEY:
+            return jsonify({'message': 'API key do Gemini não configurada'}), 500
 
         user_id = get_jwt_identity()  # só para garantir que está autenticado
 
@@ -419,35 +422,16 @@ def auto_generate_quiz():
         }}
         """
 
-        resp = requests.post(
-            "https://api.perplexity.ai/chat/completions",
-            headers={
-                "Authorization": f"Bearer {PERPLEXITY_API_KEY}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "model": "sonar-pro",
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": "Você é um gerador de questionários que responde apenas em JSON válido."
-                    },
-                    {"role": "user", "content": prompt},
-                ],
-                "max_tokens": 2048,
-                "temperature": 0.2,
-            },
-            timeout=60,
+        response = client.models.generate_content(
+            model='gemini-3.6-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction='Você é um gerador de questionários que responde apenas em JSON válido.',
+                temperature=0.2,
+                max_output_tokens=8192
+            )
         )
-        
-        if resp.status_code != 200:
-            print("Perplexity status:", resp.status_code)
-            print("Perplexity body:", resp.text)
-            resp.raise_for_status()
-
-        resp.raise_for_status()
-        data_api = resp.json()
-        content = data_api["choices"][0]["message"]["content"]
+        content = response.text
         
         print("=== RAW IA CONTENT ===")
         print(content)

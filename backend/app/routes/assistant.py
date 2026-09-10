@@ -1,15 +1,18 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-import requests
 import os
 import re
 from dotenv import load_dotenv
 from repositories import assistant_repo
+from google import genai
+from google.genai import types
 
 load_dotenv()
 
 assistant_bp = Blueprint('assistant', __name__)
-PERPLEXITY_API_KEY = os.getenv('PERPLEXITY_API_KEY')
+
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 BLOCKED_TOPICS = [
     'política partidária', 'apostas', 'gambling', 'conteúdo adulto',
@@ -90,23 +93,28 @@ Lembre-se: Seu único propósito é auxiliar no aprendizado educacional.'''
     }
 
 
-def build_messages_from_conversation(conversation_data, subject=''):
-    messages = [create_enhanced_system_message(subject)]
+def build_gemini_history(conversation_data):
+    """Builds Gemini-compatible chat history from conversation data."""
+    history = []
     
     if conversation_data and 'messages' in conversation_data:
         for msg in conversation_data['messages']:
             if msg['role'] == 'user':
-                messages.append({
-                    'role': 'user',
-                    'content': f'<<<PERGUNTA_ESTUDANTE>>>{msg["content"]}<<<FIM_PERGUNTA>>>'
-                })
+                history.append(
+                    types.Content(
+                        role='user',
+                        parts=[types.Part.from_text(text=f'<<<PERGUNTA_ESTUDANTE>>>{msg["content"]}<<<FIM_PERGUNTA>>>')]
+                    )
+                )
             else:
-                messages.append({
-                    'role': 'assistant',
-                    'content': msg['content']
-                })
+                history.append(
+                    types.Content(
+                        role='model',
+                        parts=[types.Part.from_text(text=msg['content'])]
+                    )
+                )
     
-    return messages
+    return history
 
 
 
@@ -228,66 +236,52 @@ def ask_question():
         )
     
     conversation_data = assistant_repo.get_conversation_with_messages(conversation.id)
-    messages = build_messages_from_conversation(conversation_data, subject)
+    history = build_gemini_history(conversation_data)
     
-    messages.append({
-        'role': 'user',
-        'content': f'<<<PERGUNTA_ESTUDANTE>>>{question}<<<FIM_PERGUNTA>>>'
-    })
-    
-    headers = {
-        'Authorization': f'Bearer {PERPLEXITY_API_KEY}',
-        'Content-Type': 'application/json'
-    }
-    
-    payload = {
-        'model': 'sonar-pro',
-        'messages': messages,
-        'temperature': 0.2,
-        'max_tokens': 2000,
-        'top_p': 0.9
-    }
+    system_msg = create_enhanced_system_message(subject)
     
     try:
-        response = requests.post(
-            'https://api.perplexity.ai/chat/completions',
-            headers=headers,
-            json=payload,
-            timeout=30
+        # Build the full contents: history + current question
+        contents = history + [
+            types.Content(
+                role='user',
+                parts=[types.Part.from_text(text=f'<<<PERGUNTA_ESTUDANTE>>>{question}<<<FIM_PERGUNTA>>>')]
+            )
+        ]
+        
+        response = client.models.generate_content(
+            model='gemini-3.6-flash',
+            contents=contents,
+            config=types.GenerateContentConfig(
+                system_instruction=system_msg['content'],
+                temperature=0.2,
+                max_output_tokens=2048,
+                top_p=0.9
+            )
         )
         
-        if response.status_code != 200:
-            return jsonify({
-                'error': 'Erro ao processar sua pergunta',
-                'details': 'Tente novamente em alguns instantes'
-            }), response.status_code
+        answer_text = response.text
         
-        result = response.json()
-        assistant_message = result['choices'][0]['message']
-        
-        response_content = assistant_message['content'].lower()
+        response_content = answer_text.lower()
         if any(blocked in response_content for blocked in BLOCKED_TOPICS[:5]):
             return jsonify({
-                'error': 'Conteúdo inadequado detectado. Por favor, reformule sua pergunta.'
+                'error': 'Conte\u00fado inadequado detectado. Por favor, reformule sua pergunta.'
             }), 400
         
-        citations = result.get('citations', [])
+        citations = []
         
         assistant_repo.add_message(conversation.id, 'user', question)
-        assistant_repo.add_message(conversation.id, 'assistant', assistant_message['content'], citations)
+        assistant_repo.add_message(conversation.id, 'assistant', answer_text, citations)
         
         return jsonify({
-            'answer': assistant_message['content'],
+            'answer': answer_text,
             'citations': citations,
-            'sources': result.get('sources', []),
+            'sources': [],
             'conversation_id': conversation.id
         }), 200
         
-    except requests.exceptions.Timeout:
-        return jsonify({'error': 'Tempo limite excedido. Tente novamente.'}), 504
-    except requests.exceptions.RequestException:
-        return jsonify({'error': 'Erro de conexão. Verifique sua internet.'}), 500
-    except Exception:
+    except Exception as e:
+        print(f'Erro Gemini: {e}')
         return jsonify({'error': 'Erro ao processar sua pergunta.'}), 500
 
 
