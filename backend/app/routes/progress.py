@@ -127,7 +127,12 @@ def get_weekly_goal():
     user_id = get_jwt_identity()
     
     # Parâmetro opcional para meta semanal em horas
-    goal_hours = request.args.get('goal_hours', default=20, type=int)
+    try:
+        goal_hours = float(request.args.get('goal_hours', 20))
+        if goal_hours <= 0:
+            goal_hours = 20.0
+    except (TypeError, ValueError):
+        goal_hours = 20.0
     
     try:
         weekly_goal = progressRepository.get_weekly_goal_progress(user_id, goal_hours)

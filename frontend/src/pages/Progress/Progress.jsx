@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Clock, TrendingUp, Target, Award, Plus } from "lucide-react";
-import { obterResumoProgresso } from "../../services/progressService";
+import { Clock, TrendingUp, Target, Award, Plus, Pencil } from "lucide-react";
+import { obterResumoProgresso, obterMetaSemanal } from "../../services/progressService";
 import StudySessionModal from "../../components/progress/StudySessionModal";
+import EditWeeklyGoalModal from "../../components/progress/EditWeeklyGoalModal";
 import { useModal } from "../../contexts/ModalContext"; // Importando o contexto
 import "./Progress.css";
 
@@ -9,6 +10,7 @@ export default function ProgressView() {
   const [progressData, setProgressData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   
   // Hook do modal global (caso precise usar showAlert no futuro)
   const { showAlert } = useModal();
@@ -21,6 +23,22 @@ export default function ProgressView() {
     try {
       setLoading(true);
       const data = await obterResumoProgresso();
+      const savedGoal = localStorage.getItem("study_weekly_goal_hours");
+      if (savedGoal && data) {
+        const customHours = parseFloat(savedGoal);
+        try {
+          const customGoalData = await obterMetaSemanal(customHours);
+          data.weekly_goal = customGoalData;
+        } catch (e) {
+          const total = data.weekly_goal?.total_hours || 0;
+          data.weekly_goal = {
+            total_hours: total,
+            goal_hours: customHours,
+            progress_percentage: Math.min(100, (total / customHours) * 100),
+            remaining_hours: Math.max(0, customHours - total)
+          };
+        }
+      }
       setProgressData(data);
     } catch (error) {
       console.error("Erro ao carregar dados de progresso:", error);
@@ -35,6 +53,41 @@ export default function ProgressView() {
     loadProgressData();
   }
 
+  async function handleSaveGoal(newHours) {
+    const hoursNum = parseFloat(newHours);
+    if (isNaN(hoursNum) || hoursNum <= 0) {
+      await showAlert("Por favor, insira um número válido de horas (maior que zero).", "warning");
+      return;
+    }
+
+    try {
+      localStorage.setItem("study_weekly_goal_hours", hoursNum.toString());
+      const updatedWeeklyGoal = await obterMetaSemanal(hoursNum);
+      setProgressData((prev) => ({
+        ...prev,
+        weekly_goal: updatedWeeklyGoal,
+      }));
+      setIsGoalModalOpen(false);
+      await showAlert(`Meta semanal alterada para ${hoursNum} horas!`, "success", "Meta Atualizada");
+    } catch (error) {
+      console.error("Erro ao atualizar meta semanal:", error);
+      setProgressData((prev) => {
+        const total = prev?.weekly_goal?.total_hours || 0;
+        return {
+          ...prev,
+          weekly_goal: {
+            total_hours: total,
+            goal_hours: hoursNum,
+            progress_percentage: Math.min(100, (total / hoursNum) * 100),
+            remaining_hours: Math.max(0, hoursNum - total),
+          },
+        };
+      });
+      setIsGoalModalOpen(false);
+      await showAlert(`Meta semanal alterada para ${hoursNum}h!`, "success", "Meta Atualizada");
+    }
+  }
+
   if (loading) {
     return (
       <main className="progress-page">
@@ -44,6 +97,8 @@ export default function ProgressView() {
   }
 
   const weeklyGoal = progressData?.weekly_goal || { total_hours: 0, goal_hours: 20, progress_percentage: 0 };
+  const isCompleted = weeklyGoal.progress_percentage >= 100;
+  const isNear = weeklyGoal.progress_percentage >= 75 && !isCompleted;
   const timeByDay = progressData?.time_by_day || [];
   const timeBySubject = progressData?.time_by_subject || [];
 
@@ -199,25 +254,77 @@ export default function ProgressView() {
 
       {/* Meta da Semana */}
       <div className="weekly-goal-section">
-        <div className="section-header-inline">
-          <div className="section-icon">
-            <Target size={20} />
+        <div className="weekly-goal-header">
+          <div className="weekly-goal-title-group">
+            <div className="weekly-goal-icon">
+              <Target size={22} />
+            </div>
+            <div>
+              <div className="weekly-goal-title-row">
+                <h3 className="weekly-goal-title">Meta da Semana</h3>
+                <span className={`weekly-goal-badge ${isCompleted ? 'completed' : isNear ? 'near' : 'active'}`}>
+                  {isCompleted ? '🎉 Meta Atingida!' : isNear ? '🔥 Quase Lá!' : '🎯 Em Andamento'}
+                </span>
+              </div>
+              <p className="weekly-goal-subtitle">
+                {isCompleted 
+                  ? `Parabéns! Você atingiu sua meta de ${weeklyGoal.goal_hours} horas desta semana!`
+                  : `Progresso para sua meta semanal de ${weeklyGoal.goal_hours} horas de dedicação`
+                }
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="section-title">Meta da Semana</h3>
-            <p className="section-subtitle">Progresso para sua meta semanal de {weeklyGoal.goal_hours} horas</p>
+          
+          <button 
+            type="button" 
+            className="edit-goal-button"
+            onClick={() => setIsGoalModalOpen(true)}
+            title="Alterar meta semanal de horas"
+          >
+            <Pencil size={15} />
+            <span>Alterar Meta</span>
+          </button>
+        </div>
+
+        {/* Estatísticas resumidas da meta */}
+        <div className="weekly-goal-stats-grid">
+          <div className="goal-stat-item">
+            <span className="goal-stat-label">Concluído</span>
+            <span className="goal-stat-value primary">{weeklyGoal.total_hours}h</span>
+          </div>
+          <div className="goal-stat-item">
+            <span className="goal-stat-label">Meta Definida</span>
+            <span className="goal-stat-value">{weeklyGoal.goal_hours}h</span>
+          </div>
+          <div className="goal-stat-item">
+            <span className="goal-stat-label">Restante</span>
+            <span className="goal-stat-value highlight">
+              {weeklyGoal.remaining_hours != null 
+                ? `${weeklyGoal.remaining_hours}h` 
+                : `${Math.max(0, (weeklyGoal.goal_hours - weeklyGoal.total_hours).toFixed(1))}h`}
+            </span>
+          </div>
+          <div className="goal-stat-item">
+            <span className="goal-stat-label">Progresso</span>
+            <span className="goal-stat-value accent">
+              {Math.round(weeklyGoal.progress_percentage)}%
+            </span>
           </div>
         </div>
-        <div className="goal-progress">
-          <div className="goal-stats">
-            <span className="goal-current">{weeklyGoal.total_hours}h de {weeklyGoal.goal_hours}h</span>
-            <span className="goal-percentage">{Math.round(weeklyGoal.progress_percentage)}%</span>
-          </div>
-          <div className="progress-bar-container">
+
+        {/* Barra de Progresso estilizada */}
+        <div className="goal-progress-wrapper">
+          <div className="goal-progress-bar-track">
             <div 
-              className="progress-bar-fill" 
+              className={`goal-progress-bar-fill ${isCompleted ? 'completed' : ''}`}
               style={{ width: `${Math.min(weeklyGoal.progress_percentage, 100)}%` }}
-            ></div>
+            >
+              {weeklyGoal.progress_percentage >= 12 && (
+                <span className="progress-bar-label-inner">
+                  {Math.round(weeklyGoal.progress_percentage)}%
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -344,6 +451,15 @@ export default function ProgressView() {
 
       {isModalOpen && (
         <StudySessionModal onClose={handleModalClose} />
+      )}
+
+      {isGoalModalOpen && (
+        <EditWeeklyGoalModal
+          isOpen={isGoalModalOpen}
+          currentGoal={weeklyGoal.goal_hours}
+          onClose={() => setIsGoalModalOpen(false)}
+          onSave={handleSaveGoal}
+        />
       )}
     </main>
   );
