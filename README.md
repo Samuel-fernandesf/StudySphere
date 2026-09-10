@@ -23,7 +23,7 @@ O **StudySphere** é uma central de inteligência acadêmica projetada para tran
 -   **Matérias Personalizadas**: Organize seus conteúdos com cores e ícones distintos.
 
 ### Assistente & IA
--   **Study Assistant**: Integração com Perplexity AI para sanar dúvidas instantâneas sobre seus conteúdos.
+-   **Study Assistant**: Integração com Gemini AI para sanar dúvidas instantâneas sobre seus conteúdos.
 -   **Gerador de Quizzes**: Transforme seus materiais em exercícios práticos automaticamente.
 
 ### Produtividade & Metas
@@ -82,7 +82,7 @@ O **StudySphere** é uma central de inteligência acadêmica projetada para tran
     FLASK_SQLALCHEMY_DATABASE_URI=mysql+pymysql://USUARIO:SENHA@localhost:3306/studysphere
     FLASK_SECRET_KEY=sua_chave_secreta
     JWT_SECRET_KEY=sua_chave_jwt
-    PERPLEXITY_API_KEY=sua_chave_ia
+    GEMINI_API_KEY=sua_chave_ia
     GOOGLE_CLIENT_ID=seu_id_google
     ```
 
