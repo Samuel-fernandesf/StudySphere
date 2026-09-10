@@ -392,4 +392,120 @@
   font-size: 16px;
 }
 
+/* Ações secundárias do cabeçalho */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.header-actions .btn.btn-secondary-action {
+  background: var(--card-bg);
+  color: var(--text);
+  border: 1px solid var(--card-border);
+}
+
+.header-actions .btn.btn-secondary-action:hover {
+  background: var(--secondary, #f1f5f9);
+  color: var(--text);
+}
+
+/* Estilos para Quiz Items no Dashboard */
+.quiz-dashboard-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg);
+  border-radius: 8px;
+  border-left: 3px solid #6366f1;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.quiz-dashboard-item:hover {
+  background: var(--card-border);
+  transform: translateX(4px);
+}
+
+.quiz-dashboard-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.quiz-dashboard-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quiz-dashboard-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.quiz-tag-materia {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+}
+
+.quiz-tag-diff {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  text-transform: capitalize;
+}
+
+.quiz-tag-diff.facil {
+  background: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+}
+
+.quiz-tag-diff.medio {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+}
+
+.quiz-tag-diff.dificil {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
+.quiz-tag-questions {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.quiz-play-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: #6366f1;
+  color: #ffffff;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.quiz-play-btn:hover {
+  background: #4f46e5;
+  transform: scale(1.08);
+}
+
 

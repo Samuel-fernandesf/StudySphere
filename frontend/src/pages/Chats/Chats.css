@@ -11,6 +11,32 @@
   overflow: hidden;
 }
 
+.chats-page.embedded {
+  padding: 0;
+  background-color: transparent;
+  min-height: 580px;
+  height: calc(100vh - 240px);
+}
+
+.chats-embedded-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.chats-embedded-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text, #1e293b);
+}
+
+.embedded-btn {
+  padding: 8px 18px !important;
+  font-size: 13px !important;
+}
+
 /* ===== HEADER ===== */
 .chats-header {
   display: flex;

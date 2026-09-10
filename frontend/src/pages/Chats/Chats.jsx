@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "../../components/layout/Sidebar";
 import ChatList from "../../components/Chats/ChatList";
 import ChatWindow from "../../components/Chats/ChatWindow";
 import NewChatModal from "../../components/Chats/NewChatModal";
@@ -7,11 +6,12 @@ import { SocketProvider } from "../../contexts/SocketContext";
 import api from "../../api/api";
 import "./Chats.css";
 
-export default function Chats() {
+export default function Chats({ isEmbedded = false }) {
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [showNewChatModal, setShowNewChatModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     loadChats();
@@ -22,6 +22,9 @@ export default function Chats() {
       setLoading(true);
       const res = await api.get("/chats");
       setChats(res.data || []);
+      if (res.data && res.data.length > 0 && !selectedChat) {
+        setSelectedChat(res.data[0]);
+      }
     } catch (error) {
       console.error("Erro ao carregar chats:", error);
     } finally {
@@ -48,19 +51,35 @@ export default function Chats() {
     setSelectedChat(newChat);
   }
 
+  const filteredChats = searchTerm
+    ? chats.filter((c) =>
+        c.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : chats;
+
   return (
     <SocketProvider>
-      <div className="chats-page">
-
-        <div className="chats-header">
-          <div>
-            <h1 className="chats-title">Chats Colaborativos</h1>
-            <p className="chats-subtitle">Conecte-se com seus colegas de estudo</p>
+      <div className={`chats-page ${isEmbedded ? "embedded" : ""}`}>
+        {!isEmbedded ? (
+          <div className="chats-header">
+            <div>
+              <h1 className="chats-title">Chats Colaborativos</h1>
+              <p className="chats-subtitle">Conecte-se com seus colegas de estudo</p>
+            </div>
+            <button className="btn-new-chat" onClick={handleNewChat}>
+              + Novo Grupo
+            </button>
           </div>
-          <button className="btn-new-chat" onClick={handleNewChat}>
-            + Novo Grupo
-          </button>
-        </div>
+        ) : (
+          <div className="chats-embedded-header">
+            <div className="chats-embedded-info">
+              <span className="chats-embedded-title">Conversas e Grupos de Estudo</span>
+            </div>
+            <button className="btn-new-chat embedded-btn" onClick={handleNewChat}>
+              + Novo Grupo
+            </button>
+          </div>
+        )}
 
         <div className="chats-main">
           <div className="chats-sidebar">

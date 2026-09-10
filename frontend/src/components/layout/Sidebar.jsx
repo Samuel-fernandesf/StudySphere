@@ -84,6 +84,15 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                         </li>
                         <li>
                             <Link
+                                to="/quiz"
+                                className={`navLink ${isActive('/quiz') || location.pathname.startsWith('/quiz') ? 'navLinkActive' : ''}`}
+                            >
+                                <FileQuestion size={20} />
+                                <span>Questionários</span>
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
                                 to="/social"
                                 className={`navLink ${isActive('/social') ? 'navLinkActive' : ''}`}
                             >

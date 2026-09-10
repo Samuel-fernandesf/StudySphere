@@ -1,11 +1,13 @@
 // src/pages/Dashboard/Dashboard.jsx
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "./dashboard.css";
 import { useAuthContext } from "../../contexts/AuthContext";
 import { listarMaterias } from "../../services/subjectService";
 import { listarEventos } from "../../services/eventService";
 import { listarTarefas } from "../../services/taskService";
 import { obterMetaSemanal } from "../../services/progressService";
+import { listarQuizzes } from "../../services/quizService";
 import * as Icons from "lucide-react";
 import { format, parseISO, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -28,11 +30,11 @@ const SectionCard = ({ titulo, children }) => (
 
 const SubjectItem = ({ subject }) => {
   const IconComponent = Icons[subject.icon] || Icons.BookOpen;
-  
+
   return (
     <div className="subject-item" style={{ borderLeftColor: subject.color }}>
-      <div 
-        className="subject-icon" 
+      <div
+        className="subject-icon"
         style={{ backgroundColor: `${subject.color}20`, color: subject.color }}
       >
         <IconComponent size={20} />
@@ -58,17 +60,17 @@ const ListItem = ({ item, isTask }) => {
   }
 
   const formattedDate = format(dateObj, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
-  
+
   return (
     <div className="task-item">
-      <div 
-        className="task-indicator" 
+      <div
+        className="task-indicator"
         style={{ backgroundColor: item.color || '#3b82f6' }}
       />
       <div className="task-content">
         <div className="task-title">{item.title}</div>
         <div className="task-date">
-            {isTask ? "Prazo: " : ""}{formattedDate}
+          {isTask ? "Prazo: " : ""}{formattedDate}
         </div>
       </div>
     </div>
@@ -78,20 +80,22 @@ const ListItem = ({ item, isTask }) => {
 /* --- Componente principal do Dashboard --- */
 export default function Dashboard() {
   const { userDetails } = useAuthContext();
-  
+  const navigate = useNavigate();
+
   // Estados para dados principais
   const [subjects, setSubjects] = useState([]);
   const [events, setEvents] = useState([]);
   const [tasks, setTasks] = useState([]);
-  
+  const [quizzes, setQuizzes] = useState([]);
+
   // Estados para KPIs
   const [completedToday, setCompletedToday] = useState(0);
   const [weeklyGoal, setWeeklyGoal] = useState(null);
-  
+
   const [loading, setLoading] = useState(true);
 
-  const primeiroNome = userDetails?.nome_completo 
-    ? userDetails.nome_completo.split(" ")[0] 
+  const primeiroNome = userDetails?.nome_completo
+    ? userDetails.nome_completo.split(" ")[0]
     : userDetails?.username || "";
 
   // Carregar dados ao montar o componente
@@ -104,15 +108,15 @@ export default function Dashboard() {
   async function loadDashboardData() {
     try {
       setLoading(true);
-      
+
       // 1. Carregar matérias
       const subjectsData = await listarMaterias();
       setSubjects(subjectsData);
-      
+
       // 2. Carregar eventos (sem filtro de data para trazer todos, conforme pedido)
-      const eventsData = await listarEventos(); 
+      const eventsData = await listarEventos();
       // Ordenar por data (mais recente primeiro ou mais próximo)
-      const sortedEvents = eventsData.sort((a, b) => 
+      const sortedEvents = eventsData.sort((a, b) =>
         new Date(a.start_date) - new Date(b.start_date)
       );
       setEvents(sortedEvents);
@@ -125,17 +129,25 @@ export default function Dashboard() {
       // Buscamos as concluídas (true) e filtramos no front pela data de hoje
       const completedTasksData = await listarTarefas(null, true);
       const today = new Date();
-      
+
       const countToday = completedTasksData.filter(t => {
         if (!t.completed_at) return false;
         return isSameDay(parseISO(t.completed_at), today);
       }).length;
-      
+
       setCompletedToday(countToday);
 
       // 5. Carregar Meta Semanal
       const goalData = await obterMetaSemanal();
       setWeeklyGoal(goalData);
+
+      // 6. Carregar Questionários
+      try {
+        const quizzesData = await listarQuizzes();
+        setQuizzes(quizzesData || []);
+      } catch (quizErr) {
+        console.error("Erro ao carregar questionários:", quizErr);
+      }
 
     } catch (error) {
       console.error("Erro ao carregar dados do dashboard:", error);
@@ -154,8 +166,8 @@ export default function Dashboard() {
   const totalSubjects = subjects.length;
   const totalEvents = events.length;
   const progressPercent = weeklyGoal ? Math.round(weeklyGoal.progress_percentage) : 0;
-  const progressDesc = weeklyGoal 
-    ? `${weeklyGoal.current_hours}h de ${weeklyGoal.goal_hours}h` 
+  const progressDesc = weeklyGoal
+    ? `${weeklyGoal.current_hours}h de ${weeklyGoal.goal_hours}h`
     : "Carregando...";
 
   function handleNovoEvento() {
@@ -183,9 +195,9 @@ export default function Dashboard() {
           <KpiCard titulo="Matérias" valor={totalSubjects} />
           <KpiCard titulo="Eventos" valor={totalEvents} />
           <KpiCard titulo="Concluídas Hoje" valor={completedToday} />
-          <KpiCard 
-            titulo="Meta Semanal" 
-            valor={`${progressPercent}%`} 
+          <KpiCard
+            titulo="Meta Semanal"
+            valor={`${progressPercent}%`}
             descricao='de 20h'
           />
         </section>
@@ -194,7 +206,7 @@ export default function Dashboard() {
           <div className="dashboard-loading">Carregando dados...</div>
         ) : (
           <section className="grid-main" aria-label="Conteúdo principal">
-            
+
             {/* 1. Suas Matérias */}
             <SectionCard titulo="Suas Matérias">
               {subjects.length === 0 ? (
@@ -224,8 +236,8 @@ export default function Dashboard() {
               ) : (
                 <div className="tasks-list">
                   {tasks.slice(0, 5).map(task => (
-                    <ListItem 
-                      key={task.id} 
+                    <ListItem
+                      key={task.id}
                       isTask={true}
                       item={{
                         title: task.title,
@@ -252,8 +264,8 @@ export default function Dashboard() {
               ) : (
                 <div className="tasks-list">
                   {events.slice(0, 5).map(event => (
-                    <ListItem 
-                      key={event.id} 
+                    <ListItem
+                      key={event.id}
                       isTask={false}
                       item={{
                         title: event.title,
@@ -267,6 +279,60 @@ export default function Dashboard() {
                       <a href="/calendar">Ver todos ({events.length})</a>
                     </div>
                   )}
+                </div>
+              )}
+            </SectionCard>
+
+            {/* 4. Questionários */}
+            <SectionCard titulo="Questionários">
+              {quizzes.length === 0 ? (
+                <div className="empty-message">
+                  Nenhum questionário encontrado. <a href="/quiz/create">Criar questionário</a>
+                </div>
+              ) : (
+                <div className="tasks-list">
+                  {quizzes.slice(0, 5).map(quiz => (
+                    <div
+                      key={quiz.id}
+                      className="quiz-dashboard-item"
+                      onClick={() => navigate(`/quiz/${quiz.id}`)}
+                    >
+                      <div className="quiz-dashboard-info">
+                        <div className="quiz-dashboard-title">{quiz.titulo}</div>
+                        <div className="quiz-dashboard-meta">
+                          {quiz.materia && (
+                            <span className="quiz-tag-materia">
+                              <Icons.BookOpen size={12} style={{ display: 'inline', marginRight: 3, verticalAlign: -1 }} />
+                              {quiz.materia}
+                            </span>
+                          )}
+                          {quiz.dificuldade && (
+                            <span className={`quiz-tag-diff ${quiz.dificuldade.toLowerCase()}`}>
+                              {quiz.dificuldade}
+                            </span>
+                          )}
+                          {quiz.total_questoes && (
+                            <span className="quiz-tag-questions">
+                              {quiz.total_questoes} {quiz.total_questoes === 1 ? 'questão' : 'questões'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        className="quiz-play-btn"
+                        title="Responder questionário"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/quiz/${quiz.id}`);
+                        }}
+                      >
+                        <Icons.Play size={13} fill="currentColor" />
+                      </button>
+                    </div>
+                  ))}
+                  <div className="view-more">
+                    <a href="/quiz">Ver todos os questionários ({quizzes.length})</a>
+                  </div>
                 </div>
               )}
             </SectionCard>

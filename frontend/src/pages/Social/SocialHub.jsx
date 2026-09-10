@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { Users, MessageSquare, FileQuestion, Trophy } from 'lucide-react';
+import { Users, MessageSquare, Trophy } from 'lucide-react';
 import CommunityTab from './CommunityTab';
 import RankingTab from './RankingTab';
+import Chats from '../Chats/Chats';
 import './SocialHub.css';
 
 const TABS = [
     { id: 'community', label: 'Comunidade', icon: Users },
     { id: 'chats', label: 'Chats', icon: MessageSquare },
-    { id: 'quizzes', label: 'Questionários', icon: FileQuestion },
     { id: 'ranking', label: 'Ranking', icon: Trophy }
 ];
 
@@ -19,23 +19,7 @@ const SocialHub = () => {
             case 'community':
                 return <CommunityTab />;
             case 'chats':
-                return (
-                    <div className="tab-placeholder">
-                        <MessageSquare size={48} strokeWidth={1.5} />
-                        <h3>Chats</h3>
-                        <p>Acesse seus grupos de estudo pelo menu lateral.</p>
-                        <a href="/chats" className="redirect-link">Ir para Chats →</a>
-                    </div>
-                );
-            case 'quizzes':
-                return (
-                    <div className="tab-placeholder">
-                        <FileQuestion size={48} strokeWidth={1.5} />
-                        <h3>Questionários</h3>
-                        <p>Crie e responda questionários para testar seus conhecimentos.</p>
-                        <a href="/quiz" className="redirect-link">Ir para Questionários →</a>
-                    </div>
-                );
+                return <Chats isEmbedded={true} />;
             case 'ranking':
                 return <RankingTab />;
             default:
