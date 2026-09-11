@@ -353,7 +353,7 @@
   .modal-row {
     grid-template-columns: 1fr;
   }
-  
+
   .color-grid {
     grid-template-columns: repeat(3, 1fr);
   }

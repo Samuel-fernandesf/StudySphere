@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Clock, TrendingUp, Target, Award, Plus, Pencil } from "lucide-react";
 import { obterResumoProgresso, obterMetaSemanal } from "../../services/progressService";
+import {
+  getActiveScheduleStudyGoals,
+  subscribeToScheduleChanges,
+  updateActiveScheduleWeeklyHours,
+} from "../../services/scheduleStorage";
 import StudySessionModal from "../../components/progress/StudySessionModal";
 import EditWeeklyGoalModal from "../../components/progress/EditWeeklyGoalModal";
 import { useModal } from "../../contexts/ModalContext"; // Importando o contexto
@@ -11,33 +16,48 @@ export default function ProgressView() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+  const [activeScheduleGoal, setActiveScheduleGoal] = useState(() => getActiveScheduleStudyGoals());
+  const [todayStudiedHours, setTodayStudiedHours] = useState(0);
   
   // Hook do modal global (caso precise usar showAlert no futuro)
   const { showAlert } = useModal();
 
   useEffect(() => {
     loadProgressData();
+    return subscribeToScheduleChanges(() => {
+      loadProgressData();
+    });
   }, []);
 
   async function loadProgressData() {
     try {
       setLoading(true);
       const data = await obterResumoProgresso();
+      const scheduleGoal = getActiveScheduleStudyGoals();
+      setActiveScheduleGoal(scheduleGoal);
+
       const savedGoal = localStorage.getItem("study_weekly_goal_hours");
-      if (savedGoal && data) {
-        const customHours = parseFloat(savedGoal);
+      const targetWeeklyHours = scheduleGoal
+        ? scheduleGoal.weeklyHours
+        : (savedGoal ? parseFloat(savedGoal) : 20);
+
+      if (data) {
         try {
-          const customGoalData = await obterMetaSemanal(customHours);
+          const customGoalData = await obterMetaSemanal(targetWeeklyHours);
           data.weekly_goal = customGoalData;
         } catch (e) {
           const total = data.weekly_goal?.total_hours || 0;
           data.weekly_goal = {
             total_hours: total,
-            goal_hours: customHours,
-            progress_percentage: Math.min(100, (total / customHours) * 100),
-            remaining_hours: Math.max(0, customHours - total)
+            goal_hours: targetWeeklyHours,
+            progress_percentage: Math.min(100, (total / targetWeeklyHours) * 100),
+            remaining_hours: Math.max(0, targetWeeklyHours - total)
           };
         }
+
+        const todayStr = new Date().toISOString().split("T")[0];
+        const todayMatch = (data.time_by_day || []).find((item) => item.date === todayStr);
+        setTodayStudiedHours(todayMatch ? Number(todayMatch.total_hours) : 0);
       }
       setProgressData(data);
     } catch (error) {
@@ -62,6 +82,7 @@ export default function ProgressView() {
 
     try {
       localStorage.setItem("study_weekly_goal_hours", hoursNum.toString());
+      updateActiveScheduleWeeklyHours(hoursNum);
       const updatedWeeklyGoal = await obterMetaSemanal(hoursNum);
       setProgressData((prev) => ({
         ...prev,
@@ -246,8 +267,13 @@ export default function ProgressView() {
             <Award size={24} color="#3b82f6" />
           </div>
           <div className="kpi-content">
-            <div className="kpi-label">Média Diária</div>
-            <div className="kpi-value">{progressData?.daily_average?.average_hours || 0}h</div>
+            <div className="kpi-label">{activeScheduleGoal ? "Média (Meta Diária)" : "Média Diária"}</div>
+            <div className="kpi-value">
+              {progressData?.daily_average?.average_hours || 0}h
+              {activeScheduleGoal && (
+                <span className="kpi-sub-target"> / {activeScheduleGoal.dailyHours}h meta</span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -262,6 +288,11 @@ export default function ProgressView() {
             <div>
               <div className="weekly-goal-title-row">
                 <h3 className="weekly-goal-title">Meta da Semana</h3>
+                {activeScheduleGoal && (
+                  <span className="weekly-goal-schedule-tag">
+                    Cronograma: {activeScheduleGoal.title} ({activeScheduleGoal.weeklyHours}h/sem • {activeScheduleGoal.dailyHours}h/dia)
+                  </span>
+                )}
                 <span className={`weekly-goal-badge ${isCompleted ? 'completed' : isNear ? 'near' : 'active'}`}>
                   {isCompleted ? '🎉 Meta Atingida!' : isNear ? '🔥 Quase Lá!' : '🎯 Em Andamento'}
                 </span>
@@ -287,13 +318,21 @@ export default function ProgressView() {
         </div>
 
         {/* Estatísticas resumidas da meta */}
-        <div className="weekly-goal-stats-grid">
+        <div className={`weekly-goal-stats-grid ${activeScheduleGoal ? "with-daily" : ""}`}>
+          {activeScheduleGoal && (
+            <div className="goal-stat-item daily-stat">
+              <span className="goal-stat-label">Hoje (Meta Diária)</span>
+              <span className="goal-stat-value primary">
+                {todayStudiedHours}h <small>/ {activeScheduleGoal.dailyHours}h</small>
+              </span>
+            </div>
+          )}
           <div className="goal-stat-item">
-            <span className="goal-stat-label">Concluído</span>
+            <span className="goal-stat-label">Concluído Semana</span>
             <span className="goal-stat-value primary">{weeklyGoal.total_hours}h</span>
           </div>
           <div className="goal-stat-item">
-            <span className="goal-stat-label">Meta Definida</span>
+            <span className="goal-stat-label">Meta Semanal</span>
             <span className="goal-stat-value">{weeklyGoal.goal_hours}h</span>
           </div>
           <div className="goal-stat-item">

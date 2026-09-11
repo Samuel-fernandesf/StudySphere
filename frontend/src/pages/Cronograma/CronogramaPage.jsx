@@ -18,6 +18,13 @@ import {
 import CalendarView from "../../components/calendar/CalendarView";
 import { listarMaterias } from "../../services/subjectService";
 import { criarEvento, deletarEvento, listarEventos } from "../../services/eventService";
+import {
+  getStoredSchedules,
+  saveStoredSchedules,
+  getActiveScheduleId,
+  setActiveScheduleId as setStoredActiveScheduleId,
+  subscribeToScheduleChanges,
+} from "../../services/scheduleStorage";
 import "./CronogramaPage.css";
 
 const DEFAULT_SUBJECTS = [
@@ -121,7 +128,6 @@ const SIMULATION_FREQUENCIES = [
 
 const SCHEDULE_EVENT_MARKER = "[STUDYSPHERE_SCHEDULE]";
 const SCHEDULE_ID_PREFIX = "Cronograma ID:";
-const SCHEDULES_STORAGE_KEY = "studysphere:cronogramas";
 
 const DAY_INDEX_BY_ID = {
   dom: 0,
@@ -150,30 +156,6 @@ function createScheduleId() {
 
   return `schedule-${Date.now()}`;
 }
-
-function loadStoredSchedules() {
-  if (typeof window === "undefined") {
-    return [];
-  }
-
-  try {
-    const storedValue = window.localStorage.getItem(SCHEDULES_STORAGE_KEY);
-    const schedules = storedValue ? JSON.parse(storedValue) : [];
-    return Array.isArray(schedules) ? schedules : [];
-  } catch (error) {
-    console.error("Erro ao carregar cronogramas salvos:", error);
-    return [];
-  }
-}
-
-function saveStoredSchedules(schedules) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  window.localStorage.setItem(SCHEDULES_STORAGE_KEY, JSON.stringify(schedules));
-}
-
 function parseLocalDate(value) {
   return new Date(`${value}T00:00:00`);
 }
@@ -362,8 +344,8 @@ export default function CronogramaPage() {
   const [isPresetModalOpen, setIsPresetModalOpen] = useState(false);
   const [calendarVersion, setCalendarVersion] = useState(0);
   const [creationStep, setCreationStep] = useState("config");
-  const [savedSchedules, setSavedSchedules] = useState(() => loadStoredSchedules());
-  const [activeScheduleId, setActiveScheduleId] = useState("");
+  const [savedSchedules, setSavedSchedules] = useState(() => getStoredSchedules());
+  const [activeScheduleId, setActiveScheduleId] = useState(() => getActiveScheduleId());
   const [deleteConfirmId, setDeleteConfirmId] = useState("");
   const [draftPresetId, setDraftPresetId] = useState("enem");
   const [pauseDraft, setPauseDraft] = useState({
@@ -417,8 +399,11 @@ export default function CronogramaPage() {
   }, []);
 
   useEffect(() => {
-    saveStoredSchedules(savedSchedules);
-  }, [savedSchedules]);
+    return subscribeToScheduleChanges(() => {
+      setSavedSchedules(getStoredSchedules());
+      setActiveScheduleId(getActiveScheduleId());
+    });
+  }, []);
 
   const selectedObjective = useMemo(
     () => OBJECTIVES.find((objective) => objective.id === form.objective) || OBJECTIVES[0],
@@ -684,6 +669,7 @@ export default function CronogramaPage() {
 
   function selectSavedSchedule(scheduleId) {
     setActiveScheduleId(scheduleId);
+    setStoredActiveScheduleId(scheduleId);
     setDeleteConfirmId("");
     setScheduleMessage(null);
   }
@@ -715,10 +701,12 @@ export default function CronogramaPage() {
         await deletarEvento(event.id);
       }
 
-      setSavedSchedules((currentSchedules) =>
-        currentSchedules.filter((schedule) => schedule.id !== activeSchedule.id)
-      );
-      setActiveScheduleId("");
+      const remainingSchedules = savedSchedules.filter((schedule) => schedule.id !== activeSchedule.id);
+      setSavedSchedules(remainingSchedules);
+      saveStoredSchedules(remainingSchedules);
+      const nextActiveId = remainingSchedules.length > 0 ? remainingSchedules[0].id : "";
+      setActiveScheduleId(nextActiveId);
+      setStoredActiveScheduleId(nextActiveId);
       setDeleteConfirmId("");
       setCalendarVersion((currentVersion) => currentVersion + 1);
       setScheduleMessage({
@@ -846,20 +834,31 @@ export default function CronogramaPage() {
       const savedSchedule = {
         id: generatedPreview.scheduleId,
         title: generatedPreview.title,
-        objective: generatedPreview.objective.label,
+        targetName: generatedPreview.title,
+        objective: generatedPreview.objective?.label || form.objective,
         examTypesLabel: generatedPreview.examTypesLabel,
         startDate: generatedPreview.startDate,
         endDate: generatedPreview.endDate,
+        weeklyHours: Number(generatedPreview.weeklyHours || form.weeklyHours),
+        dailyHours: Number(generatedPreview.dailyAverage || dailyAverage),
+        dailyAverage: Number(generatedPreview.dailyAverage || dailyAverage),
+        selectedDays: form.selectedDays || [],
+        totalHours: Number(generatedPreview.totalHours || totalHours),
+        intensity: form.intensity,
+        studyMode: form.studyMode,
         eventCount: createdEvents.length,
         eventIds: createdEvents.map((event) => event.id),
         createdAt: new Date().toISOString(),
       };
 
-      setSavedSchedules((currentSchedules) => [
+      const updatedSchedules = [
         savedSchedule,
-        ...currentSchedules.filter((schedule) => schedule.id !== savedSchedule.id),
-      ]);
+        ...savedSchedules.filter((schedule) => schedule.id !== savedSchedule.id),
+      ];
+      setSavedSchedules(updatedSchedules);
+      saveStoredSchedules(updatedSchedules);
       setActiveScheduleId(savedSchedule.id);
+      setStoredActiveScheduleId(savedSchedule.id);
       setCalendarVersion((currentVersion) => currentVersion + 1);
       setScheduleMessage({
         type: "success",
@@ -885,41 +884,6 @@ export default function CronogramaPage() {
             Calendário, metas e plano personalizado em um só lugar.
           </p>
         </div>
-        <div className="schedule-manager" aria-label="Gerenciar cronogramas">
-          <label>
-            <span>Cronograma</span>
-            <select
-              value={activeScheduleId}
-              onChange={(event) => selectSavedSchedule(event.target.value)}
-            >
-              <option value="">Nenhum selecionado</option>
-              {savedSchedules.map((schedule) => (
-                <option key={schedule.id} value={schedule.id}>
-                  {schedule.title}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button type="button" className="schedule-manager-button" onClick={startNewSchedule}>
-            <Plus size={17} />
-            Novo
-          </button>
-          <button
-            type="button"
-            className={`schedule-manager-button danger ${
-              deleteConfirmId === activeScheduleId ? "confirming" : ""
-            }`}
-            onClick={deleteActiveSchedule}
-            disabled={!activeSchedule || isDeletingSchedule}
-          >
-            <Trash2 size={17} />
-            {isDeletingSchedule
-              ? "Excluindo..."
-              : deleteConfirmId === activeScheduleId
-                ? "Confirmar"
-                : "Excluir"}
-          </button>
-        </div>
       </header>
 
       {scheduleMessage && !isScheduleModalOpen && (
@@ -928,26 +892,76 @@ export default function CronogramaPage() {
         </div>
       )}
 
-      <nav className="cronograma-tabs" aria-label="Submenus de cronograma">
-        <NavLink
-          to="/cronograma/calendario"
-          className={({ isActive }) =>
-            `cronograma-tab ${isActive || activeTab === "calendario" ? "active" : ""}`
-          }
-        >
-          <CalendarDays size={18} />
-          <span>Calendário</span>
-        </NavLink>
-        <NavLink
-          to="/cronograma/criar"
-          className={({ isActive }) =>
-            `cronograma-tab ${isActive || activeTab === "criar" ? "active" : ""}`
-          }
-        >
-          <Sparkles size={18} />
-          <span>Criar cronograma personalizado</span>
-        </NavLink>
-      </nav>
+      <div className="cronograma-toolbar">
+        <div className="cronograma-toolbar-actions">
+          <nav className="cronograma-tabs" aria-label="Submenus de cronograma">
+            <NavLink
+              to="/cronograma/calendario"
+              className={({ isActive }) =>
+                `cronograma-tab ${isActive || activeTab === "calendario" ? "active" : ""}`
+              }
+            >
+              <CalendarDays size={18} />
+              <span>Calendário</span>
+            </NavLink>
+            <button
+              type="button"
+              className={`cronograma-tab create-schedule-tab-btn ${activeTab === "criar" ? "active" : ""}`}
+              onClick={startNewSchedule}
+            >
+              <Plus size={18} />
+              <span>Criar novo cronograma</span>
+            </button>
+          </nav>
+
+          <div className="schedule-manager-inline" aria-label="Gerenciar cronogramas">
+            <label className="schedule-select-wrapper">
+              <span className="schedule-select-label">Cronograma ativo:</span>
+              <select
+                className="schedule-select-dropdown"
+                value={activeScheduleId}
+                onChange={(event) => selectSavedSchedule(event.target.value)}
+              >
+                <option value="">Nenhum selecionado</option>
+                {savedSchedules.map((schedule) => (
+                  <option key={schedule.id} value={schedule.id}>
+                    {schedule.title} ({schedule.weeklyHours || 20}h/sem)
+                  </option>
+                ))}
+              </select>
+            </label>
+            {activeSchedule && (
+              <button
+                type="button"
+                className={`schedule-manager-button danger ${
+                  deleteConfirmId === activeScheduleId ? "confirming" : ""
+                }`}
+                onClick={deleteActiveSchedule}
+                disabled={isDeletingSchedule}
+                title="Excluir cronograma ativo"
+              >
+                <Trash2 size={16} />
+                {isDeletingSchedule
+                  ? "Excluindo..."
+                  : deleteConfirmId === activeScheduleId
+                    ? "Confirmar"
+                    : "Excluir"}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {activeSchedule && (
+          <div className="active-schedule-info-pill">
+            <Target size={15} />
+            <span>
+              Meta: <strong>{activeSchedule.weeklyHours || 20}h/semana</strong>
+              {" • "}
+              <strong>{activeSchedule.dailyHours || activeSchedule.dailyAverage || 4}h/dia</strong>
+            </span>
+          </div>
+        )}
+      </div>
 
       <section className="cronograma-calendar" aria-label="Calendário">
         <CalendarView key={calendarVersion} scheduleFilterId={activeScheduleId} />
@@ -1038,465 +1052,465 @@ export default function CronogramaPage() {
 
               <div className={creationStep === "config" ? "schedule-config-step" : "schedule-preview-step"}>
                 {creationStep === "config" && (
-                <form className="planner-form-surface">
-                  <div className="planner-section-heading">
-                    <div className="planner-heading-icon">
-                      <GraduationCap size={20} />
-                    </div>
-                    <div>
-                      <h2>Predefinição do cronograma</h2>
-                      <p>Base de distribuição para conteúdos, questões e revisões.</p>
-                    </div>
-                  </div>
-
-                  <div className="selected-preset-panel">
-                    <div className="selected-preset-main">
-                      <div className="selected-preset-icon">
-                        <Sparkles size={19} />
+                  <form className="planner-form-surface">
+                    <div className="planner-section-heading">
+                      <div className="planner-heading-icon">
+                        <GraduationCap size={20} />
                       </div>
                       <div>
-                        <span>Selecionada</span>
-                        <strong>{selectedObjective.label}</strong>
-                        <p>{selectedObjective.description}</p>
+                        <h2>Predefinição do cronograma</h2>
+                        <p>Base de distribuição para conteúdos, questões e revisões.</p>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      className="planner-secondary-button planner-compact-button"
-                      onClick={openPresetModal}
-                    >
-                      <Sparkles size={16} />
-                      Escolher
-                    </button>
-                  </div>
 
-                  <div className="planner-fields-grid">
-                    <label className="planner-field">
-                      <span>Prova ou meta</span>
-                      <input
-                        type="text"
-                        value={form.targetName}
-                        onChange={(event) => updateField("targetName", event.target.value)}
-                      />
-                    </label>
-
-                    <label className="planner-field">
-                      <span>Horas por semana</span>
-                      <div className="hours-control">
-                        <input
-                          type="range"
-                          min="4"
-                          max="60"
-                          step="1"
-                          value={form.weeklyHours}
-                          onChange={(event) => updateField("weeklyHours", event.target.value)}
-                        />
-                        <input
-                          type="number"
-                          min="4"
-                          max="60"
-                          value={form.weeklyHours}
-                          onChange={(event) => updateField("weeklyHours", event.target.value)}
-                        />
+                    <div className="selected-preset-panel">
+                      <div className="selected-preset-main">
+                        <div className="selected-preset-icon">
+                          <Sparkles size={19} />
+                        </div>
+                        <div>
+                          <span>Selecionada</span>
+                          <strong>{selectedObjective.label}</strong>
+                          <p>{selectedObjective.description}</p>
+                        </div>
                       </div>
-                    </label>
-
-                    <label className="planner-field">
-                      <span>Início</span>
-                      <input
-                        type="date"
-                        value={form.startDate}
-                        onChange={(event) => updateField("startDate", event.target.value)}
-                      />
-                    </label>
-
-                    <label className="planner-field">
-                      <span>Data alvo</span>
-                      <input
-                        type="date"
-                        value={form.endDate}
-                        onChange={(event) => updateField("endDate", event.target.value)}
-                      />
-                    </label>
-                  </div>
-
-                  <div className="planner-control-group">
-                    <div className="planner-label-row">
-                      <Target size={17} />
-                      <span>Tipo de prova</span>
+                      <button
+                        type="button"
+                        className="planner-secondary-button planner-compact-button"
+                        onClick={openPresetModal}
+                      >
+                        <Sparkles size={16} />
+                        Escolher
+                      </button>
                     </div>
-                    <div className="exam-type-grid">
-                      {EXAM_TYPES.map((examType) => (
-                        <label key={examType.id} className="exam-type-option">
+
+                    <div className="planner-fields-grid">
+                      <label className="planner-field">
+                        <span>Prova ou meta</span>
+                        <input
+                          type="text"
+                          value={form.targetName}
+                          onChange={(event) => updateField("targetName", event.target.value)}
+                        />
+                      </label>
+
+                      <label className="planner-field">
+                        <span>Horas por semana</span>
+                        <div className="hours-control">
                           <input
-                            type="checkbox"
-                            checked={form.examTypes.includes(examType.id)}
-                            onChange={() => toggleExamType(examType.id)}
+                            type="range"
+                            min="4"
+                            max="60"
+                            step="1"
+                            value={form.weeklyHours}
+                            onChange={(event) => updateField("weeklyHours", event.target.value)}
                           />
-                          <span>{examType.label}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
+                          <input
+                            type="number"
+                            min="4"
+                            max="60"
+                            value={form.weeklyHours}
+                            onChange={(event) => updateField("weeklyHours", event.target.value)}
+                          />
+                        </div>
+                      </label>
 
-                  <div className="planner-control-group">
-                    <div className="planner-label-row">
-                      <Clock3 size={17} />
-                      <span>Períodos de pausa</span>
-                    </div>
-                    <div className="pause-period-editor">
                       <label className="planner-field">
                         <span>Início</span>
                         <input
                           type="date"
-                          value={pauseDraft.startDate}
-                          onChange={(event) => updatePauseDraft("startDate", event.target.value)}
+                          value={form.startDate}
+                          onChange={(event) => updateField("startDate", event.target.value)}
                         />
                       </label>
+
                       <label className="planner-field">
-                        <span>Término</span>
+                        <span>Data alvo</span>
                         <input
                           type="date"
-                          value={pauseDraft.endDate}
-                          onChange={(event) => updatePauseDraft("endDate", event.target.value)}
+                          value={form.endDate}
+                          onChange={(event) => updateField("endDate", event.target.value)}
                         />
                       </label>
+                    </div>
+
+                    <div className="planner-control-group">
+                      <div className="planner-label-row">
+                        <Target size={17} />
+                        <span>Tipo de prova</span>
+                      </div>
+                      <div className="exam-type-grid">
+                        {EXAM_TYPES.map((examType) => (
+                          <label key={examType.id} className="exam-type-option">
+                            <input
+                              type="checkbox"
+                              checked={form.examTypes.includes(examType.id)}
+                              onChange={() => toggleExamType(examType.id)}
+                            />
+                            <span>{examType.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="planner-control-group">
+                      <div className="planner-label-row">
+                        <Clock3 size={17} />
+                        <span>Períodos de pausa</span>
+                      </div>
+                      <div className="pause-period-editor">
+                        <label className="planner-field">
+                          <span>Início</span>
+                          <input
+                            type="date"
+                            value={pauseDraft.startDate}
+                            onChange={(event) => updatePauseDraft("startDate", event.target.value)}
+                          />
+                        </label>
+                        <label className="planner-field">
+                          <span>Término</span>
+                          <input
+                            type="date"
+                            value={pauseDraft.endDate}
+                            onChange={(event) => updatePauseDraft("endDate", event.target.value)}
+                          />
+                        </label>
+                        <label className="planner-field">
+                          <span>Nome</span>
+                          <input
+                            type="text"
+                            value={pauseDraft.label}
+                            placeholder="Férias, viagem..."
+                            onChange={(event) => updatePauseDraft("label", event.target.value)}
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          className="planner-secondary-button pause-add-button"
+                          onClick={addPausePeriod}
+                        >
+                          Adicionar
+                        </button>
+                      </div>
+
+                      <div className="pause-period-list">
+                        {form.pausePeriods.length === 0 ? (
+                          <span className="pause-empty">Nenhum período de pausa adicionado</span>
+                        ) : (
+                          form.pausePeriods.map((pause) => (
+                            <div key={pause.id} className="pause-period-item">
+                              <div>
+                                <strong>{pause.label}</strong>
+                                <span>
+                                  {pause.startDate} até {pause.endDate}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => removePausePeriod(pause.id)}
+                                aria-label={`Remover pausa ${pause.label}`}
+                              >
+                                <X size={16} />
+                              </button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="planner-control-group">
+                      <div className="planner-label-row">
+                        <Layers3 size={17} />
+                        <span>Profundidade</span>
+                      </div>
+                      <div className="intensity-segmented">
+                        {INTENSITIES.map((intensity) => (
+                          <button
+                            type="button"
+                            key={intensity.id}
+                            className={form.intensity === intensity.id ? "active" : ""}
+                            onClick={() => updateField("intensity", intensity.id)}
+                          >
+                            {intensity.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="planner-fields-grid planner-preferences-grid">
                       <label className="planner-field">
-                        <span>Nome</span>
+                        <span>Início dos blocos</span>
                         <input
-                          type="text"
-                          value={pauseDraft.label}
-                          placeholder="Férias, viagem..."
-                          onChange={(event) => updatePauseDraft("label", event.target.value)}
+                          type="time"
+                          value={form.studyStartTime}
+                          onChange={(event) => updateField("studyStartTime", event.target.value)}
                         />
                       </label>
-                      <button
-                        type="button"
-                        className="planner-secondary-button pause-add-button"
-                        onClick={addPausePeriod}
-                      >
-                        Adicionar
+
+                      <label className="planner-field">
+                        <span>Intervalo entre blocos</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="90"
+                          value={form.sessionGapMinutes}
+                          onChange={(event) => updateField("sessionGapMinutes", event.target.value)}
+                        />
+                      </label>
+
+                      <label className="planner-field">
+                        <span>Duração mínima</span>
+                        <input
+                          type="number"
+                          min="15"
+                          max="180"
+                          value={form.minSessionMinutes}
+                          onChange={(event) => updateField("minSessionMinutes", event.target.value)}
+                        />
+                      </label>
+
+                      <label className="planner-field">
+                        <span>Simulado</span>
+                        <select
+                          value={form.simulationFrequency}
+                          onChange={(event) => updateField("simulationFrequency", event.target.value)}
+                        >
+                          {SIMULATION_FREQUENCIES.map((frequency) => (
+                            <option key={frequency.id} value={frequency.id}>
+                              {frequency.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+
+                    <div className="planner-control-group">
+                      <div className="planner-label-row">
+                        <ClipboardList size={17} />
+                        <span>Estilo dos blocos</span>
+                      </div>
+                      <div className="study-mode-grid">
+                        {STUDY_MODES.map((mode) => (
+                          <button
+                            type="button"
+                            key={mode.id}
+                            className={form.studyMode === mode.id ? "active" : ""}
+                            onClick={() => updateField("studyMode", mode.id)}
+                          >
+                            {mode.label}
+                          </button>
+                        ))}
+                      </div>
+                      <label className="planner-toggle-row">
+                        <input
+                          type="checkbox"
+                          checked={form.includeEssay}
+                          onChange={(event) => updateField("includeEssay", event.target.checked)}
+                        />
+                        <span>Incluir redação nas prioridades</span>
+                      </label>
+                    </div>
+
+                    <div className="planner-control-group">
+                      <div className="planner-label-row">
+                        <CalendarDays size={17} />
+                        <span>Dias disponíveis</span>
+                      </div>
+                      <div className="day-checkbox-grid">
+                        {DAY_OPTIONS.map((day) => (
+                          <label key={day.id} className="day-checkbox">
+                            <input
+                              type="checkbox"
+                              checked={form.selectedDays.includes(day.id)}
+                              onChange={() => toggleDay(day.id)}
+                            />
+                            <span>{day.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="planner-control-group">
+                      <div className="planner-label-row">
+                        <BookOpen size={17} />
+                        <span>Matérias priorizadas</span>
+                      </div>
+                      <div className="subject-checkbox-grid">
+                        {subjects.map((subject) => (
+                          <label key={subject.id} className="subject-checkbox">
+                            <input
+                              type="checkbox"
+                              checked={form.selectedSubjects.includes(String(subject.id))}
+                              onChange={() => toggleSubject(subject.id)}
+                            />
+                            <span
+                              className="subject-color"
+                              style={{ backgroundColor: subject.color || "#2563eb" }}
+                            />
+                            <span>{getSubjectName(subject)}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="planner-actions">
+                      <button type="button" className="planner-secondary-button" onClick={resetDraft}>
+                        <RotateCcw size={17} />
+                        Resetar
+                      </button>
+                      <button type="button" className="planner-primary-button" onClick={refreshPreview}>
+                        <ClipboardList size={17} />
+                        Gerar prévia
                       </button>
                     </div>
 
-                    <div className="pause-period-list">
-                      {form.pausePeriods.length === 0 ? (
-                        <span className="pause-empty">Nenhum período de pausa adicionado</span>
-                      ) : (
-                        form.pausePeriods.map((pause) => (
-                          <div key={pause.id} className="pause-period-item">
-                            <div>
-                              <strong>{pause.label}</strong>
-                              <span>
-                                {pause.startDate} até {pause.endDate}
-                              </span>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => removePausePeriod(pause.id)}
-                              aria-label={`Remover pausa ${pause.label}`}
-                            >
-                              <X size={16} />
-                            </button>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="planner-control-group">
-                    <div className="planner-label-row">
-                      <Layers3 size={17} />
-                      <span>Profundidade</span>
-                    </div>
-                    <div className="intensity-segmented">
-                      {INTENSITIES.map((intensity) => (
-                        <button
-                          type="button"
-                          key={intensity.id}
-                          className={form.intensity === intensity.id ? "active" : ""}
-                          onClick={() => updateField("intensity", intensity.id)}
-                        >
-                          {intensity.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="planner-fields-grid planner-preferences-grid">
-                    <label className="planner-field">
-                      <span>Início dos blocos</span>
-                      <input
-                        type="time"
-                        value={form.studyStartTime}
-                        onChange={(event) => updateField("studyStartTime", event.target.value)}
-                      />
-                    </label>
-
-                    <label className="planner-field">
-                      <span>Intervalo entre blocos</span>
-                      <input
-                        type="number"
-                        min="0"
-                        max="90"
-                        value={form.sessionGapMinutes}
-                        onChange={(event) => updateField("sessionGapMinutes", event.target.value)}
-                      />
-                    </label>
-
-                    <label className="planner-field">
-                      <span>Duração mínima</span>
-                      <input
-                        type="number"
-                        min="15"
-                        max="180"
-                        value={form.minSessionMinutes}
-                        onChange={(event) => updateField("minSessionMinutes", event.target.value)}
-                      />
-                    </label>
-
-                    <label className="planner-field">
-                      <span>Simulado</span>
-                      <select
-                        value={form.simulationFrequency}
-                        onChange={(event) => updateField("simulationFrequency", event.target.value)}
-                      >
-                        {SIMULATION_FREQUENCIES.map((frequency) => (
-                          <option key={frequency.id} value={frequency.id}>
-                            {frequency.label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-
-                  <div className="planner-control-group">
-                    <div className="planner-label-row">
-                      <ClipboardList size={17} />
-                      <span>Estilo dos blocos</span>
-                    </div>
-                    <div className="study-mode-grid">
-                      {STUDY_MODES.map((mode) => (
-                        <button
-                          type="button"
-                          key={mode.id}
-                          className={form.studyMode === mode.id ? "active" : ""}
-                          onClick={() => updateField("studyMode", mode.id)}
-                        >
-                          {mode.label}
-                        </button>
-                      ))}
-                    </div>
-                    <label className="planner-toggle-row">
-                      <input
-                        type="checkbox"
-                        checked={form.includeEssay}
-                        onChange={(event) => updateField("includeEssay", event.target.checked)}
-                      />
-                      <span>Incluir redação nas prioridades</span>
-                    </label>
-                  </div>
-
-                  <div className="planner-control-group">
-                    <div className="planner-label-row">
-                      <CalendarDays size={17} />
-                      <span>Dias disponíveis</span>
-                    </div>
-                    <div className="day-checkbox-grid">
-                      {DAY_OPTIONS.map((day) => (
-                        <label key={day.id} className="day-checkbox">
-                          <input
-                            type="checkbox"
-                            checked={form.selectedDays.includes(day.id)}
-                            onChange={() => toggleDay(day.id)}
-                          />
-                          <span>{day.label}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="planner-control-group">
-                    <div className="planner-label-row">
-                      <BookOpen size={17} />
-                      <span>Matérias priorizadas</span>
-                    </div>
-                    <div className="subject-checkbox-grid">
-                      {subjects.map((subject) => (
-                        <label key={subject.id} className="subject-checkbox">
-                          <input
-                            type="checkbox"
-                            checked={form.selectedSubjects.includes(String(subject.id))}
-                            onChange={() => toggleSubject(subject.id)}
-                          />
-                          <span
-                            className="subject-color"
-                            style={{ backgroundColor: subject.color || "#2563eb" }}
-                          />
-                          <span>{getSubjectName(subject)}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="planner-actions">
-                    <button type="button" className="planner-secondary-button" onClick={resetDraft}>
-                      <RotateCcw size={17} />
-                      Resetar
-                    </button>
-                    <button type="button" className="planner-primary-button" onClick={refreshPreview}>
-                      <ClipboardList size={17} />
-                      Gerar prévia
-                    </button>
-                  </div>
-
-                  {previewError && <p className="planner-error">{previewError}</p>}
-                </form>
+                    {previewError && <p className="planner-error">{previewError}</p>}
+                  </form>
                 )}
 
                 {creationStep === "preview" && (
-                <div className="planner-preview">
-                  {!generatedPreview ? (
-                    <div className="preview-empty-state">
-                      <div className="preview-empty-icon">
-                        <ClipboardList size={24} />
-                      </div>
-                      <h2>Prévia ainda não gerada</h2>
-                      <p>
-                        Defina objetivo, carga horária, dias disponíveis e matérias para montar
-                        a primeira semana do cronograma.
-                      </p>
-                      <button
-                        type="button"
-                        className="planner-primary-button"
-                        onClick={() => setCreationStep("config")}
-                      >
-                        Voltar para configuração
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="preview-header">
-                        <div>
-                          <h2>{generatedPreview.title}</h2>
-                          <p>
-                            {generatedPreview.weeklyHours}h semanais, {generatedPreview.weeksToTarget} semanas,
-                            {" "}
-                            {generatedPreview.selectedDaysCount} dias ativos.
-                          </p>
+                  <div className="planner-preview">
+                    {!generatedPreview ? (
+                      <div className="preview-empty-state">
+                        <div className="preview-empty-icon">
+                          <ClipboardList size={24} />
                         </div>
-                        <span className="preview-status">Gerado às {generatedPreview.generatedAt}</span>
+                        <h2>Prévia ainda não gerada</h2>
+                        <p>
+                          Defina objetivo, carga horária, dias disponíveis e matérias para montar
+                          a primeira semana do cronograma.
+                        </p>
+                        <button
+                          type="button"
+                          className="planner-primary-button"
+                          onClick={() => setCreationStep("config")}
+                        >
+                          Voltar para configuração
+                        </button>
                       </div>
+                    ) : (
+                      <>
+                        <div className="preview-header">
+                          <div>
+                            <h2>{generatedPreview.title}</h2>
+                            <p>
+                              {generatedPreview.weeklyHours}h semanais, {generatedPreview.weeksToTarget} semanas,
+                              {" "}
+                              {generatedPreview.selectedDaysCount} dias ativos.
+                            </p>
+                          </div>
+                          <span className="preview-status">Gerado às {generatedPreview.generatedAt}</span>
+                        </div>
 
-                      <div className="objective-tags">
-                        {generatedPreview.objective.tags.map((tag) => (
-                          <span key={tag}>{tag}</span>
-                        ))}
-                      </div>
-
-                      <div className="preview-personalization-grid">
-                        <div>
-                          <span>Tipo de prova</span>
-                          <strong>{generatedPreview.examTypesLabel}</strong>
-                        </div>
-                        <div>
-                          <span>Estilo</span>
-                          <strong>{generatedPreview.studyMode.label}</strong>
-                        </div>
-                        <div>
-                          <span>Simulado</span>
-                          <strong>{generatedPreview.simulationFrequency.label}</strong>
-                        </div>
-                        <div>
-                          <span>Redação</span>
-                          <strong>{generatedPreview.includeEssay ? "Incluída" : "Não incluída"}</strong>
-                        </div>
-                      </div>
-
-                      {generatedPreview.pausePeriods.length > 0 && (
-                        <div className="preview-pause-list">
-                          <span>Pausas planejadas</span>
-                          {generatedPreview.pausePeriods.map((pause) => (
-                            <div key={pause.id}>
-                              <strong>{pause.label}</strong>
-                              <small>
-                                {pause.startDate} até {pause.endDate}
-                              </small>
-                            </div>
+                        <div className="objective-tags">
+                          {generatedPreview.objective.tags.map((tag) => (
+                            <span key={tag}>{tag}</span>
                           ))}
                         </div>
-                      )}
 
-                      <div className="weekly-preview-grid">
-                        {generatedPreview.weeklyPlan.map((day) => (
-                          <article
-                            key={day.id}
-                            className={`preview-day-card ${day.isRestDay ? "rest" : ""}`}
-                          >
-                            <div className="preview-day-title">
-                              <strong>{day.label}</strong>
-                              <span>{day.isRestDay ? "Folga" : `${day.sessions.length} blocos`}</span>
-                            </div>
+                        <div className="preview-personalization-grid">
+                          <div>
+                            <span>Tipo de prova</span>
+                            <strong>{generatedPreview.examTypesLabel}</strong>
+                          </div>
+                          <div>
+                            <span>Estilo</span>
+                            <strong>{generatedPreview.studyMode.label}</strong>
+                          </div>
+                          <div>
+                            <span>Simulado</span>
+                            <strong>{generatedPreview.simulationFrequency.label}</strong>
+                          </div>
+                          <div>
+                            <span>Redação</span>
+                            <strong>{generatedPreview.includeEssay ? "Incluída" : "Não incluída"}</strong>
+                          </div>
+                        </div>
 
-                            {day.isRestDay ? (
-                              <div className="rest-day-line">Pausa planejada</div>
-                            ) : (
-                              <div className="session-list">
-                                {day.sessions.map((session) => (
-                                  <div key={`${day.id}-${session.type}`} className="session-item">
-                                    <span
-                                      className="session-marker"
-                                      style={{ backgroundColor: session.color }}
-                                    />
-                                    <div>
-                                      <strong>{session.type}</strong>
-                                      <span>
-                                        {session.title} · {session.minutes}min
-                                      </span>
-                                    </div>
-                                  </div>
-                                ))}
+                        {generatedPreview.pausePeriods.length > 0 && (
+                          <div className="preview-pause-list">
+                            <span>Pausas planejadas</span>
+                            {generatedPreview.pausePeriods.map((pause) => (
+                              <div key={pause.id}>
+                                <strong>{pause.label}</strong>
+                                <small>
+                                  {pause.startDate} até {pause.endDate}
+                                </small>
                               </div>
-                            )}
-                          </article>
-                        ))}
-                      </div>
+                            ))}
+                          </div>
+                        )}
 
-                      <div className="preview-summary-strip">
-                        <div>
-                          <span>Objetivo</span>
-                          <strong>{generatedPreview.objective.label}</strong>
-                        </div>
-                        <div>
-                          <span>Carga total estimada</span>
-                          <strong>{generatedPreview.totalHours}h</strong>
-                        </div>
-                        <div>
-                          <span>Média por dia ativo</span>
-                          <strong>{generatedPreview.dailyAverage}h</strong>
-                        </div>
-                      </div>
+                        <div className="weekly-preview-grid">
+                          {generatedPreview.weeklyPlan.map((day) => (
+                            <article
+                              key={day.id}
+                              className={`preview-day-card ${day.isRestDay ? "rest" : ""}`}
+                            >
+                              <div className="preview-day-title">
+                                <strong>{day.label}</strong>
+                                <span>{day.isRestDay ? "Folga" : `${day.sessions.length} blocos`}</span>
+                              </div>
 
-                  <div className="preview-actions">
-                    <button
-                      type="button"
-                      className="planner-secondary-button"
-                      onClick={() => setCreationStep("config")}
-                    >
-                      Ajustar configuração
-                    </button>
-                    <button
-                      type="button"
-                      className="planner-primary-button"
-                      onClick={() => setCreationStep("final")}
-                    >
-                      <CheckCircle2 size={17} />
-                      Ir para finalização
-                    </button>
-                      </div>
-                    </>
-                  )}
-                </div>
+                              {day.isRestDay ? (
+                                <div className="rest-day-line">Pausa planejada</div>
+                              ) : (
+                                <div className="session-list">
+                                  {day.sessions.map((session) => (
+                                    <div key={`${day.id}-${session.type}`} className="session-item">
+                                      <span
+                                        className="session-marker"
+                                        style={{ backgroundColor: session.color }}
+                                      />
+                                      <div>
+                                        <strong>{session.type}</strong>
+                                        <span>
+                                          {session.title} · {session.minutes}min
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </article>
+                          ))}
+                        </div>
+
+                        <div className="preview-summary-strip">
+                          <div>
+                            <span>Objetivo</span>
+                            <strong>{generatedPreview.objective.label}</strong>
+                          </div>
+                          <div>
+                            <span>Carga total estimada</span>
+                            <strong>{generatedPreview.totalHours}h</strong>
+                          </div>
+                          <div>
+                            <span>Média por dia ativo</span>
+                            <strong>{generatedPreview.dailyAverage}h</strong>
+                          </div>
+                        </div>
+
+                        <div className="preview-actions">
+                          <button
+                            type="button"
+                            className="planner-secondary-button"
+                            onClick={() => setCreationStep("config")}
+                          >
+                            Ajustar configuração
+                          </button>
+                          <button
+                            type="button"
+                            className="planner-primary-button"
+                            onClick={() => setCreationStep("final")}
+                          >
+                            <CheckCircle2 size={17} />
+                            Ir para finalização
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 )}
 
                 {creationStep === "final" && (

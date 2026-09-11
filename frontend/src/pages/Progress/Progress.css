@@ -903,3 +903,34 @@
   color: #64748b;
   height: 20px;
 }
+/* Indicadores do Cronograma no Progresso */
+.weekly-goal-schedule-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--primary, #2563eb);
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid rgba(37, 99, 235, 0.25);
+}
+
+.kpi-sub-target {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted, #64748b);
+  margin-left: 4px;
+}
+
+.goal-stat-item.daily-stat {
+  border-color: rgba(37, 99, 235, 0.3);
+  background: rgba(37, 99, 235, 0.05);
+}
+
+.goal-stat-item.daily-stat small {
+  font-size: 13px;
+  color: var(--muted, #64748b);
+  font-weight: 600;
+}

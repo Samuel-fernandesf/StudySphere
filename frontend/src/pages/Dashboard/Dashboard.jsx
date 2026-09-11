@@ -6,7 +6,8 @@ import { useAuthContext } from "../../contexts/AuthContext";
 import { listarMaterias } from "../../services/subjectService";
 import { listarEventos } from "../../services/eventService";
 import { listarTarefas } from "../../services/taskService";
-import { obterMetaSemanal } from "../../services/progressService";
+import { obterMetaSemanal, obterTempoPorDia } from "../../services/progressService";
+import { getActiveScheduleStudyGoals, subscribeToScheduleChanges } from "../../services/scheduleStorage";
 import { listarQuizzes } from "../../services/quizService";
 import * as Icons from "lucide-react";
 import { format, parseISO, isSameDay } from "date-fns";
@@ -99,6 +100,8 @@ export default function Dashboard() {
   // Estados para KPIs
   const [completedToday, setCompletedToday] = useState(0);
   const [weeklyGoal, setWeeklyGoal] = useState(null);
+  const [todayStudiedHours, setTodayStudiedHours] = useState(0);
+  const [activeScheduleGoal, setActiveScheduleGoal] = useState(() => getActiveScheduleStudyGoals());
 
   const [loading, setLoading] = useState(true);
 
@@ -106,11 +109,12 @@ export default function Dashboard() {
     ? userDetails.nome_completo.split(" ")[0]
     : userDetails?.username || "";
 
-  // Carregar dados ao montar o componente
-  // Como o registro de estudo é em outra página, ao voltar para cá (mount),
-  // os dados serão recarregados e a meta atualizada.
   useEffect(() => {
     loadDashboardData();
+    return subscribeToScheduleChanges(() => {
+      setActiveScheduleGoal(getActiveScheduleStudyGoals());
+      loadDashboardData();
+    });
   }, []);
 
   async function loadDashboardData() {
@@ -146,9 +150,37 @@ export default function Dashboard() {
 
       setCompletedToday(countToday);
 
-      // 5. Carregar Meta Semanal
-      const goalData = await obterMetaSemanal();
-      setWeeklyGoal(goalData);
+      // 5. Carregar Meta Semanal e Horas Estudadas Hoje
+      const scheduleGoal = getActiveScheduleStudyGoals();
+      setActiveScheduleGoal(scheduleGoal);
+
+      const savedWeeklyGoal = typeof window !== "undefined" ? localStorage.getItem("study_weekly_goal_hours") : null;
+      const targetWeekly = scheduleGoal
+        ? scheduleGoal.weeklyHours
+        : (savedWeeklyGoal ? parseFloat(savedWeeklyGoal) : 20);
+
+      try {
+        const goalData = await obterMetaSemanal(targetWeekly);
+        setWeeklyGoal(goalData);
+      } catch (goalErr) {
+        console.error("Erro ao carregar meta semanal:", goalErr);
+        setWeeklyGoal({
+          total_hours: 0,
+          goal_hours: targetWeekly,
+          progress_percentage: 0,
+          remaining_hours: targetWeekly,
+          current_hours: 0,
+        });
+      }
+
+      try {
+        const timeByDay = await obterTempoPorDia(7);
+        const todayStr = new Date().toISOString().split("T")[0];
+        const todayRecord = (timeByDay || []).find((item) => item.date === todayStr);
+        setTodayStudiedHours(todayRecord ? Number(todayRecord.total_hours) : 0);
+      } catch (dayErr) {
+        console.error("Erro ao carregar tempo por dia:", dayErr);
+      }
 
       // 6. Carregar Questionários
       try {
@@ -198,17 +230,66 @@ export default function Dashboard() {
         </div>
       </header>
 
+      {activeScheduleGoal && (
+        <section className="active-schedule-banner card" aria-label="Cronograma Ativo">
+          <div className="active-schedule-banner-content">
+            <div className="active-schedule-banner-icon">
+              <Icons.CalendarCheck size={22} />
+            </div>
+            <div className="active-schedule-banner-text">
+              <div className="active-schedule-banner-title">
+                <span>Cronograma Ativo:</span>
+                <strong>{activeScheduleGoal.title}</strong>
+                <span className="active-schedule-tag">{activeScheduleGoal.dailyHours}h/dia</span>
+                <span
+                  className="active-schedule-tag"
+                  style={{ background: "rgba(16, 185, 129, 0.15)", color: "#059669" }}
+                >
+                  {activeScheduleGoal.weeklyHours}h/sem
+                </span>
+              </div>
+              <p className="active-schedule-banner-sub">
+                {todayStudiedHours >= activeScheduleGoal.dailyHours
+                  ? "🎉 Meta diária atingida hoje! Parabéns pelo foco."
+                  : `Faltam ${Math.max(0, activeScheduleGoal.dailyHours - todayStudiedHours).toFixed(1)}h para bater sua meta diária (${todayStudiedHours}h estudadas hoje). Meta semanal: ${weeklyGoal?.total_hours || 0}h de ${activeScheduleGoal.weeklyHours}h.`}
+              </p>
+            </div>
+          </div>
+          <div className="active-schedule-progress">
+            <div className="active-schedule-progress-bar">
+              <div
+                className="active-schedule-progress-fill"
+                style={{
+                  width: `${Math.min(100, Math.round((todayStudiedHours / activeScheduleGoal.dailyHours) * 100))}%`,
+                }}
+              />
+            </div>
+            <span className="active-schedule-progress-label">
+              {Math.min(100, Math.round((todayStudiedHours / activeScheduleGoal.dailyHours) * 100))}% hoje
+            </span>
+          </div>
+        </section>
+      )}
+
       <main className="dashboard-right">
         {/* KPIs */}
         <section className="kpi-row" aria-label="Indicadores">
           <KpiCard titulo="Matérias" valor={totalSubjects} />
           <KpiCard titulo="Eventos" valor={totalEvents} />
           <KpiCard titulo="Concluídas Hoje" valor={completedToday} />
-          <KpiCard
-            titulo="Meta Semanal"
-            valor={`${progressPercent}%`}
-            descricao='de 20h'
-          />
+          {activeScheduleGoal ? (
+            <KpiCard
+              titulo="Meta Diária"
+              valor={`${todayStudiedHours}h / ${activeScheduleGoal.dailyHours}h`}
+              descricao={`${activeScheduleGoal.title} (${activeScheduleGoal.weeklyHours}h/sem • ${activeScheduleGoal.dailyHours}h/dia)`}
+            />
+          ) : (
+            <KpiCard
+              titulo="Meta Semanal"
+              valor={`${progressPercent}%`}
+              descricao={weeklyGoal ? `${weeklyGoal.total_hours}h de ${weeklyGoal.goal_hours}h` : 'de 20h'}
+            />
+          )}
         </section>
 
         {loading ? (

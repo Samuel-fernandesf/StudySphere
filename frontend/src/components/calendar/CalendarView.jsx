@@ -81,18 +81,9 @@ export default function CalendarView({ scheduleFilterId = "" }) {
   }
 
   async function handleDeleteEvent(eventId) {
-    const confirmado = await showConfirm(
-      "Tem certeza que deseja excluir este evento?",
-      "Excluir evento",
-      "warning"
-    );
-
-    if (!confirmado) return;
-
     try {
       await deletarEvento(eventId);
       setIsModalOpen(false);
-      await showAlert("Evento excluído com sucesso.", "success", "Excluído");
       loadEvents();
     } catch (error) {
       console.error("Erro ao deletar evento:", error.response?.data || error);

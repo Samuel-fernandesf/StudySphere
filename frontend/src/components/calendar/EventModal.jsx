@@ -48,6 +48,8 @@ export default function EventModal({ event, selectedDate, onClose, onDelete }) {
     }));
   }
 
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -74,10 +76,8 @@ export default function EventModal({ event, selectedDate, onClose, onDelete }) {
 
       if (event) {
         await atualizarEvento(event.id, eventData);
-        await showAlert("Evento atualizado com sucesso.", "success", "Alterações salvas");
       } else {
         await criarEvento(eventData);
-        await showAlert("Evento criado com sucesso.", "success", "Evento criado");
       }
 
       onClose();
@@ -96,15 +96,19 @@ export default function EventModal({ event, selectedDate, onClose, onDelete }) {
   async function handleDeleteClick() {
     if (!event) return;
 
-    const confirmado = await showConfirm(
-      "Tem certeza que deseja excluir este evento?",
-      "Excluir evento",
-      "warning"
-    );
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
 
-    if (!confirmado) return;
-
-    await onDelete(event.id);
+    try {
+      setLoading(true);
+      await onDelete(event.id);
+    } catch (error) {
+      console.error("Erro ao excluir evento:", error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const colors = [
@@ -196,9 +200,8 @@ export default function EventModal({ event, selectedDate, onClose, onDelete }) {
                   onClick={() =>
                     setFormData((prev) => ({ ...prev, color: color.value }))
                   }
-                  className={`color-button ${
-                    formData.color === color.value ? "selected" : ""
-                  }`}
+                  className={`color-button ${formData.color === color.value ? "selected" : ""
+                    }`}
                   style={{
                     backgroundColor: color.value
                   }}
@@ -213,10 +216,11 @@ export default function EventModal({ event, selectedDate, onClose, onDelete }) {
               <button
                 type="button"
                 onClick={handleDeleteClick}
-                className="btn-danger"
+                className={`btn-danger ${confirmDelete ? "confirming" : ""}`}
+                title={confirmDelete ? "Clique novamente para confirmar a exclusão" : "Excluir evento"}
               >
                 <Trash2 size={16} />
-                Excluir
+                <span>{confirmDelete ? "Confirmar exclusão?" : "Excluir"}</span>
               </button>
             )}
             <div className="right-actions">
