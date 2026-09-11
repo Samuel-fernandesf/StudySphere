@@ -18,6 +18,77 @@
   gap: 16px;
 }
 
+.schedule-manager {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.schedule-manager label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 220px;
+}
+
+.schedule-manager label span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.schedule-manager select {
+  min-height: 40px;
+  padding: 9px 34px 9px 12px;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.schedule-manager-button {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 12px;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.schedule-manager-button:hover {
+  border-color: var(--primary);
+  background: var(--secondary);
+}
+
+.schedule-manager-button.danger {
+  color: #b91c1c;
+}
+
+.schedule-manager-button.confirming {
+  border-color: rgba(220, 38, 38, 0.35);
+  background: rgba(254, 226, 226, 0.75);
+}
+
+.schedule-manager-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .cronograma-title {
   margin: 0;
   color: var(--text);
@@ -906,6 +977,70 @@
   font-size: 12px;
 }
 
+.schedule-final-step {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.schedule-final-card {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.schedule-final-card div {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  background: var(--card-bg);
+  box-shadow: 0 1px 3px var(--surface-shadow);
+}
+
+.schedule-final-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.schedule-final-card strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.schedule-final-note,
+.schedule-result-message {
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.schedule-final-note {
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--muted);
+}
+
+.schedule-result-message.success {
+  border: 1px solid rgba(22, 163, 74, 0.25);
+  background: rgba(220, 252, 231, 0.85);
+  color: #166534;
+}
+
+.schedule-result-message.error {
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  background: rgba(254, 226, 226, 0.85);
+  color: #b91c1c;
+}
+
 .weekly-preview-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(136px, 1fr));
@@ -1207,6 +1342,20 @@
     padding: 16px;
   }
 
+  .cronograma-header {
+    flex-direction: column;
+  }
+
+  .schedule-manager {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .schedule-manager label {
+    flex: 1;
+    min-width: 180px;
+  }
+
   .schedule-builder-modal-overlay {
     align-items: stretch;
     padding: 12px;
@@ -1255,7 +1404,8 @@
   .cronograma-kpis,
   .planner-fields-grid,
   .objective-grid,
-  .preview-personalization-grid {
+  .preview-personalization-grid,
+  .schedule-final-card {
     grid-template-columns: 1fr;
   }
 
@@ -1308,6 +1458,12 @@
     padding: 12px;
   }
 
+  .schedule-manager,
+  .schedule-manager label,
+  .schedule-manager-button {
+    width: 100%;
+  }
+
   .schedule-builder-modal-overlay {
     padding: 0;
   }
@@ -1322,6 +1478,8 @@
   }
 
   .schedule-builder-step-tabs {
+    display: grid;
+    grid-template-columns: 1fr;
     padding: 10px 14px;
   }
 

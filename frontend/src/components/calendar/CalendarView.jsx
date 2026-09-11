@@ -19,7 +19,12 @@ import { listarEventos, deletarEvento } from "../../services/eventService";
 import { useModal } from "../../contexts/ModalContext";
 import "../../pages/Calendar/CalendarPage.css";
 
-export default function CalendarView() {
+function eventBelongsToSchedule(event, scheduleId) {
+  if (!scheduleId) return true;
+  return (event.description || "").includes(`Cronograma ID: ${scheduleId}`);
+}
+
+export default function CalendarView({ scheduleFilterId = "" }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [events, setEvents] = useState([]);
@@ -30,7 +35,7 @@ export default function CalendarView() {
 
   useEffect(() => {
     loadEvents();
-  }, [currentDate]);
+  }, [currentDate, scheduleFilterId]);
 
   async function loadEvents() {
     try {
@@ -42,7 +47,7 @@ export default function CalendarView() {
         monthStart.toISOString(),
         monthEnd.toISOString()
       );
-      setEvents(eventsList);
+      setEvents(eventsList.filter((event) => eventBelongsToSchedule(event, scheduleFilterId)));
     } catch (error) {
       console.error("Erro ao carregar eventos:", error.response?.data || error);
       await showAlert(

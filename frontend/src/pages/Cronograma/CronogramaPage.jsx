@@ -8,15 +8,16 @@ import {
   Clock3,
   GraduationCap,
   Layers3,
+  Plus,
   RotateCcw,
   Sparkles,
   Target,
+  Trash2,
   X,
 } from "lucide-react";
 import CalendarView from "../../components/calendar/CalendarView";
 import { listarMaterias } from "../../services/subjectService";
-import { criarEvento } from "../../services/eventService";
-import { useModal } from "../../contexts/ModalContext";
+import { criarEvento, deletarEvento, listarEventos } from "../../services/eventService";
 import "./CronogramaPage.css";
 
 const DEFAULT_SUBJECTS = [
@@ -119,6 +120,8 @@ const SIMULATION_FREQUENCIES = [
 ];
 
 const SCHEDULE_EVENT_MARKER = "[STUDYSPHERE_SCHEDULE]";
+const SCHEDULE_ID_PREFIX = "Cronograma ID:";
+const SCHEDULES_STORAGE_KEY = "studysphere:cronogramas";
 
 const DAY_INDEX_BY_ID = {
   dom: 0,
@@ -138,6 +141,37 @@ function getDefaultEndDate() {
   const date = new Date();
   date.setMonth(date.getMonth() + 4);
   return getDateInputValue(date);
+}
+
+function createScheduleId() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+
+  return `schedule-${Date.now()}`;
+}
+
+function loadStoredSchedules() {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const storedValue = window.localStorage.getItem(SCHEDULES_STORAGE_KEY);
+    const schedules = storedValue ? JSON.parse(storedValue) : [];
+    return Array.isArray(schedules) ? schedules : [];
+  } catch (error) {
+    console.error("Erro ao carregar cronogramas salvos:", error);
+    return [];
+  }
+}
+
+function saveStoredSchedules(schedules) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(SCHEDULES_STORAGE_KEY, JSON.stringify(schedules));
 }
 
 function parseLocalDate(value) {
@@ -293,6 +327,7 @@ function buildCalendarEventsFromPreview(preview) {
             title: `${session.type}: ${session.title}`,
             description:
               `${SCHEDULE_EVENT_MARKER}\n` +
+              `${SCHEDULE_ID_PREFIX} ${preview.scheduleId}\n` +
               `Cronograma ${preview.title}\n` +
               `Objetivo: ${preview.objective.label}\n` +
               `Tipos de prova: ${preview.examTypesLabel}\n` +
@@ -316,16 +351,20 @@ function buildCalendarEventsFromPreview(preview) {
 export default function CronogramaPage() {
   const { tab } = useParams();
   const navigate = useNavigate();
-  const { showAlert, showConfirm } = useModal();
   const activeTab = tab === "criar" ? "criar" : "calendario";
   const isScheduleModalOpen = activeTab === "criar";
   const [subjects, setSubjects] = useState(DEFAULT_SUBJECTS);
   const [generatedPreview, setGeneratedPreview] = useState(null);
   const [previewError, setPreviewError] = useState("");
+  const [scheduleMessage, setScheduleMessage] = useState(null);
   const [isCreatingSchedule, setIsCreatingSchedule] = useState(false);
+  const [isDeletingSchedule, setIsDeletingSchedule] = useState(false);
   const [isPresetModalOpen, setIsPresetModalOpen] = useState(false);
   const [calendarVersion, setCalendarVersion] = useState(0);
   const [creationStep, setCreationStep] = useState("config");
+  const [savedSchedules, setSavedSchedules] = useState(() => loadStoredSchedules());
+  const [activeScheduleId, setActiveScheduleId] = useState("");
+  const [deleteConfirmId, setDeleteConfirmId] = useState("");
   const [draftPresetId, setDraftPresetId] = useState("enem");
   const [pauseDraft, setPauseDraft] = useState({
     startDate: "",
@@ -376,6 +415,10 @@ export default function CronogramaPage() {
 
     loadSubjects();
   }, []);
+
+  useEffect(() => {
+    saveStoredSchedules(savedSchedules);
+  }, [savedSchedules]);
 
   const selectedObjective = useMemo(
     () => OBJECTIVES.find((objective) => objective.id === form.objective) || OBJECTIVES[0],
@@ -443,6 +486,11 @@ export default function CronogramaPage() {
   const selectedSimulationFrequency =
     SIMULATION_FREQUENCIES.find((frequency) => frequency.id === form.simulationFrequency) ||
     SIMULATION_FREQUENCIES[0];
+  const activeSchedule = savedSchedules.find((schedule) => schedule.id === activeScheduleId);
+  const previewCalendarEvents = useMemo(
+    () => (generatedPreview ? buildCalendarEventsFromPreview(generatedPreview) : []),
+    [generatedPreview]
+  );
 
   function updateField(field, value) {
     setForm((current) => ({
@@ -451,6 +499,7 @@ export default function CronogramaPage() {
     }));
     setGeneratedPreview(null);
     setPreviewError("");
+    setScheduleMessage(null);
   }
 
   function toggleDay(dayId) {
@@ -467,6 +516,7 @@ export default function CronogramaPage() {
     });
     setGeneratedPreview(null);
     setPreviewError("");
+    setScheduleMessage(null);
   }
 
   function toggleSubject(subjectId) {
@@ -484,6 +534,7 @@ export default function CronogramaPage() {
     });
     setGeneratedPreview(null);
     setPreviewError("");
+    setScheduleMessage(null);
   }
 
   function toggleExamType(examTypeId) {
@@ -500,6 +551,7 @@ export default function CronogramaPage() {
     });
     setGeneratedPreview(null);
     setPreviewError("");
+    setScheduleMessage(null);
   }
 
   function updatePauseDraft(field, value) {
@@ -540,6 +592,7 @@ export default function CronogramaPage() {
     });
     setGeneratedPreview(null);
     setPreviewError("");
+    setScheduleMessage(null);
   }
 
   function removePausePeriod(pauseId) {
@@ -549,6 +602,7 @@ export default function CronogramaPage() {
     }));
     setGeneratedPreview(null);
     setPreviewError("");
+    setScheduleMessage(null);
   }
 
   function resetDraft() {
@@ -578,8 +632,11 @@ export default function CronogramaPage() {
       label: "",
     });
     setCreationStep("config");
+    setActiveScheduleId("");
+    setDeleteConfirmId("");
     setGeneratedPreview(null);
     setPreviewError("");
+    setScheduleMessage(null);
   }
 
   function openPresetModal() {
@@ -616,7 +673,67 @@ export default function CronogramaPage() {
 
   function closeScheduleModal() {
     setIsPresetModalOpen(false);
+    setDeleteConfirmId("");
     navigate("/cronograma/calendario");
+  }
+
+  function startNewSchedule() {
+    resetDraft();
+    navigate("/cronograma/criar");
+  }
+
+  function selectSavedSchedule(scheduleId) {
+    setActiveScheduleId(scheduleId);
+    setDeleteConfirmId("");
+    setScheduleMessage(null);
+  }
+
+  function eventBelongsToSchedule(event, scheduleId) {
+    const description = event.description || "";
+    return description.includes(`${SCHEDULE_ID_PREFIX} ${scheduleId}`);
+  }
+
+  async function deleteActiveSchedule() {
+    if (!activeSchedule || isDeletingSchedule) {
+      return;
+    }
+
+    if (deleteConfirmId !== activeSchedule.id) {
+      setDeleteConfirmId(activeSchedule.id);
+      return;
+    }
+
+    try {
+      setIsDeletingSchedule(true);
+      const events = await listarEventos();
+      const savedEventIds = new Set((activeSchedule.eventIds || []).map((eventId) => String(eventId)));
+      const eventsToDelete = events.filter(
+        (event) => savedEventIds.has(String(event.id)) || eventBelongsToSchedule(event, activeSchedule.id)
+      );
+
+      for (const event of eventsToDelete) {
+        await deletarEvento(event.id);
+      }
+
+      setSavedSchedules((currentSchedules) =>
+        currentSchedules.filter((schedule) => schedule.id !== activeSchedule.id)
+      );
+      setActiveScheduleId("");
+      setDeleteConfirmId("");
+      setCalendarVersion((currentVersion) => currentVersion + 1);
+      setScheduleMessage({
+        type: "success",
+        text: `Cronograma "${activeSchedule.title}" excluído com ${eventsToDelete.length} horários removidos.`,
+      });
+    } catch (error) {
+      console.error("Erro ao excluir cronograma:", error.response?.data || error);
+      setScheduleMessage({
+        type: "error",
+        text: error.response?.data?.message || "Erro ao excluir cronograma. Tente novamente.",
+      });
+    } finally {
+      setIsDeletingSchedule(false);
+    }
   }
 
   function refreshPreview() {
@@ -674,7 +791,9 @@ export default function CronogramaPage() {
     }
 
     setPreviewError("");
+    setScheduleMessage(null);
     setGeneratedPreview({
+      scheduleId: generatedPreview?.scheduleId || createScheduleId(),
       title: form.targetName.trim() || "Cronograma personalizado",
       weeklyHours,
       weeksToTarget,
@@ -703,43 +822,55 @@ export default function CronogramaPage() {
   async function createScheduleInCalendar() {
     if (!generatedPreview) {
       setPreviewError("Gere uma prévia antes de criar o cronograma no calendário.");
+      setCreationStep("preview");
       return;
     }
 
-    const calendarEvents = buildCalendarEventsFromPreview(generatedPreview);
+    const calendarEvents = previewCalendarEvents;
 
     if (calendarEvents.length === 0) {
       setPreviewError("Não há blocos suficientes para criar eventos no calendário.");
       return;
     }
 
-    const confirmed = await showConfirm(
-      `Isso criará ${calendarEvents.length} eventos no calendário entre ${generatedPreview.startDate} e ${generatedPreview.endDate}. Deseja continuar?`,
-      "Criar cronograma",
-      "warning"
-    );
-
-    if (!confirmed) return;
-
     try {
       setIsCreatingSchedule(true);
+      setScheduleMessage(null);
+      const createdEvents = [];
+
       for (const eventData of calendarEvents) {
-        await criarEvento(eventData);
+        const createdEvent = await criarEvento(eventData);
+        createdEvents.push(createdEvent);
       }
-      await showAlert(
-        `${calendarEvents.length} eventos adicionados ao calendário.`,
-        "success",
-        "Cronograma criado"
-      );
+
+      const savedSchedule = {
+        id: generatedPreview.scheduleId,
+        title: generatedPreview.title,
+        objective: generatedPreview.objective.label,
+        examTypesLabel: generatedPreview.examTypesLabel,
+        startDate: generatedPreview.startDate,
+        endDate: generatedPreview.endDate,
+        eventCount: createdEvents.length,
+        eventIds: createdEvents.map((event) => event.id),
+        createdAt: new Date().toISOString(),
+      };
+
+      setSavedSchedules((currentSchedules) => [
+        savedSchedule,
+        ...currentSchedules.filter((schedule) => schedule.id !== savedSchedule.id),
+      ]);
+      setActiveScheduleId(savedSchedule.id);
       setCalendarVersion((currentVersion) => currentVersion + 1);
-      navigate("/cronograma/calendario");
+      setScheduleMessage({
+        type: "success",
+        text: `${createdEvents.length} horários adicionados ao calendário.`,
+      });
     } catch (error) {
       console.error("Erro ao criar cronograma no calendário:", error.response?.data || error);
-      await showAlert(
-        error.response?.data?.message || "Erro ao criar cronograma no calendário. Tente novamente.",
-        "error",
-        "Erro"
-      );
+      setScheduleMessage({
+        type: "error",
+        text: error.response?.data?.message || "Erro ao criar cronograma no calendário. Tente novamente.",
+      });
     } finally {
       setIsCreatingSchedule(false);
     }
@@ -754,7 +885,48 @@ export default function CronogramaPage() {
             Calendário, metas e plano personalizado em um só lugar.
           </p>
         </div>
+        <div className="schedule-manager" aria-label="Gerenciar cronogramas">
+          <label>
+            <span>Cronograma</span>
+            <select
+              value={activeScheduleId}
+              onChange={(event) => selectSavedSchedule(event.target.value)}
+            >
+              <option value="">Nenhum selecionado</option>
+              {savedSchedules.map((schedule) => (
+                <option key={schedule.id} value={schedule.id}>
+                  {schedule.title}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button type="button" className="schedule-manager-button" onClick={startNewSchedule}>
+            <Plus size={17} />
+            Novo
+          </button>
+          <button
+            type="button"
+            className={`schedule-manager-button danger ${
+              deleteConfirmId === activeScheduleId ? "confirming" : ""
+            }`}
+            onClick={deleteActiveSchedule}
+            disabled={!activeSchedule || isDeletingSchedule}
+          >
+            <Trash2 size={17} />
+            {isDeletingSchedule
+              ? "Excluindo..."
+              : deleteConfirmId === activeScheduleId
+                ? "Confirmar"
+                : "Excluir"}
+          </button>
+        </div>
       </header>
+
+      {scheduleMessage && !isScheduleModalOpen && (
+        <div className={`schedule-result-message ${scheduleMessage.type}`}>
+          {scheduleMessage.text}
+        </div>
+      )}
 
       <nav className="cronograma-tabs" aria-label="Submenus de cronograma">
         <NavLink
@@ -778,7 +950,7 @@ export default function CronogramaPage() {
       </nav>
 
       <section className="cronograma-calendar" aria-label="Calendário">
-        <CalendarView key={calendarVersion} />
+        <CalendarView key={calendarVersion} scheduleFilterId={activeScheduleId} />
       </section>
 
       {isScheduleModalOpen && (
@@ -821,6 +993,14 @@ export default function CronogramaPage() {
               >
                 <span>2</span>
                 Prévia
+              </button>
+              <button
+                type="button"
+                className={creationStep === "final" ? "active" : ""}
+                onClick={() => setCreationStep("final")}
+              >
+                <span>3</span>
+                Finalização
               </button>
             </div>
 
@@ -1308,16 +1488,99 @@ export default function CronogramaPage() {
                     <button
                       type="button"
                       className="planner-primary-button"
-                          onClick={createScheduleInCalendar}
-                          disabled={isCreatingSchedule}
-                        >
-                          <CalendarDays size={17} />
-                          {isCreatingSchedule ? "Criando..." : "Criar no calendário"}
-                        </button>
+                      onClick={() => setCreationStep("final")}
+                    >
+                      <CheckCircle2 size={17} />
+                      Ir para finalização
+                    </button>
                       </div>
                     </>
                   )}
                 </div>
+                )}
+
+                {creationStep === "final" && (
+                  <div className="schedule-final-step">
+                    {!generatedPreview ? (
+                      <div className="preview-empty-state">
+                        <div className="preview-empty-icon">
+                          <CheckCircle2 size={24} />
+                        </div>
+                        <h2>Finalize depois da prévia</h2>
+                        <p>Gere uma prévia para conferir os horários antes de criar o cronograma.</p>
+                        <button
+                          type="button"
+                          className="planner-primary-button"
+                          onClick={() => setCreationStep("config")}
+                        >
+                          Voltar para configuração
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="schedule-final-card">
+                          <div>
+                            <span>Cronograma</span>
+                            <strong>{generatedPreview.title}</strong>
+                          </div>
+                          <div>
+                            <span>Período</span>
+                            <strong>
+                              {generatedPreview.startDate} até {generatedPreview.endDate}
+                            </strong>
+                          </div>
+                          <div>
+                            <span>Horários criados</span>
+                            <strong>{previewCalendarEvents.length}</strong>
+                          </div>
+                          <div>
+                            <span>Dashboard</span>
+                            <strong>Não aparece como evento</strong>
+                          </div>
+                        </div>
+
+                        <div className="schedule-final-note">
+                          Os horários serão adicionados ao calendário e agrupados no menu de cronogramas.
+                        </div>
+
+                        {scheduleMessage && (
+                          <div className={`schedule-result-message ${scheduleMessage.type}`}>
+                            {scheduleMessage.text}
+                          </div>
+                        )}
+
+                        <div className="preview-actions">
+                          <button
+                            type="button"
+                            className="planner-secondary-button"
+                            onClick={() => setCreationStep("preview")}
+                            disabled={isCreatingSchedule}
+                          >
+                            Voltar para prévia
+                          </button>
+                          {scheduleMessage?.type === "success" ? (
+                            <button
+                              type="button"
+                              className="planner-primary-button"
+                              onClick={closeScheduleModal}
+                            >
+                              Fechar
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              className="planner-primary-button"
+                              onClick={createScheduleInCalendar}
+                              disabled={isCreatingSchedule || previewCalendarEvents.length === 0}
+                            >
+                              <CalendarDays size={17} />
+                              {isCreatingSchedule ? "Criando..." : "Confirmar e criar"}
+                            </button>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
