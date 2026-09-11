@@ -7,7 +7,7 @@ import {
     Menu,
     LayoutDashboard,
     BookOpen,
-    Calendar,
+    CalendarClock,
     TrendingUp,
     MessageSquare,
     FileQuestion,
@@ -26,6 +26,10 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
     // Função para verificar se o link está ativo
     const isActive = (path) => {
         return location.pathname === path;
+    };
+
+    const isCronogramaActive = () => {
+        return location.pathname === '/calendar' || location.pathname.startsWith('/cronograma');
     };
 
     return (
@@ -66,11 +70,11 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                         </li>
                         <li>
                             <Link
-                                to="/calendar"
-                                className={`navLink ${isActive('/calendar') ? 'navLinkActive' : ''}`}
+                                to="/cronograma/calendario"
+                                className={`navLink ${isCronogramaActive() ? 'navLinkActive' : ''}`}
                             >
-                                <Calendar size={20} />
-                                <span>Calendário</span>
+                                <CalendarClock size={20} />
+                                <span>Cronograma</span>
                             </Link>
                         </li>
                         <li>

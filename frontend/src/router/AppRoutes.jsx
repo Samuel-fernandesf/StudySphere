@@ -12,7 +12,7 @@ import ConfirmEmailScreen from "../pages/Auth/ConfirmEmailScreen";
 import Dashboard from "../pages/Dashboard/Dashboard";
 import FilesList from "../pages/Files/FilesList";
 import FileView from "../pages/Files/FileView";
-import CalendarPage from "../pages/Calendar/CalendarPage";
+import CronogramaPage from "../pages/Cronograma/CronogramaPage";
 import QuizList from "../pages/Quiz/QuizList";
 import QuizPlay from "../pages/Quiz/QuizPlay";
 import QuizCreate from "../pages/Quiz/QuizCreate";
@@ -62,7 +62,9 @@ export default function AppRoutes() {
                 <Route path="/subjects" element={<SubjectsPage />} />
                 <Route path="/files" element={<FilesList />} />
                 <Route path="/files/:id" element={<FileView />} />
-                <Route path="/calendar" element={<CalendarPage />} />
+                <Route path="/calendar" element={<Navigate to="/cronograma/calendario" replace />} />
+                <Route path="/cronograma" element={<Navigate to="/cronograma/calendario" replace />} />
+                <Route path="/cronograma/:tab" element={<CronogramaPage />} />
                 <Route path="/quiz" element={<QuizList />} />
                 <Route path="/quiz/create" element={<QuizCreate />} />
                 <Route path="/quiz/:id" element={<QuizPlay />} />

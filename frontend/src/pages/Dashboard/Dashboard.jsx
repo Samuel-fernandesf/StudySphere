@@ -28,6 +28,14 @@ const SectionCard = ({ titulo, children }) => (
   </div>
 );
 
+const isScheduleGeneratedEvent = (event) => {
+  const description = event.description || "";
+  return (
+    description.includes("[STUDYSPHERE_SCHEDULE]") ||
+    description.includes("Gerado pelo criador de cronograma personalizado.")
+  );
+};
+
 const SubjectItem = ({ subject }) => {
   const IconComponent = Icons[subject.icon] || Icons.BookOpen;
 
@@ -115,8 +123,9 @@ export default function Dashboard() {
 
       // 2. Carregar eventos (sem filtro de data para trazer todos, conforme pedido)
       const eventsData = await listarEventos();
+      const dashboardEvents = eventsData.filter((event) => !isScheduleGeneratedEvent(event));
       // Ordenar por data (mais recente primeiro ou mais próximo)
-      const sortedEvents = eventsData.sort((a, b) =>
+      const sortedEvents = dashboardEvents.sort((a, b) =>
         new Date(a.start_date) - new Date(b.start_date)
       );
       setEvents(sortedEvents);
@@ -171,7 +180,7 @@ export default function Dashboard() {
     : "Carregando...";
 
   function handleNovoEvento() {
-    window.location.href = "/calendar";
+    window.location.href = "/cronograma/calendario";
   }
 
   return (
@@ -259,7 +268,7 @@ export default function Dashboard() {
             <SectionCard titulo="Seus Eventos">
               {events.length === 0 ? (
                 <div className="empty-message">
-                  Nenhum evento criado. <a href="/calendar">Criar evento</a>
+                  Nenhum evento criado. <a href="/cronograma/calendario">Criar evento</a>
                 </div>
               ) : (
                 <div className="tasks-list">
@@ -276,7 +285,7 @@ export default function Dashboard() {
                   ))}
                   {events.length > 5 && (
                     <div className="view-more">
-                      <a href="/calendar">Ver todos ({events.length})</a>
+                      <a href="/cronograma/calendario">Ver todos ({events.length})</a>
                     </div>
                   )}
                 </div>

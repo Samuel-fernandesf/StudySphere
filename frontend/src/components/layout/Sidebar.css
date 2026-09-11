@@ -112,7 +112,8 @@
   flex-grow: 1;
 }
 
-.navLink.active {
+.navLink.active,
+.navLink.navLinkActive {
   background-color: var(--sidebar-bg-active);
   font-weight: 600;
 }
